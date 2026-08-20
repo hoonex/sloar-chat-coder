@@ -2,6 +2,8 @@
 
 Sloar models repository engineering as explicit states. The states are procedural guardrails, not a requirement to narrate every step.
 
+Forge health is an orthogonal status overlay. A task can remain in IMPLEMENT or VERIFY with `LOCAL_READY + REMOTE_DEGRADED`, then enter PUBLISH only when the required remote path can be proven. See [forge-resilience.md](forge-resilience.md).
+
 ## RECOVER
 
 Enter when prior work may exist or state continuity is uncertain.
@@ -9,7 +11,8 @@ Enter when prior work may exist or state continuity is uncertain.
 Must establish:
 - surviving sandbox workspace status;
 - known durable branch/PR/commit/artifact state;
-- ownership of unfamiliar temporary resources before deleting them.
+- ownership of unfamiliar temporary resources before deleting them;
+- whether any previous interruption was a local-state loss or a hosted-forge outage.
 
 Exit when the candidate task state is known well enough to identify the intended source.
 
@@ -46,11 +49,15 @@ Exit when the write target and base identity are known.
 
 Make the smallest coherent change that satisfies the task. Preserve unrelated work. Use repository-native formatting, architecture, and dependency rules.
 
+A hosted forge outage does not by itself prevent IMPLEMENT when exact source is already materialized and local execution remains valid.
+
 ## VERIFY
 
 Choose checks based on change risk and repository declarations. Verification failures must be classified before source is changed.
 
-Exit when required checks pass or a concrete blocker is recorded in the evidence ledger.
+Local checks may continue during `REMOTE_DEGRADED`, but record which required checks are still remote-only. Local green evidence supports `LOCAL_READY`; it does not imply REMOTE_VERIFY success.
+
+Exit when required local checks pass or a concrete blocker is recorded in the evidence ledger.
 
 ## PUBLISH
 
@@ -58,13 +65,20 @@ Before writing remote state:
 1. re-resolve mutable base/head refs;
 2. compare them to expected identities;
 3. stop if reconciliation is required;
-4. publish exact verified bytes/objects;
-5. verify the resulting remote head/diff.
+4. confirm the required remote layer is not currently `PUBLICATION_BLOCKED`;
+5. publish exact verified bytes/objects;
+6. verify the resulting remote head/diff.
+
+If the forge is degraded, preserve a checkpoint and defer publication rather than retrying indefinitely.
 
 ## REMOTE_VERIFY
 
 Run or inspect relevant CI, deployment, integration, production, or remote checks required by the repository/task. Do not treat a green unrelated check as evidence for the changed behavior.
 
+After a forge outage recovers, re-resolve remote identity before using newly available CI or publication paths; remote state may have moved while the task was local-only.
+
 ## CLEANUP
 
 Remove only task-owned temporary resources after terminal state is known. Do not delete unfamiliar workflows, branches, artifacts, or files merely because their names look temporary.
+
+If publication was deferred, keep the minimal exact recovery artifact/checkpoint needed to resume safely rather than cleaning away the only durable copy of verified work.
