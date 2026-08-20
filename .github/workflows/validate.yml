@@ -65,13 +65,30 @@ jobs:
           python3 - "$RUNNER_TEMP/doctor.json" <<'PY'
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          assert data['schema']==1
+          assert data['schema']==2
           assert data['sloar_installed'] is True
           assert data['git']['is_worktree'] is True
           assert data['git']['head']
           assert data['chat_capabilities']=='not-detectable-locally'
+          assert data['hosted_capabilities']['repository_write']=='unknown'
           print('first-run: ok')
           PY
+
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --json > "$RUNNER_TEMP/wizard.json"
+          python3 - "$RUNNER_TEMP/wizard.json" <<'PY'
+          import json, pathlib, sys
+          data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert data['schema']==1
+          assert data['sloar_version']=='0.3.0'
+          assert data['repository']['state']=='ready'
+          assert data['repository']['installed'] is True
+          assert data['execution']['state']=='ready'
+          assert data['hosted']['repository_write']=='unknown'
+          assert 'agent' in data['hosted']['reason']
+          print('wizard: ok')
+          PY
+
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q '^Sloar readiness$'
       - name: Validate skill frontmatter contract
         run: |
           python3 - <<'PY'

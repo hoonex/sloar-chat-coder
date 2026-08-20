@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 - 2026-08-20
+
+Beginner First Run Wizard release.
+
+- Added `wizard.py` with a compact human view and full JSON readiness report.
+- Added a stable readiness capsule contract: Repository, Execution, GitHub read/write, CI/browser, and one next action.
+- Upgraded `doctor.py` to schema 2 with origin and safe `gh auth` status while keeping ChatGPT account/plugin state explicitly unknown locally.
+- Added dedicated English/Korean ChatGPT Plugin/App/Skill guides based on the current Plugin Directory model.
+- Added zero-to-first-run clone/install/wizard commands so new users do not need prior Agent Skills knowledge.
+- Clarified that Sloar is currently an Agent Skill repository and does not claim a Plugin Directory listing.
+- Expanded CI to verify wizard behavior and the stricter local-vs-hosted capability boundary.
+
 ## 0.2.0 - 2026-08-20
 
 First-run onboarding release.

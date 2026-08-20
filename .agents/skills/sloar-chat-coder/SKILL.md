@@ -4,7 +4,7 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. GitHub-specific fallback rules apply only when equivalent authorized GitHub capabilities exist.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Sloar Chat Coder
@@ -17,7 +17,20 @@ When the user/session is new to Sloar or required capabilities are uncertain, ru
 
 For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authenticated external data/actions), and **Skill** (reusable instructions). Installing Sloar does not itself authorize GitHub. Conversely, missing GitHub integration does not block local engineering when a lower capability path is sufficient.
 
-Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. Keep onboarding brief once the environment is established.
+Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. If local execution is available, `scripts/wizard.py` can produce a machine-readable local readiness report. Hosted capabilities must still be resolved from the current agent/tool inventory.
+
+When ONBOARD is shown to the user, prefer a compact readiness capsule:
+
+```text
+Sloar readiness
+Repository: ready | missing | unknown
+Execution: ready | missing | unknown
+GitHub read/write: ready | partial | missing | unknown
+CI/browser: ready | partial | missing | unknown
+Next: one concrete action, or "ready to work"
+```
+
+Do not turn a healthy first run into a long setup tutorial. Keep onboarding brief once the environment is established.
 
 ## Seven invariants
 

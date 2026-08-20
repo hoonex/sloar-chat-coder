@@ -12,27 +12,29 @@ Its goal is simple: **make repository work recoverable, exact, and evidence-boun
 
 You do **not** need to understand Sloar's state machine before using it.
 
-### 1. Install Sloar into a target repository
-
-From this repository checkout:
+### 1. Get Sloar and install it
 
 ```bash
+git clone https://github.com/hoonex/sloar-chat-coder.git
+cd sloar-chat-coder
 python3 .agents/skills/sloar-chat-coder/scripts/install.py --target /path/to/your-project
 ```
+
+A downloaded ZIP works too; extract it and run the same installer from the extracted directory.
 
 The installer copies the skill into `.agents/skills/sloar-chat-coder/` and adds an idempotent Sloar entry block to the target repository's `AGENTS.md`. It does not overwrite unrelated repository guidance.
 
 Preview first with `--dry-run` when desired.
 
-### 2. Run the local environment doctor
+### 2. Run the First Run Wizard
 
 Inside the target repository:
 
 ```bash
-python3 .agents/skills/sloar-chat-coder/scripts/doctor.py .
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 ```
 
-This checks the local side of the workflow: Git worktree identity, dirty state, Python/Node/GitHub CLI availability, and whether the Sloar skill is installed. It cannot inspect private ChatGPT account settings; the agent-side first-run protocol handles chat/plugin capabilities separately.
+The default output is deliberately short. It checks the local repository/execution side and marks ChatGPT/Codex GitHub, CI, browser, Plugin/App state as `unknown` until the agent verifies its actual current tools. Use `--json` for the full readiness report.
 
 ### 3. Tell your coding agent to use Sloar
 
@@ -54,9 +56,9 @@ For Sloar this means:
 - **GitHub App**: the authenticated connection that may give ChatGPT repository read/write capabilities.
 - **Plugin**: a discoverable workflow package that can bundle skills and apps. Sloar core does not require a future Sloar Plugin listing to function.
 
-If your ChatGPT surface supports Plugins, GitHub access is normally configured from the Plugin directory / Settings, then the underlying GitHub app is connected and granted access to the repositories you choose. Exact availability varies by plan, workspace policy, role, surface, and region, so Sloar must inspect actual capabilities instead of assuming them.
+If your ChatGPT surface supports Plugins, GitHub access is configured through the current Plugin/App connection flow when that capability is available, with the underlying app granted access only to the repositories you choose. Exact availability varies by plan, workspace policy, role, surface, and region, so Sloar must inspect actual capabilities instead of assuming them.
 
-See [docs/FIRST_RUN.md](docs/FIRST_RUN.md#chatgpt-setup) for a beginner-safe setup checklist.
+See [docs/FIRST_RUN.md](docs/FIRST_RUN.md#chatgpt-setup) for the beginner setup path and [docs/CHATGPT_PLUGINS.md](docs/CHATGPT_PLUGINS.md) for the Plugin/App/Skill decision tree. Sloar is currently distributed as an Agent Skill repository, not as a claimed Plugin Directory listing.
 
 ## Why Sloar exists
 
@@ -101,9 +103,12 @@ Before that lifecycle begins, a first-time environment may run a lightweight **O
 ├── VERSION
 ├── docs/
 │   ├── FIRST_RUN.md
-│   └── FIRST_RUN.ko.md
+│   ├── FIRST_RUN.ko.md
+│   ├── CHATGPT_PLUGINS.md
+│   └── CHATGPT_PLUGINS.ko.md
 ├── examples/
 │   ├── checkpoint.example.json
+│   ├── readiness.example.json
 │   └── first-prompt.md
 └── .agents/
     └── skills/
@@ -121,6 +126,7 @@ Before that lifecycle begins, a first-time environment may run a lightweight **O
             └── scripts/
                 ├── doctor.py
                 ├── install.py
+                ├── wizard.py
                 ├── preflight.sh
                 ├── verify-state.sh
                 └── write-checkpoint.py
@@ -158,9 +164,9 @@ Sloar does not choose your framework, package manager, database, browser, test s
 
 ## Status
 
-Current version: **0.2.0**
+Current version: **0.3.0**
 
-0.2.0 adds first-run onboarding, a safe installer, local capability diagnostics, and explicit ChatGPT Plugin/App/Skill guidance while keeping the core protocol host-neutral.
+0.3.0 adds a beginner-facing First Run Wizard, a compact readiness contract, safer separation of local vs hosted capability evidence, and a dedicated current-model ChatGPT Plugin/App/Skill guide.
 
 ## License
 

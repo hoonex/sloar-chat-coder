@@ -4,13 +4,24 @@ This guide is for someone who has never used Sloar and may not know which AI cod
 
 ## The shortest path
 
-1. Get a local copy of this repository.
+1. Clone or download this repository.
 2. Run `install.py --target <your-project>`.
-3. Open the target project in your preferred AI coding surface.
-4. Ask the agent to run the Sloar first-run capability check.
-5. Let Sloar choose the lowest sufficient capability path.
+3. Run `wizard.py <your-project>` for the local readiness view.
+4. Open the target project in your preferred AI coding surface.
+5. Ask the agent to complete the hosted capability check and begin work.
 
 No GitHub plugin is required for the local engineering loop. A connected GitHub app is useful when you want the chat surface itself to read/write repositories, branches, PRs, CI logs, or artifacts.
+
+## Zero-to-first-run commands
+
+```bash
+git clone https://github.com/hoonex/sloar-chat-coder.git
+cd sloar-chat-coder
+python3 .agents/skills/sloar-chat-coder/scripts/install.py --target ../my-project
+python3 ../my-project/.agents/skills/sloar-chat-coder/scripts/wizard.py ../my-project
+```
+
+If you downloaded a ZIP instead, extract it and run the same `install.py` command from the extracted Sloar directory.
 
 ## ChatGPT setup
 
@@ -28,18 +39,19 @@ Sloar core is a **Skill**. GitHub access is provided by the **GitHub App** when 
 
 In supported ChatGPT experiences:
 
-1. Open the Plugin directory or `Settings -> Plugins`.
-2. Find the GitHub capability/plugin and inspect the included app requirements.
-3. Select Connect when available and finish OAuth.
-4. On GitHub, grant access only to repositories you intend ChatGPT to use.
-5. Return to ChatGPT and verify the repository appears. Newly granted repositories can take a short time to surface.
+1. Open the current Plugin Directory in a supported ChatGPT/Codex surface.
+2. Find the relevant GitHub workflow/app capability and inspect its connection requirements.
+3. Complete the offered authentication flow when available.
+4. Grant access only to repositories you intend the agent to use.
+5. Return to the agent and have it verify the repository capability actually exposed in that session.
 
 Availability can vary by plan, workspace settings, role, supported surface, and region. A workspace admin may also disable an app. Therefore Sloar treats the visible tool inventory as evidence and never assumes GitHub read/write access exists.
 
-Official product references at the time of Sloar 0.2.0:
+Official product reference at the time of Sloar 0.3.0:
 
 - https://help.openai.com/en/articles/20001256-plugins-in-chatgpt-and-codex
-- https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt
+
+See [CHATGPT_PLUGINS.md](CHATGPT_PLUGINS.md) for the beginner decision tree.
 
 If the product UI changes later, follow the current official OpenAI help text rather than preserving these menu names by force.
 
@@ -95,6 +107,15 @@ Useful flags:
 ```
 
 The installer refuses to silently replace an existing different Sloar installation unless `--force` is supplied.
+
+## First Run Wizard
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . --json
+```
+
+The default view intentionally stays short: Repository, Skill, Execution, hosted GitHub/CI/browser state, and one next action. Hosted state remains `unknown` locally until the agent inspects the current chat/session tools.
 
 ## Local doctor
 
