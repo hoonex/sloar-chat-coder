@@ -56,6 +56,29 @@ When the current product surface is ChatGPT or Codex and setup guidance is neede
 
 Product UI changes over time. Prefer current official product documentation over stale hard-coded menu paths when web lookup is available.
 
+## Readiness capsule
+
+When the user is new, default to a short status capsule rather than a capability dump:
+
+```text
+Sloar readiness
+Repository: ready | missing | unknown
+Execution: ready | missing | unknown
+GitHub read/write: ready | partial | missing | unknown
+CI/browser: ready | partial | missing | unknown
+Next: ready to work | one concrete setup action
+```
+
+The capsule is a view over evidence, not a replacement for the evidence ledger. `scripts/wizard.py` may provide the local half of this report. The agent must resolve the hosted half from the current session's actual tools/apps.
+
+## Hosted capability resolution
+
+Do not ask a beginner to identify implementation details such as connector names. The agent should inspect its own available capabilities and classify them. In ChatGPT/Codex, a visible GitHub-backed tool is evidence of exposure, but write permission must be proven by its declared capability or an authorized operation; read access does not imply write access.
+
+A locally installed GitHub CLI is separate from a ChatGPT GitHub App connection. Likewise, installing a Plugin does not automatically grant every underlying App permission.
+
+If the user asks for Plugin setup, prefer current official OpenAI documentation because product menus and availability change. As of Sloar 0.3.0, the Plugin Directory is the primary discovery surface across ChatGPT and Codex, plugins may package skills/apps/app templates, and underlying Apps retain their own authentication and permissions. Sloar itself is not claiming a Plugin Directory listing.
+
 ## First-run response contract
 
 Keep the user-facing onboarding compact. Report:

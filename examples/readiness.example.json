@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "sloar_version": "0.3.0",
+  "repository": {
+    "state": "ready",
+    "installed": true,
+    "dirty": false,
+    "head": "0123456789abcdef",
+    "tree": "fedcba9876543210",
+    "branch": "feat/example",
+    "origin": "https://github.com/owner/repo.git"
+  },
+  "execution": {
+    "state": "ready",
+    "python3": true
+  },
+  "hosted": {
+    "state": "unknown",
+    "repository_read": "unknown",
+    "repository_write": "unknown",
+    "ci": "unknown",
+    "browser": "unknown",
+    "plugin_or_app_state": "unknown",
+    "reason": "not-detectable-locally; agent must inspect its current tool inventory"
+  },
+  "next": "Local side is ready. Ask the agent to resolve hosted GitHub/CI/browser capabilities from the current session and begin RECOVER."
+}
