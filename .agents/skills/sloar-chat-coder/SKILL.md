@@ -1,0 +1,110 @@
+---
+name: sloar-chat-coder
+description: Keep repository development exact and recoverable across disposable chat coding sessions. Use for repository implementation, debugging, testing, publication, or recovery when sandbox state, GitHub state, connected tools, CI, or concurrent actors can change during the task.
+license: MIT
+compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. GitHub-specific fallback rules apply only when equivalent authorized GitHub capabilities exist.
+metadata:
+  version: "0.2.0"
+---
+
+# Sloar Chat Coder
+
+Sloar is a repository-engineering continuity protocol for chat-based coding. It does not choose the target repository's engineering method. It makes the work exact, recoverable, escalation-aware, concurrency-safe, evidence-bounded, and understandable on first use.
+
+## First-run onboarding
+
+When the user/session is new to Sloar or required capabilities are uncertain, run a compact **ONBOARD** check before repository modification. Inspect the capabilities actually exposed in the current session; do not assume a plugin, app, sandbox, GitHub write path, browser, or CI runner exists because another session had one.
+
+For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authenticated external data/actions), and **Skill** (reusable instructions). Installing Sloar does not itself authorize GitHub. Conversely, missing GitHub integration does not block local engineering when a lower capability path is sufficient.
+
+Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. Keep onboarding brief once the environment is established.
+
+## Seven invariants
+
+1. **Durable truth beats reconstructed chat memory.** Resolve repository facts from durable state whenever it exists.
+2. **Identity before modification.** Establish the intended commit SHA, tree SHA, and working-tree state before editing.
+3. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
+4. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
+5. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
+6. **Evidence bounds claims.** Never report a check, deployment, merge, or behavior as successful without relevant evidence.
+7. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them.
+
+## Task state machine
+
+Repository work follows this lifecycle:
+
+```text
+ONBOARD? -> RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY -> PUBLISH -> REMOTE_VERIFY -> CLEANUP
+```
+
+Do not skip a state whose exit condition is required by the task. Read [references/state-machine.md](references/state-machine.md) for state contracts.
+
+## Repository identity contract
+
+Treat repository identity as:
+
+```text
+HEAD commit SHA + HEAD tree SHA + working-tree state
+```
+
+A matching commit SHA with unexpected local modifications is not the same engineering state. Preserve unfamiliar surviving work until ownership is known.
+
+## Capability selection
+
+Use the lowest level that can perform the operation exactly:
+
+```text
+L0 sandbox native
+L1 sandbox acquisition
+L2 connected repository transport
+L3 supply mission
+L4 bounded remote execution
+L5 blocked
+```
+
+Read [references/capability-ladder.md](references/capability-ladder.md) before escalating beyond ordinary sandbox work.
+
+## Failure handling
+
+Create a mental or written failure fingerprint from the operation, relevant inputs, failing phase, exit/status code, and normalized error. Inspect logs or returned error details before changing source.
+
+```text
+same fingerprint + same inputs != useful retry
+same fingerprint + changed evidence/input = possible bounded retry
+```
+
+Do not create autonomous retry loops. Read [references/recovery.md](references/recovery.md) when execution, transport, or chat state is lost or ambiguous.
+
+## Concurrent actors and publication guard
+
+Assume branches, PRs, workflows, deployments, and artifacts may move while the task is active. Capture the expected base identity before substantial work, then resolve it again before publication.
+
+If the remote identity changed, stop publication, inspect the new durable state, deliberately reconcile, and rerun affected verification. Read [references/concurrency.md](references/concurrency.md).
+
+## Verification and evidence
+
+Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
+
+Maintain an evidence ledger containing the checks that actually ran, their target state, result, and blocker when applicable. No evidence means no success claim. Read [references/verification.md](references/verification.md) and [references/evidence-ledger.md](references/evidence-ledger.md).
+
+## Actions and remote missions
+
+Remote execution is a fallback, not the default development workstation. If a bounded Actions mission is necessary, define exact source identity, mission type, inputs, allowed effects, outputs, integrity checks, terminal status, and cleanup before dispatch.
+
+Use supply missions for acquisition/transport gaps when the sandbox can still perform the engineering loop. Use remote execution only when the sandbox cannot faithfully execute the required capability. Read [references/actions-missions.md](references/actions-missions.md) first.
+
+## Recovery checkpoint
+
+For expensive or interruption-prone tasks, persist a machine-readable checkpoint containing at least repository, base identity, task branch/head, current state-machine stage, verified evidence IDs, pending checks, and owned temporary resources. A checkpoint is a recovery aid, not a source-of-truth replacement.
+
+## Completion report
+
+At completion, report only:
+
+- the exact durable state changed or published;
+- the checks that actually ran and their results;
+- any blocked check and its concrete blocker;
+- any reconciliation caused by concurrent remote movement;
+- any temporary remote resource that could not be cleaned up.
+
+Do not expose Sloar mechanics when the normal path is healthy unless they materially explain a limitation or result.

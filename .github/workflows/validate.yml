@@ -1,0 +1,94 @@
+name: Validate Sloar
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate helpers
+        run: |
+          set -euo pipefail
+          bash -n .agents/skills/sloar-chat-coder/scripts/preflight.sh
+          bash -n .agents/skills/sloar-chat-coder/scripts/verify-state.sh
+          python3 -m py_compile .agents/skills/sloar-chat-coder/scripts/*.py
+      - name: Run Sloar self-test
+        run: |
+          set -euo pipefail
+          bash .agents/skills/sloar-chat-coder/scripts/preflight.sh --self-test
+          head="$(git rev-parse HEAD)"
+          tree="$(git rev-parse HEAD^{tree})"
+          bash .agents/skills/sloar-chat-coder/scripts/verify-state.sh "$head" "$tree" .
+          python3 .agents/skills/sloar-chat-coder/scripts/write-checkpoint.py \
+            --worktree . \
+            --repository "$GITHUB_REPOSITORY" \
+            --stage VERIFY \
+            --base "$head" \
+            --output "$RUNNER_TEMP/sloar-checkpoint.json"
+          python3 - "$RUNNER_TEMP/sloar-checkpoint.json" "$GITHUB_REPOSITORY" "$head" <<'PY'
+          import json, pathlib, sys
+          data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert data['repository']==sys.argv[2]
+          assert data['head']==sys.argv[3]
+          assert data['stage']=='VERIFY'
+          assert data['dirty'] is False
+          print('checkpoint: ok')
+          PY
+      - name: Validate first-run installer and doctor
+        run: |
+          set -euo pipefail
+          target="$RUNNER_TEMP/first-run-target"
+          mkdir -p "$target"
+          git -C "$target" init -q
+          git -C "$target" config user.email test@example.com
+          git -C "$target" config user.name test
+          printf '# Existing guidance\n' > "$target/AGENTS.md"
+          printf 'hello\n' > "$target/file.txt"
+          git -C "$target" add .
+          git -C "$target" commit -qm init
+
+          python3 .agents/skills/sloar-chat-coder/scripts/install.py --target "$target"
+          test -s "$target/.agents/skills/sloar-chat-coder/SKILL.md"
+          grep -q 'sloar-chat-coder:begin' "$target/AGENTS.md"
+          test "$(grep -c 'sloar-chat-coder:begin' "$target/AGENTS.md")" -eq 1
+
+          python3 .agents/skills/sloar-chat-coder/scripts/install.py --target "$target"
+          test "$(grep -c 'sloar-chat-coder:begin' "$target/AGENTS.md")" -eq 1
+
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/doctor.py" "$target" --json > "$RUNNER_TEMP/doctor.json"
+          python3 - "$RUNNER_TEMP/doctor.json" <<'PY'
+          import json, pathlib, sys
+          data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert data['schema']==1
+          assert data['sloar_installed'] is True
+          assert data['git']['is_worktree'] is True
+          assert data['git']['head']
+          assert data['chat_capabilities']=='not-detectable-locally'
+          print('first-run: ok')
+          PY
+      - name: Validate skill frontmatter contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('.agents/skills/sloar-chat-coder/SKILL.md')
+          text = p.read_text(encoding='utf-8')
+          assert text.startswith('---\n'), 'SKILL.md must start with YAML frontmatter'
+          _, fm, body = text.split('---', 2)
+          fields = {}
+          for line in fm.splitlines():
+              if ':' in line and not line.startswith(' '):
+                  k, v = line.split(':', 1)
+                  fields[k.strip()] = v.strip()
+          assert fields.get('name') == 'sloar-chat-coder'
+          assert fields.get('description'), 'description is required'
+          assert len(fields['name']) <= 64
+          assert len(fields['description']) <= 1024
+          assert body.strip(), 'skill body is empty'
+          print('frontmatter: ok')
+          PY

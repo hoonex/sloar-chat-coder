@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "repository": "owner/example",
+  "base": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "head": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "tree": "cccccccccccccccccccccccccccccccccccccccc",
+  "branch": "feat/example",
+  "dirty": false,
+  "stage": "VERIFY",
+  "verified": [
+    "syntax-js@bbbbbbbb"
+  ],
+  "pending": [
+    "mobile-browser-audit"
+  ],
+  "failure_fingerprints": [],
+  "owned_temporary_resources": []
+}
