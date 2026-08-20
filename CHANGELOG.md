@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 - 2026-08-21
+
+Forge resilience release.
+
+- Added an explicit degraded-forge status model separating local Git readiness from hosted platform health.
+- Added `forge-health.py` with local-only default behavior and a single bounded `--probe` mode; it never creates retry loops.
+- Added `LOCAL_READY`, `REMOTE_HEALTHY`, `REMOTE_DEGRADED`, `PUBLICATION_BLOCKED`, and `BLOCKED` status semantics.
+- Added guidance for continuing local IMPLEMENT/VERIFY work while GitHub/GitLab/CI/API layers are degraded, without claiming publication success.
+- Added forge-layer failure fingerprints and retry-storm prevention rules.
+- Added outage checkpoints, optional mirror safeguards, and mandatory remote-base revalidation after recovery.
+- Kept mirrors opt-in and prohibited silently publishing private source to a new forge merely because the primary provider is unavailable.
+
 ## 0.3.0 - 2026-08-20
 
 Beginner First Run Wizard release.
@@ -23,7 +35,6 @@ First-run onboarding release.
 - Added English/Korean first-run guides and ready-to-paste starter prompts.
 - Expanded validation to test installer idempotency and doctor output.
 - Kept hosted integrations optional: missing GitHub app access degrades capability instead of falsely blocking local work.
-
 
 ## 0.1.0 - 2026-08-20
 
