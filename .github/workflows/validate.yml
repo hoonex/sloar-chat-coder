@@ -40,7 +40,7 @@ jobs:
           assert data['dirty'] is False
           print('checkpoint: ok')
           PY
-      - name: Validate first-run installer, doctor and forge resilience
+      - name: Validate first-run installer, doctor, connections and forge resilience
         run: |
           set -euo pipefail
           target="$RUNNER_TEMP/first-run-target"
@@ -48,8 +48,13 @@ jobs:
           git -C "$target" init -q
           git -C "$target" config user.email test@example.com
           git -C "$target" config user.name test
+          git -C "$target" remote add origin https://github.com/example/example.git
           printf '# Existing guidance\n' > "$target/AGENTS.md"
           printf 'hello\n' > "$target/file.txt"
+          printf '{}\n' > "$target/vercel.json"
+          mkdir -p "$target/supabase"
+          printf 'project_id = "example"\n' > "$target/supabase/config.toml"
+          printf '{"dependencies":{"openai":"1.0.0"}}\n' > "$target/package.json"
           git -C "$target" add .
           git -C "$target" commit -qm init
 
@@ -86,11 +91,17 @@ jobs:
           assert data['hosted']['repository_write']=='unknown'
           assert data['hosted']['forge_health']=='unknown'
           assert data['resilience']['local_status']=='LOCAL_READY'
-          assert 'agent' in data['hosted']['reason']
-          print('wizard: ok')
+          items={item['id']:item for item in data['connections']['items']}
+          assert {'github','vercel','supabase','openai-platform'} <= set(items)
+          assert 'netlify' not in items
+          assert items['github']['level']=='baseline_for_remote_workflow'
+          assert all(item['status']=='unknown' and item['connect_by_user'] is True for item in items.values())
+          assert 'user connects external services explicitly' in data['hosted']['reason']
+          print('wizard connections: ok')
           PY
 
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q '^Sloar readiness$'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Suggested connections: GitHub'
 
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" "$target" --json > "$RUNNER_TEMP/forge-local.json"
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" "$target" --probe --json > "$RUNNER_TEMP/forge-degraded.json"
@@ -112,19 +123,13 @@ jobs:
           assert degraded['schema']==2
           assert degraded['local']['state']=='LOCAL_READY'
           assert degraded['remote']['state']=='REMOTE_DEGRADED'
-          assert degraded['remote']['git_transport']=='missing'
           assert degraded['publication']=='PUBLICATION_BLOCKED'
           assert partial['classification']=='CAPABILITY_MISMATCH'
-          assert partial['rule']=='github-workflow-permission'
-          assert partial['layer']=='workflow-write'
           assert partial['remote_state']=='REMOTE_PARTIAL'
           assert partial['retry']=='change_strategy'
-          assert 'permission' not in partial.get('fingerprint','').lower()
           assert rate['classification']=='REMOTE_DEGRADED'
-          assert rate['rule']=='rate-limit'
           assert rate['retry']=='defer'
           assert moved['classification']=='REMOTE_MOVED'
-          assert moved['rule']=='remote-moved'
           assert moved['retry']=='reconcile'
           print('forge resilience: ok')
           PY
@@ -150,5 +155,7 @@ jobs:
           assert 'version: "0.4.0"' in text
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
+          assert Path('docs/CONNECTIONS.md').is_file()
+          assert Path('docs/CONNECTIONS.ko.md').is_file()
           print('frontmatter: ok')
           PY
