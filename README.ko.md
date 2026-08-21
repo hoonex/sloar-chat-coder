@@ -1,10 +1,10 @@
 # Sloar Chat Coder
 
-**대화가 끊겨도 개발 상태는 끊기지 않게. 처음 쓰는 사람도 시작점부터 알 수 있게.**
+**대화가 끊겨도 개발 상태는 끊기지 않게. GitHub가 흔들리거나 권한이 일부 부족해도 정확한 로컬 작업은 보존되게.**
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 저장소 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-0.3.0은 기존 복구/검증 규칙에 더해 **처음 설치하는 사람이 무엇을 해야 하는지, 지금 환경에서 무엇이 가능한지, 다음 행동이 무엇인지**를 짧게 보여주는 First Run Wizard를 추가한다.
+0.4.0은 기존 First Run/복구/검증 규칙에 **Forge Resilience**를 추가한다. GitHub/GitLab/Actions 장애와 “서비스는 정상인데 현재 App/token에 특정 권한만 없음”을 구분하고, 같은 실패를 무작정 반복하지 않게 한다.
 
 > **저장소의 정확한 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
 
@@ -45,31 +45,73 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 
 더 자세한 안내: [docs/FIRST_RUN.ko.md](docs/FIRST_RUN.ko.md), [docs/CHATGPT_PLUGINS.ko.md](docs/CHATGPT_PLUGINS.ko.md)
 
+## 0.4 핵심: Forge Resilience
+
+Git 저장소와 GitHub/GitLab/Actions는 같은 장애 영역이 아니다.
+
+원격 서비스 자체가 불안정하지만 로컬 source/tree와 검증은 정상이라면:
+
+```text
+LOCAL_READY + REMOTE_DEGRADED
+= 구현/로컬 검증은 계속
+= publication만 보류
+```
+
+GitHub 자체는 정상인데 현재 identity/정책으로 필요한 작업만 할 수 없다면:
+
+```text
+LOCAL_READY + REMOTE_PARTIAL
+= 검증된 tree 보존
+= 같은 권한으로 같은 요청 재시도 금지
+= capability / identity / approval / policy 경로 변경
+```
+
+### 상태 확인
+
+네트워크 없이 로컬 상태만:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py .
+```
+
+원격을 딱 한 번만 bounded probe:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py . --probe
+```
+
+### 이미 발생한 오류 분류
+
+네트워크 요청 없이 기존 로그를 읽는다.
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py \
+  --classify-file /path/to/error.log --json
+```
+
+대표적으로 다음을 구분한다.
+
+- GitHub App이 일반 파일은 쓰지만 workflow 파일은 못 씀 → `CAPABILITY_MISMATCH / REMOTE_PARTIAL`
+- CI `action_required`/승인 필요 → `REMOTE_ACTION_REQUIRED / REMOTE_PARTIAL`
+- branch protection/ruleset → `POLICY_BLOCKED / REMOTE_PARTIAL`
+- non-fast-forward/stale lease → `REMOTE_MOVED`, remote base 재확인 후 reconcile
+- 429/5xx/DNS/timeout → `REMOTE_DEGRADED`
+
+분류기는 raw error를 다시 출력하지 않고 class/layer/retry 전략/다음 행동과 SHA-256 fingerprint만 반환한다.
+
+자세한 설명: [docs/FORGE_RESILIENCE.ko.md](docs/FORGE_RESILIENCE.ko.md)
+
 ## ChatGPT에서 Plugin / App / Skill 차이
 
-여기가 처음 쓰는 사람한테 가장 헷갈리는 부분이다.
-
-- **Skill**: AI가 어떤 절차로 일할지 알려주는 재사용 가능한 지침. Sloar의 핵심이 여기에 해당한다.
+- **Skill**: AI가 어떤 절차로 일할지 알려주는 재사용 가능한 지침. Sloar의 핵심.
 - **App**: GitHub 같은 외부 서비스에 인증하고 실제 데이터/동작 권한을 제공하는 연결 계층.
 - **Plugin**: 특정 워크플로를 위해 Skill과 App 등을 묶어 배포/발견하기 쉽게 만든 패키지.
 
-즉 **Sloar Skill을 설치했다고 GitHub 권한이 자동으로 생기는 게 아니다.** 반대로 GitHub App이 연결돼 있다고 Sloar 규칙이 자동 적용되는 것도 아니다.
+**Sloar Skill을 설치했다고 GitHub 권한이 자동으로 생기는 게 아니다.** 반대로 GitHub App이 연결돼 있어도 read/write/workflow/merge/Actions 권한이 전부 같다고 가정하면 안 된다.
 
-현재 ChatGPT에서는 Plugin Directory가 워크플로 기능을 찾는 중심 위치이고, 플러그인이 필요한 App을 포함하거나 의존할 수 있다. GitHub 같은 외부 접근은 underlying App의 연결/권한에 따라 결정된다. 플랜, 워크스페이스 정책, 역할, 지역, 사용 중인 ChatGPT 화면에 따라 사용할 수 있는 기능은 다를 수 있으므로 **Sloar는 항상 실제 도구를 보고 판단한다.**
-
-### ChatGPT + GitHub를 처음 세팅한다면
-
-1. 현재 ChatGPT/Codex의 Plugin Directory에서 GitHub 관련 workflow/app capability가 제공되는지 확인한다.
-2. GitHub App 연결이 필요하면 Connect/OAuth를 완료한다.
-3. ChatGPT가 접근해도 되는 저장소만 선택한다.
-4. 연결 후에도 Sloar는 실제로 read/write/PR/CI 로그 같은 기능이 있는지 다시 확인한다.
-5. 쓰기 권한이 없더라도 멈추지 않는다. 로컬/샌드박스에서 구현하고 patch/zip/PR-ready 산출물로 낮은 capability 경로를 사용한다.
-
-**중요:** Sloar는 사용자에게 없는 플러그인이나 권한을 있다고 가정하지 않는다.
+플랜, 워크스페이스 정책, 역할, 지역, 사용 중인 ChatGPT 화면에 따라 사용할 수 있는 기능은 다를 수 있으므로 Sloar는 항상 **현재 세션에서 실제 노출된 도구/권한과 실제 실패 증거**를 기준으로 판단한다.
 
 ## 첫 실행에서 Sloar가 확인할 것
-
-Sloar 0.3.0은 처음 보는 환경에서 다음을 간단히 분류한다.
 
 ```text
 execution: sandbox / terminal / none
@@ -78,6 +120,7 @@ repository write: native git / GitHub app / none
 web: available / unavailable
 CI/log access: available / unavailable
 artifact transport: available / unavailable
+forge health/capability: healthy / partial / degraded / unknown
 ```
 
 그리고 가능한 가장 낮은 capability level로 시작한다.
@@ -91,7 +134,7 @@ L4 bounded remote execution
 L5 blocked
 ```
 
-플러그인이 없다는 이유만으로 L5가 되는 것은 아니다. 예를 들어 GitHub 쓰기 기능이 없어도 로컬 코딩과 검증이 가능하면 거기까지 진행하고 정확한 patch를 만들 수 있다.
+쓰기 권한이 없거나 workflow write만 막혀 있다는 이유로 로컬 구현까지 포기하지 않는다. 정확한 source가 있고 로컬 검증이 가능하면 거기까지 진행하고 durable patch/tree/checkpoint를 남긴다.
 
 ## 실행 상태 머신
 
@@ -108,7 +151,13 @@ ONBOARD (필요할 때만)
   -> CLEANUP
 ```
 
-`ONBOARD`는 초보자용 설정/능력 확인 단계이지 매 작업마다 길게 설명하는 단계가 아니다. 환경이 이미 알려져 있으면 생략하거나 아주 짧게 끝낸다.
+Forge 상태는 이 lifecycle 위에 별도로 겹친다.
+
+```text
+LOCAL_READY
+REMOTE_HEALTHY | REMOTE_PARTIAL | REMOTE_DEGRADED
+PUBLICATION_BLOCKED | ready
+```
 
 ## 핵심 차별점
 
@@ -121,6 +170,10 @@ identity = HEAD SHA + tree SHA + working-tree state
 ### Capability Ladder
 
 항상 가장 낮은 충분 단계부터 사용한다.
+
+### Forge Capability Overlay
+
+서비스 장애와 부분 권한/정책 문제를 분리한다.
 
 ### Failure Fingerprint
 
@@ -136,10 +189,10 @@ No evidence -> no completion claim.
 
 ### Publication Guard
 
-게시 직전 remote base/head를 다시 확인해 동시 작업을 덮어쓰지 않는다.
+게시 직전 remote base/head를 다시 확인해 동시 작업을 덮어쓰지 않는다. 장애나 권한 차단이 오래 지속된 뒤 publication할 때도 반드시 다시 확인한다.
 
 ## 원칙
 
-Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 실패 처리, 동시성, 게시 안전성, 증거**만 담당한다.
+Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
 
-버전: **0.3.0**
+버전: **0.4.0**
