@@ -14,6 +14,8 @@ Forge resilience release.
 - Added a rule that correct verified product source must not be rewritten merely because the publishing identity lacks a specific permission.
 - Added forge-layer failure fingerprints and retry-storm prevention rules; permission/policy failures require changed capability/policy evidence before retry.
 - Added outage/capability checkpoints, optional mirror safeguards, and mandatory remote-base revalidation after recovery, approval, or delayed publication.
+- Added a repository-aware Connection Advisor in the First Run Wizard for GitHub, Vercel, Supabase, Netlify, and OpenAI Platform.
+- Added English/Korean connection guides that keep authentication user-controlled, recommend least-privilege scopes, and never treat repository detection as proof of an installed/authorized ChatGPT connection.
 - Kept mirrors opt-in and prohibited silently publishing private source to a new forge merely because the primary provider is unavailable or a permission is missing.
 - Updated English/Korean README and Forge Resilience guides so first-time users can discover the 0.4 workflow directly.
 

@@ -56,6 +56,31 @@ When the current product surface is ChatGPT or Codex and setup guidance is neede
 
 Product UI changes over time. Prefer current official product documentation over stale hard-coded menu paths when web lookup is available.
 
+## Connection recommendations
+
+Sloar should help the user decide **which external connections are worth enabling**, but it must not connect providers silently or claim they are connected merely because the repository contains provider files.
+
+Core Sloar does not require an external ChatGPT Plugin/App when exact local Git plus code execution is available. For a full hosted workflow, recommend connections from repository evidence and requested operations:
+
+- **GitHub** — baseline connection when the origin is GitHub and the user wants ChatGPT/Codex to operate remote branches, PRs, CI, or publication.
+- **Vercel** — recommend only when Vercel repository signals exist and deployment/project operations matter.
+- **Supabase** — recommend only when Supabase repository signals exist and DB/Auth/Edge Function/project operations matter.
+- **Netlify** — recommend only when Netlify repository signals exist and deployment/project operations matter.
+- **OpenAI Platform** — recommend when OpenAI SDK/dependency signals exist and the task needs API-key/project/runtime configuration.
+
+`scripts/wizard.py` detects these repository signals and emits `connections.items`. Detection always leaves connection `status` as `unknown`; the user connects the provider explicitly, then the agent verifies the actual tools/permissions exposed in the current session.
+
+When presenting connection guidance to a user:
+
+1. distinguish **baseline for the requested remote workflow** from merely **recommended**;
+2. explain why the repository triggered the recommendation;
+3. tell the user to connect the provider themselves through the current Plugins/Apps/Connections UI;
+4. recommend least-privilege repository/project scope;
+5. never request passwords, access tokens, service-role keys, or API secrets merely to establish the ChatGPT connection;
+6. after connection, verify read/write/PR/CI/deploy capabilities individually instead of assuming all permissions came with the connection.
+
+Read `docs/CONNECTIONS.md` or `docs/CONNECTIONS.ko.md` for the user-facing guide.
+
 ## Readiness capsule
 
 When the user is new, default to a short status capsule rather than a capability dump:
@@ -66,6 +91,7 @@ Repository: ready | missing | unknown
 Execution: ready | missing | unknown
 GitHub read/write: ready | partial | missing | unknown
 CI/browser: ready | partial | missing | unknown
+Suggested connections: provider list from repository evidence
 Next: ready to work | one concrete setup action
 ```
 
@@ -77,7 +103,7 @@ Do not ask a beginner to identify implementation details such as connector names
 
 A locally installed GitHub CLI is separate from a ChatGPT GitHub App connection. Likewise, installing a Plugin does not automatically grant every underlying App permission.
 
-If the user asks for Plugin setup, prefer current official OpenAI documentation because product menus and availability change. As of Sloar 0.3.0, the Plugin Directory is the primary discovery surface across ChatGPT and Codex, plugins may package skills/apps/app templates, and underlying Apps retain their own authentication and permissions. Sloar itself is not claiming a Plugin Directory listing.
+If the user asks for Plugin setup, prefer current official OpenAI documentation because product menus and availability change. Sloar itself is an Agent Skill repository and does not claim that installing the Skill automatically installs or authorizes any external App.
 
 ## First-run response contract
 
@@ -85,6 +111,7 @@ Keep the user-facing onboarding compact. Report:
 
 - what is already usable;
 - what is genuinely missing for the requested task;
+- which connections are baseline/recommended for this repository and why;
 - the lowest viable capability level;
 - one concrete next action only when user action is required.
 
