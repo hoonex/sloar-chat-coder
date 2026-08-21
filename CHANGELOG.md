@@ -4,13 +4,18 @@
 
 Forge resilience release.
 
-- Added an explicit degraded-forge status model separating local Git readiness from hosted platform health.
-- Added `forge-health.py` with local-only default behavior and a single bounded `--probe` mode; it never creates retry loops.
-- Added `LOCAL_READY`, `REMOTE_HEALTHY`, `REMOTE_DEGRADED`, `PUBLICATION_BLOCKED`, and `BLOCKED` status semantics.
-- Added guidance for continuing local IMPLEMENT/VERIFY work while GitHub/GitLab/CI/API layers are degraded, without claiming publication success.
-- Added forge-layer failure fingerprints and retry-storm prevention rules.
-- Added outage checkpoints, optional mirror safeguards, and mandatory remote-base revalidation after recovery.
-- Kept mirrors opt-in and prohibited silently publishing private source to a new forge merely because the primary provider is unavailable.
+- Added an explicit forge overlay separating local Git readiness from hosted platform health and operation-specific capability.
+- Added `LOCAL_READY`, `REMOTE_HEALTHY`, `REMOTE_PARTIAL`, `REMOTE_DEGRADED`, `PUBLICATION_BLOCKED`, and `BLOCKED` semantics.
+- Added `forge-health.py` with a network-free default and a single bounded `--probe` mode; it never creates retry loops.
+- Added deterministic `--classify-file` / `--classify-error` handling for already-observed forge failures without making a network request.
+- Added explicit classification for GitHub workflow permission mismatch, integration permission denial, CI approval/`action_required`, branch policy, non-fast-forward/stale remote state, 429, 5xx, DNS, and timeout failures.
+- Failure classification returns a normalized class/layer/retry strategy/next action and SHA-256 fingerprint without echoing the raw error text.
+- Added guidance for continuing local IMPLEMENT/VERIFY work while GitHub/GitLab/CI/API layers are degraded or partially authorized, without claiming publication success.
+- Added a rule that correct verified product source must not be rewritten merely because the publishing identity lacks a specific permission.
+- Added forge-layer failure fingerprints and retry-storm prevention rules; permission/policy failures require changed capability/policy evidence before retry.
+- Added outage/capability checkpoints, optional mirror safeguards, and mandatory remote-base revalidation after recovery, approval, or delayed publication.
+- Kept mirrors opt-in and prohibited silently publishing private source to a new forge merely because the primary provider is unavailable or a permission is missing.
+- Updated English/Korean README and Forge Resilience guides so first-time users can discover the 0.4 workflow directly.
 
 ## 0.3.0 - 2026-08-20
 
