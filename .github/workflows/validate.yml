@@ -40,7 +40,7 @@ jobs:
           assert data['dirty'] is False
           print('checkpoint: ok')
           PY
-      - name: Validate first-run installer and doctor
+      - name: Validate first-run installer, doctor and forge resilience
         run: |
           set -euo pipefail
           target="$RUNNER_TEMP/first-run-target"
@@ -78,17 +78,56 @@ jobs:
           python3 - "$RUNNER_TEMP/wizard.json" <<'PY'
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          assert data['schema']==1
-          assert data['sloar_version']=='0.3.0'
+          assert data['schema']==2
+          assert data['sloar_version']=='0.4.0'
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
           assert data['execution']['state']=='ready'
           assert data['hosted']['repository_write']=='unknown'
+          assert data['hosted']['forge_health']=='unknown'
+          assert data['resilience']['local_status']=='LOCAL_READY'
           assert 'agent' in data['hosted']['reason']
           print('wizard: ok')
           PY
 
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q '^Sloar readiness$'
+
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" "$target" --json > "$RUNNER_TEMP/forge-local.json"
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" "$target" --probe --json > "$RUNNER_TEMP/forge-degraded.json"
+
+          cat > "$RUNNER_TEMP/workflow-permission.log" <<'EOF'
+          remote rejected: refusing to allow a GitHub App to create or update workflow `.github/workflows/check.yml` without `workflows` permission
+          EOF
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" --classify-file "$RUNNER_TEMP/workflow-permission.log" --json > "$RUNNER_TEMP/forge-partial.json"
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" --classify-error 'HTTP 429 secondary rate limit exceeded' --json > "$RUNNER_TEMP/forge-rate-limit.json"
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/forge-health.py" --classify-error 'rejected non-fast-forward; fetch first' --json > "$RUNNER_TEMP/forge-moved.json"
+
+          python3 - "$RUNNER_TEMP/forge-local.json" "$RUNNER_TEMP/forge-degraded.json" "$RUNNER_TEMP/forge-partial.json" "$RUNNER_TEMP/forge-rate-limit.json" "$RUNNER_TEMP/forge-moved.json" <<'PY'
+          import json, pathlib, sys
+          local,degraded,partial,rate,moved=[json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
+          assert local['schema']==2 and local['kind']=='health'
+          assert local['local']['state']=='LOCAL_READY'
+          assert local['remote']['state']=='unknown'
+          assert local['publication']=='unknown'
+          assert degraded['schema']==2
+          assert degraded['local']['state']=='LOCAL_READY'
+          assert degraded['remote']['state']=='REMOTE_DEGRADED'
+          assert degraded['remote']['git_transport']=='missing'
+          assert degraded['publication']=='PUBLICATION_BLOCKED'
+          assert partial['classification']=='CAPABILITY_MISMATCH'
+          assert partial['rule']=='github-workflow-permission'
+          assert partial['layer']=='workflow-write'
+          assert partial['remote_state']=='REMOTE_PARTIAL'
+          assert partial['retry']=='change_strategy'
+          assert 'permission' not in partial.get('fingerprint','').lower()
+          assert rate['classification']=='REMOTE_DEGRADED'
+          assert rate['rule']=='rate-limit'
+          assert rate['retry']=='defer'
+          assert moved['classification']=='REMOTE_MOVED'
+          assert moved['rule']=='remote-moved'
+          assert moved['retry']=='reconcile'
+          print('forge resilience: ok')
+          PY
       - name: Validate skill frontmatter contract
         run: |
           python3 - <<'PY'
@@ -107,5 +146,9 @@ jobs:
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
+          assert Path('VERSION').read_text().strip() == '0.4.0'
+          assert 'version: "0.4.0"' in text
+          assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
           print('frontmatter: ok')
           PY

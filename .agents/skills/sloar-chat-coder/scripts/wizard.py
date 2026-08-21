@@ -2,8 +2,10 @@
 """Beginner-facing Sloar local readiness wizard.
 
 This script intentionally limits itself to evidence visible from the local
-filesystem/terminal. ChatGPT/Codex plugin/app/tool availability must be
-resolved by the agent from its actual current tool inventory.
+filesystem/terminal. ChatGPT/Codex plugin/app/tool availability and hosted
+forge health must be resolved by the agent from its actual current tool
+inventory unless the user explicitly runs a bounded forge probe or classifies
+an already-observed remote failure.
 """
 import argparse
 import json
@@ -31,11 +33,11 @@ def build(repo: Path):
     if not execution:
         recommendations.append("Use an agent/surface with code execution for implementation and verification claims.")
     if not recommendations:
-        recommendations.append("Local side is ready. Ask the agent to resolve hosted GitHub/CI/browser capabilities from the current session and begin RECOVER.")
+        recommendations.append("Local side is ready. Ask the agent to resolve hosted GitHub/CI/browser capabilities from the current session and begin RECOVER. If a remote operation already failed, classify that evidence before retrying.")
 
     return {
-        "schema": 1,
-        "sloar_version": "0.3.0",
+        "schema": 2,
+        "sloar_version": "0.4.0",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -53,7 +55,16 @@ def build(repo: Path):
             "ci": "unknown",
             "browser": "unknown",
             "plugin_or_app_state": "unknown",
-            "reason": "not-detectable-locally; agent must inspect its current tool inventory",
+            "forge_health": "unknown",
+            "reason": "not-detectable-locally; agent must inspect its current tool inventory, run an explicit bounded forge probe, or classify an observed failure",
+        },
+        "resilience": {
+            "local_status": "LOCAL_READY" if git_ok and execution else "BLOCKED",
+            "remote_status": "unknown",
+            "remote_status_values": ["REMOTE_HEALTHY", "REMOTE_PARTIAL", "REMOTE_DEGRADED", "unknown"],
+            "publication": "unknown",
+            "probe_command": "python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py . --probe --json",
+            "classify_command": "python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py --classify-file /path/to/error.log --json",
         },
         "next": recommendations[0],
         "recommendations": recommendations,
@@ -62,7 +73,6 @@ def build(repo: Path):
 
 def render(data):
     repo = data["repository"]
-    hosted = data["hosted"]
     lines = [
         "Sloar readiness",
         f"Repository: {repo['state']}" + (f" ({repo['branch']})" if repo.get("branch") else ""),
@@ -70,6 +80,7 @@ def render(data):
         f"Execution: {data['execution']['state']}",
         "GitHub read/write: unknown (agent check)",
         "CI/browser: unknown (agent check)",
+        "Forge health/capability: unknown (probe or classify observed failure only when needed)",
         f"Next: {data['next']}",
     ]
     if repo.get("dirty"):
