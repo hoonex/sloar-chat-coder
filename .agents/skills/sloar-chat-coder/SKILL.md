@@ -1,6 +1,6 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including when a hosted forge, API, CI system, or remote publication path is degraded. Use for repository implementation, debugging, testing, publication, outage handling, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, or concurrent actors can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including when a hosted forge, API, CI system, remote publication path, or operation-specific permission is degraded or partial. Use for repository implementation, debugging, testing, publication, outage handling, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, or concurrent actors can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
@@ -52,7 +52,7 @@ ONBOARD? -> RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY 
 
 Do not skip a state whose exit condition is required by the task. Read [references/state-machine.md](references/state-machine.md) for state contracts.
 
-Forge health is a separate overlay on this lifecycle. A task may be `LOCAL_READY` while the hosted forge is `REMOTE_DEGRADED`; in that case IMPLEMENT/VERIFY can continue locally while publication remains deferred. Read [references/forge-resilience.md](references/forge-resilience.md).
+Forge health/capability is a separate overlay on this lifecycle. A task may be `LOCAL_READY` while the hosted forge is `REMOTE_PARTIAL` or `REMOTE_DEGRADED`; in that case IMPLEMENT/VERIFY can continue locally while the blocked remote operation remains deferred. Read [references/forge-resilience.md](references/forge-resilience.md).
 
 ## Repository identity contract
 
@@ -81,54 +81,61 @@ Read [references/capability-ladder.md](references/capability-ladder.md) before e
 
 ## Forge resilience
 
-Git and the hosted forge are different failure domains. A working `git fetch` does not prove PR/API/Actions health, and a hosted API outage does not invalidate an exact local worktree.
+Git and the hosted forge are different failure domains. A working `git fetch` does not prove PR/API/Actions health, and a hosted API outage does not invalidate an exact local worktree. A healthy repository API also does not prove that the current identity can perform workflow writes, protected-branch writes, merges, releases, or approval-gated CI actions.
 
-When remote behavior is suspect, classify evidence by layer instead of repeatedly retrying the same operation:
+Classify evidence by layer instead of repeatedly retrying the same operation:
 
 ```text
 LOCAL_READY
-REMOTE_HEALTHY | REMOTE_DEGRADED
+REMOTE_HEALTHY | REMOTE_PARTIAL | REMOTE_DEGRADED
 PUBLICATION_BLOCKED | ready
 ```
 
-If local source and execution remain valid, continue local implementation and verification while preserving an outage checkpoint. Never claim PUBLISH or REMOTE_VERIFY success while the required remote layer is unproven. When the forge recovers, re-resolve the remote base before publication because it may have moved during the outage.
+- `REMOTE_PARTIAL`: service is reachable, but the current identity/policy/gate lacks the required operation capability.
+- `REMOTE_DEGRADED`: service/network layer itself is failing or timing out.
 
-`scripts/forge-health.py` is an optional local classifier. Its default mode is network-free; `--probe` performs one bounded Git transport probe and, when supported/authenticated, one forge API probe. It never retries automatically.
+These require different strategies. Permission/policy failures generally require a changed capability, identity, approval, or policy-compliant path; identical retry is not useful. Service failures may justify one bounded retry before publication is deferred.
+
+If local source and execution remain valid, continue local implementation and verification while preserving an exact checkpoint. Never claim PUBLISH or REMOTE_VERIFY success while the required remote layer is unproven. When capability or service health recovers, re-resolve the remote base before publication because it may have moved during the constrained period.
+
+`scripts/forge-health.py` is an optional local classifier. Its default mode is network-free; `--probe` performs one bounded Git transport probe and, when supported/authenticated, one forge API probe. It never retries automatically. `--classify-file` / `--classify-error` classify already-observed failures without network access and distinguish capability mismatch, policy/approval gates, remote movement, rate limits, service errors, and network failures. The classifier emits a fingerprint rather than echoing the raw error text.
 
 ## Failure handling
 
-Create a mental or written failure fingerprint from the operation, relevant inputs, failing phase, exit/status code, normalized error, and—when remote infrastructure is involved—the affected forge layer. Inspect logs or returned error details before changing source.
+Create a mental or written failure fingerprint from the operation, relevant inputs, failing phase, exit/status code, normalized error, and—when remote infrastructure is involved—the affected forge layer/capability. Inspect logs or returned error details before changing source.
 
 ```text
 same fingerprint + same inputs != useful retry
 same fingerprint + changed evidence/input = possible bounded retry
 ```
 
-Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`, not a retry storm. Read [references/recovery.md](references/recovery.md) when execution, transport, or chat state is lost or ambiguous.
+Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`; permission/policy/gate failures should transition to `REMOTE_PARTIAL` / `PUBLICATION_BLOCKED`. Neither state is a reason to rewrite correct product code. Read [references/recovery.md](references/recovery.md) when execution, transport, or chat state is lost or ambiguous.
 
 ## Concurrent actors and publication guard
 
 Assume branches, PRs, workflows, deployments, and artifacts may move while the task is active. Capture the expected base identity before substantial work, then resolve it again before publication.
 
-If the remote identity changed, stop publication, inspect the new durable state, deliberately reconcile, and rerun affected verification. After a forge outage, always perform this revalidation even if the original base was known exactly before the outage. Read [references/concurrency.md](references/concurrency.md).
+If the remote identity changed, stop publication, inspect the new durable state, deliberately reconcile, and rerun affected verification. After a forge outage or prolonged capability block, always perform this revalidation even if the original base was known exactly before the incident. Read [references/concurrency.md](references/concurrency.md).
 
 ## Verification and evidence
 
 Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
 
-Maintain an evidence ledger containing the checks that actually ran, their target state, result, and blocker when applicable. No evidence means no success claim. During a remote outage, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md) and [references/evidence-ledger.md](references/evidence-ledger.md).
+Maintain an evidence ledger containing the checks that actually ran, their target state, result, and blocker when applicable. No evidence means no success claim. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md) and [references/evidence-ledger.md](references/evidence-ledger.md).
 
 ## Actions and remote missions
 
 Remote execution is a fallback, not the default development workstation. If a bounded Actions mission is necessary, define exact source identity, mission type, inputs, allowed effects, outputs, integrity checks, terminal status, and cleanup before dispatch.
 
-Use supply missions for acquisition/transport gaps when the sandbox can still perform the engineering loop. Use remote execution only when the sandbox cannot faithfully execute the required capability. If Actions itself is the degraded forge layer, do not create more Actions runs as a workaround for that same incident. Read [references/actions-missions.md](references/actions-missions.md) first.
+Use supply missions for acquisition/transport gaps when the sandbox can still perform the engineering loop. Use remote execution only when the sandbox cannot faithfully execute the required capability. If Actions itself is the degraded forge layer, do not create more Actions runs as a workaround for that same incident.
+
+If an Actions/GitHub App mission produces a correct verified tree but its final write is rejected because that identity lacks a specific permission (for example workflow-file write), preserve the exact tree and switch publication strategy. Do not rerun the entire engineering mission or mutate product source merely to obtain a different actor identity. Read [references/actions-missions.md](references/actions-missions.md) first.
 
 ## Recovery checkpoint
 
 For expensive or interruption-prone tasks, persist a machine-readable checkpoint containing at least repository, base identity, task branch/head, current state-machine stage, verified evidence IDs, pending checks, and owned temporary resources. A checkpoint is a recovery aid, not a source-of-truth replacement.
 
-When publication is deferred by a forge incident, also record local/remote status and the remote checks still pending. If the local workspace is disposable, preserve an exact repository-approved artifact, bundle, or patch with integrity evidence before the workspace can disappear.
+When publication is deferred by a forge incident or capability limitation, also record local/remote status and the remote checks still pending. If the local workspace is disposable, preserve an exact repository-approved artifact, bundle, or patch with integrity evidence before the workspace can disappear.
 
 ## Completion report
 
@@ -137,7 +144,7 @@ At completion, report only:
 - the exact durable state changed or published;
 - the checks that actually ran and their results;
 - any blocked check and its concrete blocker;
-- any reconciliation caused by concurrent remote movement or forge recovery;
+- any reconciliation caused by concurrent remote movement, forge recovery, or capability change;
 - any temporary remote resource that could not be cleaned up.
 
 If remote publication is blocked, say so explicitly rather than presenting `LOCAL_READY` as task completion. Do not expose Sloar mechanics when the normal path is healthy unless they materially explain a limitation or result.
