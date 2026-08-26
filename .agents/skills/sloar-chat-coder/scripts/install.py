@@ -43,6 +43,9 @@ def copy_bundled_skills(target: Path, force: bool, dry_run: bool) -> list[str]:
         if not (source / "SKILL.md").is_file():
             raise SystemExit(f"bundled skill source is missing: {source}")
         dest = target / ".agents" / "skills" / name
+        if source.resolve() == dest.resolve():
+            messages.append(f"skill source already installed -> {dest}")
+            continue
         if dest.exists() and not force:
             if skill_matches(source, dest):
                 messages.append(f"skill already installed -> {dest}")
