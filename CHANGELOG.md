@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added the optional `apple-web-design` companion skill, adapted from Emil Kowalski's MIT-licensed `apple-design` skill with upstream attribution preserved.
+- Distilled Apple-style web interaction guidance into testable contracts for immediate feedback, 1:1 direct manipulation, presentation-state interruption, velocity projection, rubber-banding, restrained materials, typography, and accessibility.
+- Updated the installer to bundle the companion without making it a default engineering method; target repository guidance remains authoritative.
+- Added installer idempotency across all bundled skills while ignoring generated Python cache files.
+
 ## 0.4.0 - 2026-08-21
 
 Forge resilience release.
