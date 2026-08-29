@@ -106,6 +106,7 @@ def _clean(values: Iterable[str] | None) -> list[str]:
 
 
 def build_checkpoint(identity: GitIdentity, args: argparse.Namespace) -> dict[str, Any]:
+    response_language = (getattr(args, "response_language", None) or "").strip()
     context = {
         "goal": (args.goal or "").strip(),
         "completed": _clean(args.completed),
@@ -115,6 +116,7 @@ def build_checkpoint(identity: GitIdentity, args: argparse.Namespace) -> dict[st
         "evidence": _clean(args.evidence),
         "blockers": _clean(args.blocker),
         "next_action": (args.next_action or "").strip(),
+        "response_language": response_language,
     }
     created_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     fingerprint_source = json.dumps(
@@ -229,6 +231,8 @@ def render_capsule(checkpoint: dict[str, Any], comparison: dict[str, Any]) -> st
         lines.append("Changed since handoff: " + ", ".join(comparison["changed"]))
     if comparison.get("unobserved"):
         lines.append("Unobserved identity fields: " + ", ".join(comparison["unobserved"]))
+    if context.get("response_language"):
+        lines.append("Response language: " + context["response_language"])
     if context.get("goal"):
         lines.append("Goal: " + context["goal"])
     sections = (
@@ -304,6 +308,7 @@ def parser() -> argparse.ArgumentParser:
     handoff.add_argument("--evidence", action="append")
     handoff.add_argument("--blocker", action="append")
     handoff.add_argument("--next", dest="next_action")
+    handoff.add_argument("--response-language")
     handoff.add_argument("--json", action="store_true")
     handoff.set_defaults(func=cmd_handoff)
 
