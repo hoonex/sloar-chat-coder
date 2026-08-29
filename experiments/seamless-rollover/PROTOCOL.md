@@ -109,12 +109,14 @@ Enter this state when a fresh chat receives the resume sentence or an unambiguou
 
 1. Resolve the repository independently; do not assume the checkpoint is current truth.
 2. Determine whether Sloar is installed/accessible and load the latest authorized rollover checkpoint from `sloar/rollover-state` or the strongest available durable fallback.
-3. Re-resolve current HEAD, tree, branch/PR state, working state when available, relevant remote refs, and required capabilities.
+3. Re-resolve current HEAD, tree, branch/PR state, working state when available, relevant remote refs, and required capabilities. Record working-tree observability explicitly rather than inventing a clean/dirty value.
 4. Compare current durable reality with the checkpoint.
-5. If unchanged, reconstruct a compact context capsule and continue from the recorded next action.
-6. If changed, mark `RECONCILE_REQUIRED`, reconcile against current durable repository state, invalidate stale checkpoint facts, and rerun only verification affected by the change.
+5. If no observable identity field contradicts the checkpoint, classify the resume as `EXACT`, reconstruct a compact context capsule, explicitly surface any unobserved identity fields, and continue from the recorded next action.
+6. If an observable identity field changed, mark `RECONCILE_REQUIRED`, reconcile against current durable repository state, invalidate stale checkpoint facts, and rerun only verification affected by the change.
 7. Never ask the user to restate information already recoverable from repository state or the checkpoint.
 8. Keep the visible resume report short; repository work should start immediately after recovery.
+
+`EXACT` means exact for the identity fields the current session can actually observe. It MUST NOT be phrased as proof that an unobserved working tree is clean. A remote-only chat can therefore resume `EXACT` when HEAD/tree/branch and other observable durable state match while reporting `working_state` as unobserved.
 
 ## Sidecar branch layout
 
@@ -142,8 +144,9 @@ branch: sloar/rollover-state
     "head": "...",
     "tree": "...",
     "branch": "...",
-    "dirty": false,
-    "status_sha256": "..."
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null
   },
   "context": {
     "goal": "...",
@@ -157,6 +160,8 @@ branch: sloar/rollover-state
   }
 }
 ```
+
+When a local worktree is available, set `working_state_observed` to `true` and record the actual boolean `dirty` value plus the status digest. When it is unavailable, set `working_state_observed` to `false` and keep `dirty` / `status_sha256` null. Unknown working state is not a reconciliation event by itself; a contradictory observable field is.
 
 The checkpoint MUST state that it is recovery metadata and never outranks freshly re-resolved repository state.
 
@@ -173,7 +178,7 @@ Checkpoint: <id>
 Resume the latest Sloar session for OWNER/REPO.
 ```
 
-Fresh chat, unchanged repository:
+Fresh chat, unchanged observable repository state:
 
 ```text
 Sloar restored.
@@ -183,6 +188,8 @@ Next: <next action>
 
 이어서 진행한다.
 ```
+
+If working-tree state is unavailable, append a compact qualification such as `Working tree: unobserved` rather than implying it is clean.
 
 Fresh chat, repository moved:
 
