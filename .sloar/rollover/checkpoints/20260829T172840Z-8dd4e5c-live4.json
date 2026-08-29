@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260829T172840Z-8dd4e5c-live4",
+  "created_at": "2026-08-29T17:28:40Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "8dd4e5c925d19a3afb69abbeb926d72255f3a0bb",
+    "tree": "8b75a97b734c33eba4b8e977d4c4eb40b099b712",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null
+  },
+  "context": {
+    "response_language": "ko-KR",
+    "goal": "Continue real cross-chat validation of Sloar's chat-native bootstrap and seamless rollover experiment, including remote-only identity semantics and preservation of Korean user-facing responses across an English resume control sentence.",
+    "completed": [
+      "First real cross-chat recovery succeeded without requiring the user to restate the previous conversation.",
+      "Remote-only working-state observability defect was found and fixed in draft PR #7.",
+      "A language-continuity defect was observed when the fresh chat answered in English after receiving the English resume control sentence.",
+      "The experiment now separates control language from user-facing response language.",
+      "rollover.py can persist response_language and surface it in the reconstructed session capsule.",
+      "PROTOCOL.md and FIRST_USE.md require response-language restoration before the first visible fresh-chat reply.",
+      "README.md documents language continuity and the ko-KR checkpoint example.",
+      "The full README was restored after an intermediate accidental short overwrite; the final tree contains the intended complete documentation."
+    ],
+    "active": [
+      "Keep PR #7 draft while running the second real fresh-chat validation against the language-aware checkpoint."
+    ],
+    "pending": [
+      "In a new ChatGPT chat, load this checkpoint and revalidate main, PR #7, experiment head/tree, CI, and observable capabilities.",
+      "Verify that the first visible fresh-chat response is Korean despite the English resume control sentence.",
+      "Run the targeted rollover unit suite and Python compile check in an execution-capable environment; this chat could not execute the modified experiment helper locally.",
+      "Record the result back into draft PR #7 before any stabilization decision."
+    ],
+    "decisions": [
+      "Stable Sloar 0.4.0 remains untouched.",
+      "Repository reality outranks checkpoint metadata and chat memory.",
+      "The English resume sentence is control input only; it does not change response_language.",
+      "response_language is ko-KR for this live test unless the user explicitly requests another language.",
+      "Unknown local working-tree state remains explicit rather than being guessed clean."
+    ],
+    "evidence": [
+      "PR #7 head is 8dd4e5c925d19a3afb69abbeb926d72255f3a0bb with tree 8b75a97b734c33eba4b8e977d4c4eb40b099b712.",
+      "PR #7 remains open and draft against main 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "Validate Sloar run 132 succeeded on the preceding language-continuity head; a new validation run was queued for the final README-restored head at checkpoint creation time."
+    ],
+    "blockers": [
+      "No local execution/worktree is exposed in this chat for directly running the modified experiment's targeted Python tests."
+    ],
+    "next_action": "Open a fresh ChatGPT chat and send exactly: Resume the latest Sloar session for hoonex/sloar-chat-coder from branch sloar/rollover-state; revalidate the current repository state first, then continue the recorded work. Respond in the checkpoint response_language before continuing."
+  }
+}
