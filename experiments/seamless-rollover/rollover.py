@@ -17,7 +17,7 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 SCHEMA_VERSION = 1
 DEFAULT_STATE_DIR = ".git/sloar-rollover"
@@ -65,10 +65,11 @@ class GitIdentity:
     head: str
     tree: str
     branch: str
-    dirty: bool
-    status_sha256: str
+    dirty: bool | None
+    status_sha256: str | None
     origin: str
     repository: str
+    working_state_observed: bool
 
 
 def capture_identity(repo: Path) -> GitIdentity:
@@ -90,7 +91,14 @@ def capture_identity(repo: Path) -> GitIdentity:
         status_sha256=_status_digest(status),
         origin=origin,
         repository=repository,
+        working_state_observed=True,
     )
+
+
+def _identity_dict(identity: GitIdentity | Mapping[str, Any]) -> dict[str, Any]:
+    if isinstance(identity, GitIdentity):
+        return asdict(identity)
+    return dict(identity)
 
 
 def _clean(values: Iterable[str] | None) -> list[str]:
@@ -176,17 +184,33 @@ def load_checkpoint(repo: Path, state_dir: str, checkpoint_id: str | None) -> di
     return data
 
 
-def compare_identity(checkpoint: dict[str, Any], current: GitIdentity) -> dict[str, Any]:
+def compare_identity(
+    checkpoint: dict[str, Any], current: GitIdentity | Mapping[str, Any]
+) -> dict[str, Any]:
     previous = checkpoint["identity"]
+    current_values = _identity_dict(current)
     changed: list[str] = []
-    for key in ("head", "tree", "branch", "dirty", "status_sha256"):
-        if previous.get(key) != getattr(current, key):
+    unobserved: list[str] = []
+
+    for key in ("head", "tree", "branch"):
+        if previous.get(key) != current_values.get(key):
             changed.append(key)
+
+    previous_working_observed = bool(previous.get("working_state_observed", True))
+    current_working_observed = bool(current_values.get("working_state_observed", True))
+    if previous_working_observed and current_working_observed:
+        for key in ("dirty", "status_sha256"):
+            if previous.get(key) != current_values.get(key):
+                changed.append(key)
+    else:
+        unobserved.append("working_state")
+
     return {
         "state": "EXACT" if not changed else "RECONCILE_REQUIRED",
         "changed": changed,
+        "unobserved": unobserved,
         "checkpoint": previous,
-        "current": asdict(current),
+        "current": current_values,
     }
 
 
@@ -203,6 +227,8 @@ def render_capsule(checkpoint: dict[str, Any], comparison: dict[str, Any]) -> st
     ]
     if comparison["changed"]:
         lines.append("Changed since handoff: " + ", ".join(comparison["changed"]))
+    if comparison.get("unobserved"):
+        lines.append("Unobserved identity fields: " + ", ".join(comparison["unobserved"]))
     if context.get("goal"):
         lines.append("Goal: " + context["goal"])
     sections = (
