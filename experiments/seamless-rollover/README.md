@@ -1,17 +1,43 @@
-# Sloar Seamless Rollover Demo
+# Sloar Chat-Native Continuity Demo
 
-Experimental, isolated prototype for reducing the biggest chat-based coding continuity cost: moving to a fresh chat after context becomes crowded.
+Experimental, isolated prototype for making Sloar usable from the **first chat** and cheap to continue in a **fresh chat** when context gets crowded.
 
 This demo is **not part of Sloar 0.4.0** and does not change the stable skill contract.
 
 ## Goal
 
-Turn this:
+Turn first use from this:
+
+```text
+find Sloar repo
+→ clone it
+→ run install.py
+→ run wizard.py
+→ explain setup to the chat
+→ start coding
+```
+
+into this when the current chat has enough authorized capability:
+
+```text
+User:
+이 저장소 Sloar로 개발해.
+https://github.com/OWNER/REPO
+
+<request>
+
+→ agent checks capabilities
+→ installs/restores Sloar safely when possible
+→ resolves exact repository state
+→ starts the requested work
+```
+
+Then turn context rollover from this:
 
 ```text
 old chat gets long
-→ user asks for a giant handoff prompt
-→ user copies several thousand characters
+→ giant handoff prompt
+→ several thousand characters copied into a new chat
 → new chat re-learns the project
 ```
 
@@ -20,28 +46,93 @@ into this:
 ```text
 old chat: "새 채팅으로 넘겨줘"
 → durable compact checkpoint
-→ new chat: "Resume the latest Sloar rollover for OWNER/REPO."
+→ new chat: "Resume the latest Sloar session for OWNER/REPO."
 → repository revalidation
 → compact context reconstruction
 → continue
 ```
 
-The success criterion is simple: **the user should not need to restate previous task context in the new chat.**
+The success criteria are simple:
 
-## Why a sidecar branch
+1. **A first-time user should not need to understand Sloar installation mechanics when the chat can bootstrap it safely.**
+2. **A fresh chat should not require the user to restate previous task context.**
 
-The preferred chat-native backend is a GitHub branch named `sloar/rollover-state`.
+See [`FIRST_USE.md`](FIRST_USE.md) for the beginner flow and [`PROTOCOL.md`](PROTOCOL.md) for the agent-facing contract.
+
+## Preferred user experience
+
+### First chat
+
+```text
+이 저장소 Sloar로 개발해.
+https://github.com/OWNER/REPO
+
+로그인 화면 만들어줘.
+```
+
+The agent checks whether Sloar already exists, what repository/GitHub/execution capabilities are actually available, bootstraps only through authorized safe paths, resolves repository identity, and starts the requested work.
+
+If durable write is unavailable, the agent must not claim that Sloar was installed. It can still use the protocol ephemerally when possible and clearly mark rollover durability as unavailable.
+
+### Normal work
+
+The user talks normally. No Sloar prefix is required for every request.
+
+```text
+모바일 레이아웃도 고쳐줘.
+테스트까지 해줘.
+```
+
+### Move to a fresh chat
+
+```text
+새 채팅으로 넘겨줘.
+```
+
+Expected response:
+
+```text
+Sloar handoff saved.
+Repository: OWNER/REPO
+Checkpoint: <id>
+
+새 채팅에서 이것만 보내면 된다:
+Resume the latest Sloar session for OWNER/REPO.
+```
+
+### Fresh chat
+
+```text
+Resume the latest Sloar session for OWNER/REPO.
+```
+
+The new chat re-resolves repository reality first, loads the checkpoint, reconciles movement if needed, reconstructs only compact working context, and continues.
+
+## Durable rollover backend
+
+The preferred chat-native backend remains a GitHub sidecar branch named `sloar/rollover-state`.
 
 - It survives disposable chat/sandbox sessions.
-- A fresh ChatGPT session with repository read access can recover it.
-- It does not add runtime checkpoint files to the product branch.
-- It keeps the repository itself as the durable coordination surface.
+- A fresh session with repository read access can recover it.
+- It does not add runtime checkpoint files to product branches.
+- It keeps the repository as the durable coordination surface.
 
-The checkpoint is never treated as current truth. On resume, current repository/remote state is re-resolved first and compared with the checkpoint.
+The checkpoint is never current truth. Fresh repository state always wins.
+
+```text
+branch: sloar/rollover-state
+
+.sloar/rollover/
+  latest.json
+  checkpoints/
+    <checkpoint-id>.json
+```
 
 ## Local helper
 
-`rollover.py` demonstrates checkpoint generation and context reconstruction without requiring network access or GitHub credentials. Local helper state defaults to `.git/sloar-rollover/`, so creating a handoff does not dirty the product worktree. Durable cross-chat publication remains the agent's job through the sidecar branch.
+`rollover.py` exists to test checkpoint generation and context reconstruction without network access. It is a development/fallback helper, **not the intended first-user UX**.
+
+Local helper state defaults to `.git/sloar-rollover/`, so handoff generation does not dirty the product worktree.
 
 ```bash
 python3 rollover.py handoff /path/to/repo \
@@ -54,39 +145,13 @@ python3 rollover.py handoff /path/to/repo \
   --next "run visual regression"
 ```
 
-It prints a fresh-chat instruction:
-
-```text
-Resume the latest Sloar rollover for OWNER/REPO.
-```
-
 Resume locally:
 
 ```bash
 python3 rollover.py resume /path/to/repo
 ```
 
-If HEAD/tree/branch/working state changed, the capsule reports `RECONCILE_REQUIRED` rather than silently trusting stale state.
-
-## Chat behavior
-
-The user can ask for rollover naturally in any language. The agent-facing protocol is kept in concise English for unambiguous Git/tool terminology. See `PROTOCOL.md`.
-
-The intended user-visible flow is intentionally tiny:
-
-```text
-User: 새 채팅으로 넘겨줘.
-
-Assistant:
-Sloar handoff saved.
-Repository: OWNER/REPO
-Checkpoint: <id>
-
-새 채팅에서 이것만 보내면 된다:
-Resume the latest Sloar rollover for OWNER/REPO.
-```
-
-A fresh chat should then recover, revalidate, and continue without asking the user to explain the previous work again.
+If HEAD/tree/branch/working state changed, the capsule reports `RECONCILE_REQUIRED` instead of trusting stale state.
 
 ## Scope deliberately excluded
 
@@ -96,7 +161,7 @@ A fresh chat should then recover, revalidate, and continue without asking the us
 - replacing Git/PR/CI as source of truth;
 - modifying the stable Sloar skill.
 
-Those can be evaluated only after rollover itself proves useful.
+Those should be evaluated only after first-use bootstrap and rollover prove useful in real chat sessions.
 
 ## Test
 
@@ -104,4 +169,4 @@ Those can be evaluated only after rollover itself proves useful.
 python3 -m unittest discover -s tests -v
 ```
 
-The test suite checks exact recovery, dirty-state detection, repository movement detection, and compact capsule rendering.
+The existing tests cover exact recovery, dirty-state detection, repository movement detection, and compact capsule rendering.
