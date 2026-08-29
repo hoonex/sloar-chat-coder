@@ -114,6 +114,8 @@ Resume the latest Sloar session for OWNER/REPO.
 
 The new chat re-resolves repository reality first, loads the checkpoint, reconciles movement if needed, reconstructs only compact working context, and continues.
 
+A remote-only chat may be able to prove HEAD/tree/branch and PR/CI state without seeing any local worktree. In that case Sloar records the working state as **unobserved** rather than inventing a clean/dirty value. Matching observable identity may still be `EXACT`, but that label must not be presented as proof that an unobserved worktree is clean.
+
 ## Durable rollover backend
 
 The preferred chat-native backend remains a GitHub sidecar branch named `sloar/rollover-state`.
@@ -157,7 +159,7 @@ Resume locally:
 python3 rollover.py resume /path/to/repo
 ```
 
-If HEAD/tree/branch/working state changed, the capsule reports `RECONCILE_REQUIRED` instead of trusting stale state.
+For local captures, a changed HEAD/tree/branch/dirty/status identity reports `RECONCILE_REQUIRED`. The comparison helper also accepts a mapping from remote-only agents; unavailable working-tree fields are surfaced as unobserved and do not create a false reconciliation by themselves.
 
 ## Scope deliberately excluded
 
@@ -175,4 +177,4 @@ Those should be evaluated only after first-use bootstrap and rollover prove usef
 python3 -m unittest discover -s tests -v
 ```
 
-The tests cover exact recovery, dirty-state detection, repository movement detection, compact capsule rendering, and the one-line session resume instruction.
+The tests cover local exact recovery, dirty-state detection, repository movement detection, remote-only exact/reconcile behavior, compact capsule rendering, and the one-line session resume instruction.
