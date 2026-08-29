@@ -64,6 +64,18 @@ I can continue locally/ephemerally; cross-chat rollover will not be claimed as d
 
 Only then should the agent offer the smallest fallback needed, such as connecting repository write access or using the existing local installer.
 
+## Local fallback only when required
+
+If the environment cannot perform a durable chat-native bootstrap, the existing stable installer remains the fallback rather than the default onboarding experience:
+
+```bash
+git clone https://github.com/hoonex/sloar-chat-coder.git
+cd sloar-chat-coder
+python3 .agents/skills/sloar-chat-coder/scripts/install.py --target /path/to/project
+```
+
+The user should only see this path when the current chat genuinely lacks a safe installation capability.
+
 ## After first use
 
 The user works normally. There is no requirement to prefix every request with Sloar.
