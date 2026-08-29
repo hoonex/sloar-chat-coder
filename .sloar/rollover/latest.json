@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "kind": "sloar-rollover-pointer",
+  "repository": "hoonex/sloar-chat-coder",
+  "checkpoint_id": "20260829T171441Z-b015597-live1",
+  "checkpoint_file": ".sloar/rollover/checkpoints/20260829T171441Z-b015597-live1.json",
+  "created_at": "2026-08-29T17:14:41Z"
+}
