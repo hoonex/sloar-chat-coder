@@ -52,6 +52,12 @@ old chat: "새 채팅으로 넘겨줘"
 → continue
 ```
 
+The intended lifecycle is:
+
+```text
+BOOTSTRAP_SESSION? -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION -> NORMAL_WORK
+```
+
 The success criteria are simple:
 
 1. **A first-time user should not need to understand Sloar installation mechanics when the chat can bootstrap it safely.**
