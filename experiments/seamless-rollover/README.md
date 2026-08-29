@@ -72,7 +72,7 @@ https://github.com/OWNER/REPO
 
 The agent checks whether Sloar already exists, what repository/GitHub/execution capabilities are actually available, bootstraps only through authorized safe paths, resolves repository identity, and starts the requested work.
 
-If durable write is unavailable, the agent must not claim that Sloar was installed. It can still use the protocol ephemerally when possible and clearly mark rollover durability as unavailable.
+If durable write is unavailable, the agent must not claim that Sloar was installed. It can still use the protocol ephemerally when possible and clearly mark rollover durability as unavailable. Only then should it show the smallest fallback, such as the existing local installer.
 
 ### Normal work
 
@@ -169,4 +169,4 @@ Those should be evaluated only after first-use bootstrap and rollover prove usef
 python3 -m unittest discover -s tests -v
 ```
 
-The existing tests cover exact recovery, dirty-state detection, repository movement detection, and compact capsule rendering.
+The tests cover exact recovery, dirty-state detection, repository movement detection, compact capsule rendering, and the one-line session resume instruction.
