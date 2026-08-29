@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sloar Seamless Rollover demo helper.
+"""Sloar chat-native continuity demo helper.
 
 This helper is intentionally transport-agnostic. It captures exact local Git
 identity, builds a compact handoff checkpoint, and reconstructs a fresh-chat
@@ -54,6 +54,10 @@ def _repo_slug(origin: str, fallback: str) -> str:
 
 def _status_digest(status: str) -> str:
     return hashlib.sha256(status.encode("utf-8")).hexdigest()
+
+
+def resume_instruction(repository: str) -> str:
+    return f"Resume the latest Sloar session for {repository}."
 
 
 @dataclass(frozen=True)
@@ -189,7 +193,7 @@ def compare_identity(checkpoint: dict[str, Any], current: GitIdentity) -> dict[s
 def render_capsule(checkpoint: dict[str, Any], comparison: dict[str, Any]) -> str:
     context = checkpoint.get("context", {})
     lines = [
-        "SLOAR ROLLOVER CAPSULE v1",
+        "SLOAR SESSION CAPSULE v1",
         f"Repository: {checkpoint.get('repository', 'unknown')}",
         f"Checkpoint: {checkpoint.get('checkpoint_id', 'unknown')}",
         f"Resume state: {comparison['state']}",
@@ -230,6 +234,7 @@ def cmd_handoff(args: argparse.Namespace) -> int:
                     "checkpoint": checkpoint,
                     "checkpoint_path": str(cp_path),
                     "latest_path": str(latest_path),
+                    "resume_instruction": resume_instruction(checkpoint["repository"]),
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -242,7 +247,7 @@ def cmd_handoff(args: argparse.Namespace) -> int:
     print(f"Local checkpoint: {cp_path}")
     print("Durability: local only until an authorized agent persists this checkpoint to durable repository transport.")
     print("Fresh-chat resume instruction:")
-    print(f"Resume the latest Sloar rollover for {checkpoint['repository']}.")
+    print(resume_instruction(checkpoint["repository"]))
     return 0
 
 
@@ -259,7 +264,7 @@ def cmd_resume(args: argparse.Namespace) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Sloar Seamless Rollover demo")
+    p = argparse.ArgumentParser(description="Sloar chat-native continuity demo")
     sub = p.add_subparsers(dest="command", required=True)
 
     handoff = sub.add_parser("handoff", help="capture a compact handoff checkpoint")
