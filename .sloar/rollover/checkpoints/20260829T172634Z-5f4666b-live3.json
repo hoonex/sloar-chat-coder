@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260829T172634Z-5f4666b-live3",
+  "created_at": "2026-08-29T17:26:34Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "5f4666ba7c79e950bdcd0e79b88abae31080e648",
+    "tree": "c7dd593ba1c42a51803e28d2f5f4a5bcdd8a453a",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "This chat used GitHub remote tools for the product branch; local working-tree state is intentionally unobserved."
+  },
+  "context": {
+    "response_language": "ko-KR",
+    "goal": "Validate the chat-native Sloar bootstrap and seamless session rollover experiment end-to-end in real ChatGPT sessions, including preservation of the user's response language across an English resume control sentence, without changing stable Sloar 0.4.0.",
+    "completed": [
+      "Completed the first real cross-chat rollover and recovered the prior task without asking the user to reconstruct the old conversation.",
+      "Fixed remote-only identity observability semantics after the first live test and recorded that fix in draft PR #7.",
+      "Observed a second real UX defect: the fresh chat replied in English because the English resume control sentence was incorrectly treated as a conversation-language preference.",
+      "Updated the experiment helper to persist an optional response_language field in rollover context and expose it in the session capsule.",
+      "Updated the agent protocol so control language and user-facing response language are explicitly independent; the resume sentence must not override the checkpoint response_language.",
+      "Updated first-use guidance to preserve response language across rollover.",
+      "Added unit coverage for response_language persistence, capsule rendering, and legacy checkpoints that omit the field.",
+      "GitHub Actions Validate Sloar run 128 completed successfully on experiment head 5f4666ba7c79e950bdcd0e79b88abae31080e648."
+    ],
+    "active": [
+      "Keep PR #7 draft and perform a second real fresh-chat rollover using this language-aware checkpoint."
+    ],
+    "pending": [
+      "In a fresh ChatGPT chat, load this checkpoint from sloar/rollover-state and revalidate current repository state before trusting it.",
+      "Confirm that the first visible fresh-chat response is Korean even though the resume control sentence is English.",
+      "Run the targeted experiment rollover unit suite and Python compile check in an execution-capable environment; this current remote-only chat did not execute the modified helper/tests locally.",
+      "If language continuity and remote-only observability both work cleanly, record the result in PR #7 before discussing stabilization."
+    ],
+    "decisions": [
+      "Stable Sloar 0.4.0 remains unchanged; all fixes stay isolated in draft PR #7.",
+      "Repository reality always outranks checkpoint metadata and chat memory.",
+      "The English resume sentence is a control phrase only and must not imply English user-facing responses.",
+      "The checkpoint should store the established user-facing response language when known; an explicit later user request can still change it.",
+      "The current user's response language for this live test is ko-KR.",
+      "Unknown working-tree state remains explicit and is not treated as clean."
+    ],
+    "evidence": [
+      "PR #7 is open, draft, and mergeable on head 5f4666ba7c79e950bdcd0e79b88abae31080e648.",
+      "Experiment tree at that head is c7dd593ba1c42a51803e28d2f5f4a5bcdd8a453a.",
+      "Validate Sloar run 128 completed successfully on the latest experiment head.",
+      "The updated protocol explicitly separates response_language from the English resume control sentence."
+    ],
+    "blockers": [
+      "This current chat has no local product worktree/execution path for running the newly modified experiment helper test suite, so targeted runtime verification remains pending."
+    ],
+    "next_action": "Open a fresh ChatGPT chat and send exactly: Resume the latest Sloar session for hoonex/sloar-chat-coder from branch sloar/rollover-state; revalidate the current repository state first, then continue the recorded work. The fresh chat should respond in Korean because response_language is ko-KR, then run the targeted rollover tests if execution capability is available."
+  }
+}
