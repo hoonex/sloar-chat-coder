@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260829T172151Z-3aa17e2-live2",
+  "created_at": "2026-08-29T17:21:51Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "3aa17e294a3c3418a270d11653b61cb19c477a44",
+    "tree": "3d0621d7b0572575e4972a2041c8ba1f692d3157",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "This chat used GitHub remote tools for the product branch; no local product worktree was available, so working-tree state remains intentionally unobserved."
+  },
+  "context": {
+    "goal": "Validate the chat-native Sloar bootstrap and seamless session rollover experiment end-to-end in real ChatGPT sessions, then improve draft PR #7 based on observed failures without changing stable Sloar 0.4.0.",
+    "completed": [
+      "Recovered live checkpoint 20260829T171441Z-b015597-live1 from sloar/rollover-state in a fresh ChatGPT session without asking the user to reconstruct the previous conversation.",
+      "Revalidated main, PR #7, experiment head/tree, CI, repository guidance, and available GitHub capabilities before trusting checkpoint metadata.",
+      "Classified the initial live resume as EXACT for observable durable GitHub state while preserving working-tree state as unobserved.",
+      "Identified a real remote-only identity defect: rollover.py assumed fully observed local dirty/status identity even though the live checkpoint required working_state_observed=false with null dirty/status fields.",
+      "Updated rollover.py to compare mapping-based remote identity, model working_state_observed explicitly, avoid false reconciliation for unobserved worktree state, and surface unobserved identity fields in the capsule.",
+      "Added remote-only EXACT and repository-movement reconciliation tests plus capsule observability coverage; the targeted local suite passed 8 tests and Python compile passed.",
+      "Updated PROTOCOL.md and README.md with observable-identity EXACT semantics and explicit remote-only working-state behavior.",
+      "Updated PR #7 description with the real cross-chat test, defect, fix, and verification evidence.",
+      "Validate Sloar run 118 completed successfully on experiment head 3aa17e294a3c3418a270d11653b61cb19c477a44."
+    ],
+    "active": [
+      "Keep PR #7 intentionally draft while the chat-native continuity experiment is still being validated in real sessions."
+    ],
+    "pending": [
+      "Run a second real fresh-chat rollover from the updated experiment head to confirm the new remote-only observability semantics are sufficient without manual interpretation.",
+      "If the second rollover is clean, decide whether the experiment is ready for a deliberate stabilization/release discussion; do not silently change stable Sloar 0.4.0."
+    ],
+    "decisions": [
+      "Stable Sloar 0.4.0 remains unchanged; all live-test fixes stay isolated in draft PR #7.",
+      "Repository reality always outranks rollover checkpoint metadata and chat memory.",
+      "The GitHub sidecar branch remains the preferred cross-chat checkpoint transport and product branches stay free of runtime checkpoint metadata.",
+      "EXACT means no contradiction among identity fields the current session can actually observe; it is not proof that an unobserved worktree is clean.",
+      "Unknown working-tree state must be explicit rather than coerced to clean/dirty or treated as a reconciliation event by itself.",
+      "Parallel-chat orchestration remains out of scope until single-session bootstrap and rollover are proven useful."
+    ],
+    "evidence": [
+      "PR #7 is open, draft, and mergeable with head 3aa17e294a3c3418a270d11653b61cb19c477a44 and base main 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "Experiment head tree is 3d0621d7b0572575e4972a2041c8ba1f692d3157.",
+      "Targeted local rollover unit suite: 8 tests passed.",
+      "Modified rollover helper Python compile check: passed.",
+      "GitHub Actions Validate Sloar run 118: completed with conclusion success on the latest experiment head."
+    ],
+    "blockers": [
+      "No local product worktree is exposed in this chat, so dirty/status identity remains unobserved by design.",
+      "A second real cross-chat rollover requires a future fresh ChatGPT chat; it cannot be proven by simulating another session inside this one."
+    ],
+    "next_action": "In the next fresh ChatGPT chat, send: Resume the latest Sloar session for hoonex/sloar-chat-coder. Revalidate GitHub state first, recover this checkpoint, and verify that remote-only working-state observability is handled cleanly on the updated PR #7 head."
+  }
+}
