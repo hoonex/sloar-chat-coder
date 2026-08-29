@@ -92,6 +92,7 @@ class RolloverTests(unittest.TestCase):
         instruction = rollover.resume_instruction("example/demo")
         self.assertEqual(instruction, "Resume the latest Sloar session for example/demo.")
         self.assertNotIn("\n", instruction)
+        self.assertNotIn("rollover", instruction.lower())
 
 
 if __name__ == "__main__":
