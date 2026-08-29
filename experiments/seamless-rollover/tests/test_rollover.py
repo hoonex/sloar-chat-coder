@@ -58,6 +58,7 @@ class RolloverTests(unittest.TestCase):
         loaded = rollover.load_checkpoint(self.repo, rollover.DEFAULT_STATE_DIR, None)
         comparison = rollover.compare_identity(loaded, rollover.capture_identity(self.repo))
         self.assertEqual(comparison["state"], "EXACT")
+        self.assertEqual(comparison["unobserved"], [])
 
     def test_custom_worktree_state_dir_is_detected(self):
         identity = rollover.capture_identity(self.repo)
@@ -79,6 +80,39 @@ class RolloverTests(unittest.TestCase):
         self.assertIn("head", comparison["changed"])
         self.assertIn("tree", comparison["changed"])
 
+    def test_remote_only_identity_can_be_exact_for_observable_state(self):
+        identity = rollover.capture_identity(self.repo)
+        checkpoint = rollover.build_checkpoint(identity, self._args())
+        checkpoint["identity"].update(
+            {
+                "working_state_observed": False,
+                "dirty": None,
+                "status_sha256": None,
+            }
+        )
+        current = dict(checkpoint["identity"])
+        comparison = rollover.compare_identity(checkpoint, current)
+        self.assertEqual(comparison["state"], "EXACT")
+        self.assertEqual(comparison["changed"], [])
+        self.assertEqual(comparison["unobserved"], ["working_state"])
+
+    def test_remote_only_repository_move_still_requires_reconcile(self):
+        identity = rollover.capture_identity(self.repo)
+        checkpoint = rollover.build_checkpoint(identity, self._args())
+        checkpoint["identity"].update(
+            {
+                "working_state_observed": False,
+                "dirty": None,
+                "status_sha256": None,
+            }
+        )
+        current = dict(checkpoint["identity"])
+        current["head"] = "f" * 40
+        comparison = rollover.compare_identity(checkpoint, current)
+        self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+        self.assertIn("head", comparison["changed"])
+        self.assertEqual(comparison["unobserved"], ["working_state"])
+
     def test_capsule_omits_chat_noise(self):
         checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
         comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
@@ -87,6 +121,21 @@ class RolloverTests(unittest.TestCase):
         self.assertIn("Goal: Continue UI work", capsule)
         self.assertIn("Next action: run browser regression", capsule)
         self.assertNotIn("conversation", capsule.lower())
+
+    def test_capsule_marks_unobserved_working_state(self):
+        identity = rollover.capture_identity(self.repo)
+        checkpoint = rollover.build_checkpoint(identity, self._args())
+        checkpoint["identity"].update(
+            {
+                "working_state_observed": False,
+                "dirty": None,
+                "status_sha256": None,
+            }
+        )
+        comparison = rollover.compare_identity(checkpoint, dict(checkpoint["identity"]))
+        capsule = rollover.render_capsule(checkpoint, comparison)
+        self.assertIn("Resume state: EXACT", capsule)
+        self.assertIn("Unobserved identity fields: working_state", capsule)
 
     def test_resume_instruction_is_one_line_and_repository_specific(self):
         instruction = rollover.resume_instruction("example/demo")
