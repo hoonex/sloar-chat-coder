@@ -49,6 +49,7 @@ class RolloverTests(unittest.TestCase):
             evidence=["unit: pass"],
             blocker=[],
             next_action="run browser regression",
+            response_language="ko-KR",
         )
 
     def test_checkpoint_round_trip_exact(self):
@@ -59,6 +60,7 @@ class RolloverTests(unittest.TestCase):
         comparison = rollover.compare_identity(loaded, rollover.capture_identity(self.repo))
         self.assertEqual(comparison["state"], "EXACT")
         self.assertEqual(comparison["unobserved"], [])
+        self.assertEqual(loaded["context"]["response_language"], "ko-KR")
 
     def test_custom_worktree_state_dir_is_detected(self):
         identity = rollover.capture_identity(self.repo)
@@ -118,6 +120,7 @@ class RolloverTests(unittest.TestCase):
         comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
         capsule = rollover.render_capsule(checkpoint, comparison)
         self.assertIn("SLOAR SESSION CAPSULE v1", capsule)
+        self.assertIn("Response language: ko-KR", capsule)
         self.assertIn("Goal: Continue UI work", capsule)
         self.assertIn("Next action: run browser regression", capsule)
         self.assertNotIn("conversation", capsule.lower())
@@ -136,6 +139,12 @@ class RolloverTests(unittest.TestCase):
         capsule = rollover.render_capsule(checkpoint, comparison)
         self.assertIn("Resume state: EXACT", capsule)
         self.assertIn("Unobserved identity fields: working_state", capsule)
+
+    def test_response_language_can_be_omitted_for_legacy_checkpoint_creation(self):
+        args = self._args()
+        delattr(args, "response_language")
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), args)
+        self.assertEqual(checkpoint["context"]["response_language"], "")
 
     def test_resume_instruction_is_one_line_and_repository_specific(self):
         instruction = rollover.resume_instruction("example/demo")
