@@ -31,7 +31,8 @@ On explicit first-use intent such as `Use Sloar`, the agent should:
 4. If it is absent and an authorized safe write path exists, obtain the documented stable Sloar core, install it without replacing unrelated `AGENTS.md` content, and verify the installed files before treating bootstrap as durable.
 5. If durable write is unavailable, do not pretend Sloar was installed. The agent may use the public Sloar protocol ephemerally for the current chat, but must report that rollover persistence is unavailable until a durable path exists.
 6. Resolve exact repository identity and relevant remote state.
-7. Begin the user's requested work. Do not turn a healthy bootstrap into a long setup tutorial.
+7. Preserve the established user-facing response language independently from the language used in code, Git commands, agent protocol text, or later resume control phrases.
+8. Begin the user's requested work. Do not turn a healthy bootstrap into a long setup tutorial.
 
 ## Expected visible response
 
@@ -54,6 +55,8 @@ State: <short current state>
 
 <continue the requested work>
 ```
+
+These examples describe structure, not a forced output language. Visible responses should use the user's established response language.
 
 If the chat cannot persist the bootstrap:
 
@@ -97,6 +100,8 @@ The old chat prepares a durable rollover and returns one resume sentence:
 ```text
 Resume the latest Sloar session for OWNER/REPO.
 ```
+
+That English sentence is a **control phrase only**. It does not request an English conversation. The rollover checkpoint should preserve the established user-facing `response_language`, and the fresh chat should restore that language before its first visible reply.
 
 The fresh chat re-resolves repository reality, loads the durable checkpoint, reconciles any movement, and continues without asking the user to reconstruct the old conversation.
 
