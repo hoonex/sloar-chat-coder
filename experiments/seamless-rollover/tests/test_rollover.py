@@ -83,9 +83,15 @@ class RolloverTests(unittest.TestCase):
         checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
         comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
         capsule = rollover.render_capsule(checkpoint, comparison)
+        self.assertIn("SLOAR SESSION CAPSULE v1", capsule)
         self.assertIn("Goal: Continue UI work", capsule)
         self.assertIn("Next action: run browser regression", capsule)
         self.assertNotIn("conversation", capsule.lower())
+
+    def test_resume_instruction_is_one_line_and_repository_specific(self):
+        instruction = rollover.resume_instruction("example/demo")
+        self.assertEqual(instruction, "Resume the latest Sloar session for example/demo.")
+        self.assertNotIn("\n", instruction)
 
 
 if __name__ == "__main__":
