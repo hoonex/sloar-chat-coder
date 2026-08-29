@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260829T171441Z-b015597-live1",
+  "created_at": "2026-08-29T17:14:41Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "b015597727ec2800ec4a6a27d82b35c2df6b4e3b",
+    "tree": "da728cf22e5695f67cdb77c9a06228458a4ce563",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "working_state_note": "This chat operated through GitHub remote tools only; no local product worktree was available to inspect, so dirty state is intentionally unknown."
+  },
+  "context": {
+    "goal": "Validate the chat-native Sloar bootstrap and seamless session rollover experiment end-to-end using the current ChatGPT conversation as the old session, then improve the draft experiment based on observed failures.",
+    "completed": [
+      "Created draft PR #7 for the isolated chat-native continuity experiment without changing stable Sloar 0.4.0.",
+      "Expanded the experiment to the lifecycle BOOTSTRAP_SESSION? -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION -> NORMAL_WORK.",
+      "Added FIRST_USE.md so a first-time user can start from a repository URL plus an ordinary request when authorized capabilities are sufficient.",
+      "Kept agent-facing protocol instructions in concise English while allowing user-facing requests in any language.",
+      "Unified fresh-chat wording on: Resume the latest Sloar session for OWNER/REPO.",
+      "Kept parallel-chat orchestration, learned memory/RL, and automatic context-limit prediction out of this experiment.",
+      "Validate Sloar workflow run 107 completed successfully on PR #7 head b015597727ec2800ec4a6a27d82b35c2df6b4e3b.",
+      "Created the durable sidecar branch sloar/rollover-state for this live rollover test."
+    ],
+    "active": [
+      "Run the first real cross-chat rollover test using this conversation as the old chat."
+    ],
+    "pending": [
+      "In a fresh ChatGPT chat, load the latest checkpoint from sloar/rollover-state.",
+      "Re-resolve current main, PR #7, experiment branch head/tree, CI, and available capabilities before trusting this checkpoint.",
+      "Classify the resume as EXACT or RECONCILE_REQUIRED based on currently observable durable state.",
+      "Confirm that the recovered compact context is sufficient to continue without the user restating the old conversation.",
+      "Record any real UX/protocol defects found by the live test and update draft PR #7 rather than stable Sloar."
+    ],
+    "decisions": [
+      "Stable Sloar 0.4.0 remains unchanged; PR #7 is intentionally a disposable draft experiment.",
+      "Repository reality always outranks rollover checkpoint metadata and chat memory.",
+      "Use a GitHub sidecar branch for cross-chat checkpoint transport so product branches are not polluted by runtime metadata.",
+      "Do not require slash commands; natural-language first-use and rollover requests are valid.",
+      "Do not claim a local working-tree state when the current chat cannot observe one.",
+      "Do not add parallel-chat orchestration until single-session bootstrap and rollover are proven useful."
+    ],
+    "evidence": [
+      "PR #7 is open, draft, and mergeable with head b015597727ec2800ec4a6a27d82b35c2df6b4e3b.",
+      "Validate Sloar run 107 completed with conclusion success on that head.",
+      "The experiment README and protocol at that head describe first-use bootstrap plus one-line session rollover."
+    ],
+    "blockers": [
+      "No local product worktree is exposed in this chat, so working-tree dirty state cannot be verified and must remain unknown."
+    ],
+    "next_action": "Open a fresh ChatGPT chat and send exactly: Resume the latest Sloar session for hoonex/sloar-chat-coder. The fresh chat should recover this checkpoint, revalidate GitHub state, and continue the live test without asking for the previous conversation."
+  }
+}
