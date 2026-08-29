@@ -27,7 +27,7 @@ Do not require the user to memorize a slash command. Agent-facing protocol text 
 
 ## BOOTSTRAP_SESSION
 
-When the user explicitly asks to use Sloar for a repository and the target is not yet known to be configured:
+Enter this state only when the user explicitly asks to use Sloar for a repository or when an already-Sloar-enabled repository instructs the agent to do so. Never silently install Sloar merely because a GitHub URL was mentioned.
 
 1. Resolve the target repository independently from the user's URL/name and inspect the capabilities actually exposed in the current chat.
 2. Read repository guidance before mutation, especially existing `AGENTS.md`, and check for `.agents/skills/sloar-chat-coder/SKILL.md`.
@@ -105,7 +105,7 @@ Resume the latest Sloar session for OWNER/REPO.
 
 ## RESUME_SESSION
 
-When a fresh chat receives the resume sentence:
+Enter this state when a fresh chat receives the resume sentence or an unambiguous equivalent.
 
 1. Resolve the repository independently; do not assume the checkpoint is current truth.
 2. Determine whether Sloar is installed/accessible and load the latest authorized rollover checkpoint from `sloar/rollover-state` or the strongest available durable fallback.
