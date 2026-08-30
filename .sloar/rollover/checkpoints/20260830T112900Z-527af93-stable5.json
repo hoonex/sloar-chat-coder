@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T112900Z-527af93-stable5",
+  "created_at": "2026-08-30T11:29:00Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "527af933c975c94452cca53a98aa8ec8ac0b63c1",
+    "tree": "2ed9bffd2345b80ee8caeb95d23bd87430c4ef7d",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Keep Sloar reliable for long chat-based repository work while making web-design assistance adaptive to ambiguity, usable without design jargon, and resistant to unchosen generic AI-looking UI defaults.",
+    "completed": [
+      "Published Sloar 0.8.0 to main at 527af933c975c94452cca53a98aa8ec8ac0b63c1 with tree 2ed9bffd2345b80ee8caeb95d23bd87430c4ef7d.",
+      "Added Adaptive Design Discovery with KNOWN/INFERRED/UNKNOWN ambiguity mapping, decision-value-based question selection, variable question budgets, ordinary-language prompts, 2-3 candidate directions when useful, and explicit handling of user delegation such as '알아서'.",
+      "Added a multi-axis Design DNA taxonomy separating philosophy/tone, material, composition, interaction, motion, density, typography and color; includes minimalism, maximalism, editorial, brutalism, neumorphism, glassmorphism, tactile/direct manipulation, context-aware interaction, spring/physics/morphing motion and related families without encouraging style soup.",
+      "Added Anti-AI-Slop guidance that is explicitly not an authorship detector. It classifies common unchosen generated/default UI tells across palette/material, typography, layout/IA, component styling, interaction/state, motion, copy/product evidence, imagery/fake data and second-order defaults.",
+      "Added P0/P1/P2 severity and CODE-CERTAIN/RENDER-CERTAIN/INFERRED evidence confidence so code heuristics cannot masquerade as rendered visual proof.",
+      "Added remedies that correct product direction and system coherence instead of mechanically swapping colors/fonts/radii, plus a second-order-default check so anti-slop itself does not become another universal style template.",
+      "Improved upgrade safety: exact untouched official web-design-guidance 0.7.0 bundles are fingerprint-verified, backed up under Git metadata and migrated to 0.8.0; modified/custom/unrecognized companions are preserved.",
+      "Updated English/Korean README, changelog, wizard, core skill, design companion, installer and CI for 0.8.0.",
+      "PR #13 passed Validate Sloar run #271 on the exact release head. Main push run #272 also completed successfully. PR #13 is merged/closed."
+    ],
+    "active": [],
+    "pending": [
+      "No additional publication work is pending for the 0.8.0 milestone.",
+      "A future real target-repository E2E can validate vague web request -> adaptive clarification -> Design DNA -> implementation -> rendered Anti-AI-Slop re-audit -> rollover/recovery when useful."
+    ],
+    "decisions": [
+      "Users do not need design terminology; ordinary experiential language should be translated into internal multi-axis design reasoning.",
+      "Question count is adaptive. Ask only high-value questions that materially affect expensive/reversible design decisions; do not use a fixed questionnaire or serial interview loop.",
+      "When the user delegates with '알아서' / 'you decide', stop optional clarification and choose from product/repository evidence.",
+      "AI-looking visual patterns are not proof of AI authorship and are not global bans. The audit targets unchosen defaults and requires product/context justification.",
+      "Rendered visual evidence remains required for rendered visual claims when available; code/heuristic checks alone cannot prove balanced hierarchy or non-generic design.",
+      "Anti-slop must not become a second universal rescue aesthetic; product fit and coherent Design DNA remain the reason for choices.",
+      "A bundled companion may auto-migrate only when its exact installed fingerprint matches a known official historical bundle; version number alone is insufficient permission to overwrite.",
+      "Repository durable state always outranks chat memory and checkpoints."
+    ],
+    "evidence": [
+      "main: 527af933c975c94452cca53a98aa8ec8ac0b63c1 / tree 2ed9bffd2345b80ee8caeb95d23bd87430c4ef7d",
+      "VERSION on main: 0.8.0",
+      "PR #13: merged/closed at exact head 527af933c975c94452cca53a98aa8ec8ac0b63c1",
+      "Validate Sloar release-head run #271: success",
+      "Validate Sloar main push run #272: success",
+      "Adaptive design / Anti-AI-Slop contract tests, exact official 0.7->0.8 design companion migration regression, modified 0.7 preservation regression, continuity/terminalization/interrupted-turn tests, installer/wizard smoke, self-test, forge resilience and frontmatter checks: pass"
+    ],
+    "blockers": [],
+    "next_action": "If continuing Sloar design work, prefer a real target-repository E2E that starts from a genuinely vague web request and measures whether clarification depth, chosen Design DNA and rendered anti-slop corrections improve the actual product without over-designing it.",
+    "response_language": "ko-KR"
+  }
+}
