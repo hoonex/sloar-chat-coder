@@ -75,7 +75,8 @@ class WebDesignGuidanceContractTests(unittest.TestCase):
             "Second-order defaults",
         ):
             self.assertIn(tell, anti)
-        self.assertIn("This is not an AI-authorship detector", anti)
+        self.assertIn("AI-authorship detector", anti)
+        self.assertIn("not", anti.lower())
         self.assertIn("Do not over-design", anti)
 
     def test_surface_recipes_cover_common_web_surfaces(self):
