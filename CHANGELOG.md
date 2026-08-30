@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-08-30
+
+Chat-native continuity release.
+
+- Added explicit `BOOTSTRAP_SESSION -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION` continuity semantics for first-use and fresh-chat recovery.
+- Added capability-aware first-use bootstrap so a user can begin from a repository URL when the current session has an authorized durable path, while keeping the local installer/wizard as fallback rather than mandatory ceremony.
+- Added the preferred `sloar/rollover-state` sidecar branch for durable cross-chat checkpoint transport without polluting product branches with runtime metadata.
+- Added compact rollover state for goal/completed/active/pending/decisions/evidence/blockers/next action and user-facing `response_language`.
+- Added partial identity observability: remote-only sessions can mark working-tree state as unobserved instead of coercing unknown state to clean/dirty.
+- Defined `EXACT` as no contradiction among mutually observable identity fields and `RECONCILE_REQUIRED` when an observable identity field moved.
+- Added response-language continuity that separates English control/protocol text from the established user-facing response language.
+- Added `PRE_RESPONSE_READ_BLOCKED` for hosts that require visible output before durable checkpoint reads; the contract forbids unsupported first-response language claims and unchanged retry loops under that host condition.
+- Added `scripts/session-rollover.py`, a transport-agnostic local checkpoint/capsule helper that defaults state to `.git/sloar-rollover/` so handoff generation does not dirty the product worktree.
+- Added regression coverage for local/remote identity comparison, repository movement, pointer/checkpoint language metadata, legacy checkpoints, compact capsules, and the host capability boundary.
+- Updated CI to run the chat-native continuity suite and verify the new helper/reference are installed with the Skill.
 - Added the optional `apple-web-design` companion skill, adapted from Emil Kowalski's MIT-licensed `apple-design` skill with upstream attribution preserved.
 - Distilled Apple-style web interaction guidance into testable contracts for immediate feedback, 1:1 direct manipulation, presentation-state interruption, velocity projection, rubber-banding, restrained materials, typography, and accessibility.
 - Updated the installer to bundle the companion without making it a default engineering method; target repository guidance remains authoritative.
