@@ -7,7 +7,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$skill" ]] || { echo "missing SKILL.md" >&2; exit 1; }
   grep -q '^name: sloar-chat-coder$' "$skill" || { echo "invalid skill name" >&2; exit 1; }
   grep -q '^description:' "$skill" || { echo "missing description" >&2; exit 1; }
-  [[ "$(cat "$root/VERSION")" == "0.7.0" ]] || { echo "VERSION mismatch" >&2; exit 1; }
+  [[ "$(cat "$root/VERSION")" == "0.8.0" ]] || { echo "VERSION mismatch" >&2; exit 1; }
   for f in "$root"/.agents/skills/sloar-chat-coder/scripts/*.sh; do bash -n "$f"; done
   python3 -m py_compile "$root"/.agents/skills/sloar-chat-coder/scripts/*.py
   [[ -f "$root/docs/FIRST_RUN.md" ]] || { echo "missing first-run guide" >&2; exit 1; }
@@ -28,6 +28,9 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/turn-terminalization.md" ]] || { echo "missing turn terminalization reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/SKILL.md" ]] || { echo "missing web design guidance companion" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/design-discovery.md" ]] || { echo "missing web design discovery reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/web-design-guidance/references/adaptive-design-discovery.md" ]] || { echo "missing adaptive design discovery reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/web-design-guidance/references/design-taxonomy.md" ]] || { echo "missing design taxonomy reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/web-design-guidance/references/anti-ai-slop.md" ]] || { echo "missing anti-ai-slop reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/surface-recipes.md" ]] || { echo "missing web surface recipes" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/visual-verification.md" ]] || { echo "missing web visual verification reference" >&2; exit 1; }
   echo "sloar self-test: ok"
