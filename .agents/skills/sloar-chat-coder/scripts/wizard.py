@@ -109,6 +109,8 @@ def build(repo: Path):
     dirty = bool(local["git"].get("dirty")) if git_ok else None
     origin = local["git"].get("origin")
     connections = detect_connections(repo, origin)
+    web_design = repo / ".agents/skills/web-design-guidance/SKILL.md"
+    apple_design = repo / ".agents/skills/apple-web-design/SKILL.md"
 
     recommendations = []
     if not git_ok:
@@ -122,7 +124,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.6.1",
+        "sloar_version": "0.7.0",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -160,6 +162,12 @@ def build(repo: Path):
             "stuck_response_recovery": "host-dependent; Sloar preserves terminal/interrupted engineering state but cannot control the chat host spinner",
             "turn_terminalization": "bounded; a RED/pending required gate changes terminal status instead of allowing indefinite self-extension",
         },
+        "design": {
+            "web_design_companion": "ready" if web_design.is_file() else "missing",
+            "web_design_path": ".agents/skills/web-design-guidance/SKILL.md",
+            "apple_design_companion": "ready" if apple_design.is_file() else "missing",
+            "policy": "user/repository design rules outrank bundled companions; general web guidance applies only to substantial user-facing web UI work",
+        },
         "next": recommendations[0],
         "recommendations": recommendations,
     }
@@ -174,6 +182,7 @@ def render(data):
         f"Repository: {repo['state']}" + (f" ({repo['branch']})" if repo.get("branch") else ""),
         f"Sloar skill: {'ready' if repo['installed'] else 'missing'}",
         f"Execution: {data['execution']['state']}",
+        f"Web design companion: {data.get('design', {}).get('web_design_companion', 'unknown')}",
         "Hosted connections: unknown until the user connects them and the agent verifies actual tools",
         f"Suggested connections: {connection_text}",
         "Forge health/capability: unknown (probe or classify observed failure only when needed)",
