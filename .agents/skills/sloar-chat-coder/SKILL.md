@@ -1,10 +1,10 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including when a hosted forge, API, CI system, remote publication path, or operation-specific permission is degraded or partial. Use for repository implementation, debugging, testing, publication, outage handling, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, or concurrent actors can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, fresh-chat rollover, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, or chat context can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Sloar Chat Coder
@@ -18,6 +18,8 @@ When the user/session is new to Sloar or required capabilities are uncertain, ru
 For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authenticated external data/actions), and **Skill** (reusable instructions). Installing Sloar does not itself authorize GitHub. Conversely, missing GitHub integration does not block local engineering when a lower capability path is sufficient.
 
 Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. If local execution is available, `scripts/wizard.py` can produce a machine-readable local readiness report. Hosted capabilities must still be resolved from the current agent/tool inventory.
+
+When the user explicitly asks to use Sloar for a repository, prefer chat-native bootstrap when the current session has an authorized durable path. A first-time user should not need to understand `git clone`, `install.py`, or the wizard merely to begin work when the agent can safely perform that setup itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) before claiming durable bootstrap or cross-chat rollover.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
@@ -63,6 +65,8 @@ HEAD commit SHA + HEAD tree SHA + working-tree state
 ```
 
 A matching commit SHA with unexpected local modifications is not the same engineering state. Preserve unfamiliar surviving work until ownership is known.
+
+When the current session cannot observe a local worktree, do not invent one. Record working-tree observability explicitly and compare only identity fields that both the checkpoint and current session can actually observe. Unknown working-tree state is neither evidence of a clean tree nor a reconciliation event by itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md).
 
 ## Capability selection
 
@@ -136,6 +140,20 @@ If an Actions/GitHub App mission produces a correct verified tree but its final 
 For expensive or interruption-prone tasks, persist a machine-readable checkpoint containing at least repository, base identity, task branch/head, current state-machine stage, verified evidence IDs, pending checks, and owned temporary resources. A checkpoint is a recovery aid, not a source-of-truth replacement.
 
 When publication is deferred by a forge incident or capability limitation, also record local/remote status and the remote checks still pending. If the local workspace is disposable, preserve an exact repository-approved artifact, bundle, or patch with integrity evidence before the workspace can disappear.
+
+## Chat-native session rollover
+
+When the user asks to move to a fresh chat, use a compact durable rollover rather than reconstructing the conversation manually. Preserve goal, completed/active/pending work, durable decisions, evidence, blockers, one next action, exact observable repository identity, and the established user-facing `response_language` when known.
+
+Prefer the `sloar/rollover-state` sidecar branch for cross-chat metadata when authorized repository write exists; keep runtime checkpoint files off product branches. The fresh session must re-resolve repository truth before trusting checkpoint facts and must reconcile any observed movement.
+
+The recommended fresh-chat control sentence is:
+
+```text
+Resume the latest Sloar session for OWNER/REPO.
+```
+
+Treat control language and user-facing response language separately. If host policy forces visible output before the durable reads needed to restore checkpoint language, classify `PRE_RESPONSE_READ_BLOCKED`, do not claim checkpoint-driven first-response language recovery, and do not repeat the same validation under unchanged host conditions. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) for the complete entry/exit/no-retry contract. `scripts/session-rollover.py` is the local transport-agnostic checkpoint helper.
 
 ## Completion report
 
