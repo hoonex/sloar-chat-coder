@@ -26,7 +26,7 @@ The user should not need to start a fresh chat, restate the task, or manually re
 
 ## UPDATE_AWARENESS
 
-`UPDATE_AWARENESS` is a bounded read-only check, not a maintenance write.
+`UPDATE_AWARENESS` is a bounded read-only awareness check, not a maintenance write.
 
 1. Read the installed version from the target repository's `.agents/skills/sloar-chat-coder/SKILL.md`; never infer it from conversation memory.
 2. Resolve the current stable version from durable Sloar source state. The canonical public source is `https://github.com/hoonex/sloar-chat-coder`; `main` counts as stable only when that repository's own VERSION/README/SKILL contract consistently identifies the same stable version.
