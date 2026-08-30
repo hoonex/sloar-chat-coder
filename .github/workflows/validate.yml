@@ -18,7 +18,7 @@ jobs:
           bash -n .agents/skills/sloar-chat-coder/scripts/preflight.sh
           bash -n .agents/skills/sloar-chat-coder/scripts/verify-state.sh
           python3 -m py_compile .agents/skills/sloar-chat-coder/scripts/*.py
-      - name: Validate continuity, upgrades and interrupted turns
+      - name: Validate continuity, terminalization, upgrades and interrupted turns
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests -v
@@ -67,6 +67,7 @@ jobs:
           test -s "$target/.agents/skills/sloar-chat-coder/references/chat-native-continuity.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/upgrading.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/operational-continuity.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/turn-terminalization.md"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/session-rollover.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/turn-state.py"
           grep -q 'sloar-chat-coder:begin' "$target/AGENTS.md"
@@ -93,7 +94,7 @@ jobs:
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert data['schema']==2
-          assert data['sloar_version']=='0.6.0'
+          assert data['sloar_version']=='0.6.1'
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
           assert data['execution']['state']=='ready'
@@ -101,6 +102,7 @@ jobs:
           assert data['hosted']['forge_health']=='unknown'
           assert data['resilience']['local_status']=='LOCAL_READY'
           assert data['continuity']['turn_state_helper'].endswith('turn-state.py')
+          assert 'indefinite self-extension' in data['continuity']['turn_terminalization']
           items={item['id']:item for item in data['connections']['items']}
           assert {'github','vercel','supabase','openai-platform'} <= set(items)
           assert 'netlify' not in items
@@ -185,12 +187,13 @@ jobs:
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
-          assert Path('VERSION').read_text().strip() == '0.6.0'
-          assert 'version: "0.6.0"' in text
+          assert Path('VERSION').read_text().strip() == '0.6.1'
+          assert 'version: "0.6.1"' in text
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/chat-native-continuity.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/upgrading.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/operational-continuity.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/references/turn-terminalization.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/session-rollover.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/turn-state.py').is_file()
