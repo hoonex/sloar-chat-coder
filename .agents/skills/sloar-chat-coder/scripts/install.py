@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import re
 import shutil
 import subprocess
@@ -13,6 +14,21 @@ BLOCK = f"""{BEGIN}\n## Sloar Chat Coder\n\nWhen repository development is reque
 BUNDLED_SKILLS = ("sloar-chat-coder", "web-design-guidance", "apple-web-design")
 IGNORE_PATTERNS = shutil.ignore_patterns("__pycache__", "*.pyc")
 VERSION_RE = re.compile(r'^\s*version:\s*["\']?([0-9]+\.[0-9]+\.[0-9]+)["\']?\s*$')
+
+# Exact Git-blob fingerprints for Sloar-owned historical companion releases.
+# They let --upgrade distinguish an untouched official bundle from a user-customized
+# companion. Add a historical manifest when a future release needs to migrate it.
+KNOWN_OFFICIAL_COMPANIONS = {
+    "web-design-guidance": {
+        "0.7.0": {
+            "NOTICE.md": "1b0dbe703c70a9f376768b6361b539aefad30f5c",
+            "SKILL.md": "9ce2ef891c1292bc37318349b0d25ff16b87ddb9",
+            "references/design-discovery.md": "4cd3642e71795afe41a0b910ceb8dcdf525d181f",
+            "references/surface-recipes.md": "052a9c101ca65a29146e38bb8312aa122e92f3d4",
+            "references/visual-verification.md": "8bb179656b452639255b300912a921d534150618",
+        }
+    }
+}
 
 
 def skills_root() -> Path:
@@ -31,12 +47,27 @@ def source_files(root: Path):
 def skill_matches(source: Path, dest: Path) -> bool:
     if not dest.is_dir():
         return False
-    for src in source_files(source):
-        rel = src.relative_to(source)
-        dst = dest / rel
-        if not dst.is_file() or dst.read_bytes() != src.read_bytes():
+    source_rel = {p.relative_to(source) for p in source_files(source)}
+    dest_rel = {p.relative_to(dest) for p in source_files(dest)}
+    if source_rel != dest_rel:
+        return False
+    for rel in source_rel:
+        if (source / rel).read_bytes() != (dest / rel).read_bytes():
             return False
     return True
+
+
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    header = f"blob {len(data)}\0".encode()
+    return hashlib.sha1(header + data).hexdigest()
+
+
+def matches_official_manifest(dest: Path, manifest: dict[str, str]) -> bool:
+    if not dest.is_dir():
+        return False
+    actual = {p.relative_to(dest).as_posix(): git_blob_sha(p) for p in source_files(dest)}
+    return actual == manifest
 
 
 def skill_version(skill_dir: Path) -> str | None:
@@ -74,14 +105,27 @@ def git_common_dir(target: Path) -> Path:
     return path.resolve()
 
 
-def backup_skill(target: Path, dest: Path, installed_version: str) -> Path:
-    base = git_common_dir(target) / "sloar-upgrade-backups"
+def unique_backup_path(base: Path, label: str) -> Path:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    candidate = base / f"{stamp}-{installed_version}"
+    candidate = base / f"{stamp}-{label}"
     suffix = 1
     while candidate.exists():
         suffix += 1
-        candidate = base / f"{stamp}-{installed_version}-{suffix}"
+        candidate = base / f"{stamp}-{label}-{suffix}"
+    return candidate
+
+
+def backup_skill(target: Path, dest: Path, installed_version: str) -> Path:
+    base = git_common_dir(target) / "sloar-upgrade-backups"
+    candidate = unique_backup_path(base, installed_version)
+    candidate.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(dest, candidate, ignore=IGNORE_PATTERNS)
+    return candidate
+
+
+def backup_companion(target: Path, dest: Path, name: str, installed_version: str) -> Path:
+    base = git_common_dir(target) / "sloar-upgrade-backups" / "companions" / name
+    candidate = unique_backup_path(base, installed_version)
     candidate.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(dest, candidate, ignore=IGNORE_PATTERNS)
     return candidate
@@ -124,6 +168,44 @@ def upgrade_sloar(target: Path, source: Path, dest: Path, dry_run: bool) -> list
     ]
 
 
+def maybe_upgrade_companion(target: Path, root: Path, name: str, dest: Path, dry_run: bool) -> list[str]:
+    source = root / name
+    if not dest.exists():
+        if dry_run:
+            return [f"would install missing companion {source} -> {dest}"]
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, dest, ignore=IGNORE_PATTERNS)
+        return [f"installed missing companion -> {dest}"]
+
+    if skill_matches(source, dest):
+        return [f"companion already current -> {dest}"]
+
+    source_version = skill_version(source)
+    installed_version = skill_version(dest)
+    if source_version and installed_version:
+        source_v = version_tuple(source_version)
+        installed_v = version_tuple(installed_version)
+        if installed_v < source_v:
+            manifest = KNOWN_OFFICIAL_COMPANIONS.get(name, {}).get(installed_version)
+            if manifest and matches_official_manifest(dest, manifest):
+                if dry_run:
+                    return [
+                        f"would back up official companion {name} {installed_version} under Git metadata",
+                        f"would upgrade official companion {name} {installed_version} -> {source_version} at {dest}",
+                    ]
+                backup = backup_companion(target, dest, name, installed_version)
+                shutil.rmtree(dest)
+                shutil.copytree(source, dest, ignore=IGNORE_PATTERNS)
+                return [
+                    f"backed up official companion {name} {installed_version} -> {backup}",
+                    f"upgraded official companion {name} {installed_version} -> {source_version} at {dest}",
+                ]
+
+    # A different/unrecognized companion may contain user changes. Never infer that
+    # a lower or missing version means it is safe to replace.
+    return [f"preserved existing companion customization -> {dest}"]
+
+
 def copy_bundled_skills(target: Path, force: bool, dry_run: bool, upgrade: bool) -> list[str]:
     root = skills_root()
     messages = []
@@ -139,18 +221,7 @@ def copy_bundled_skills(target: Path, force: bool, dry_run: bool, upgrade: bool)
             messages.extend(upgrade_sloar(target, source, dest, dry_run))
             continue
         if upgrade:
-            if dest.exists():
-                if skill_matches(source, dest):
-                    messages.append(f"companion already current -> {dest}")
-                else:
-                    messages.append(f"preserved existing companion customization -> {dest}")
-                continue
-            if dry_run:
-                messages.append(f"would install missing companion {source} -> {dest}")
-                continue
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(source, dest, ignore=IGNORE_PATTERNS)
-            messages.append(f"installed missing companion -> {dest}")
+            messages.extend(maybe_upgrade_companion(target, root, name, dest, dry_run))
             continue
         if dest.exists() and not force:
             if skill_matches(source, dest):
@@ -199,7 +270,7 @@ def main() -> None:
     parser.add_argument("--no-agents", action="store_true", help="Do not create/update target AGENTS.md")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--force", action="store_true", help="Replace existing different bundled skill directories")
-    mode.add_argument("--upgrade", action="store_true", help="Safely upgrade Sloar, add missing bundled companions, and preserve existing companion customizations")
+    mode.add_argument("--upgrade", action="store_true", help="Safely upgrade Sloar and known untouched older bundled companions while preserving customizations")
     args = parser.parse_args()
 
     target = Path(args.target).expanduser().resolve()
@@ -211,7 +282,7 @@ def main() -> None:
     if not args.no_agents:
         print(update_agents(target, args.dry_run))
     if args.upgrade:
-        print("next: verify the upgraded Sloar version, confirm bundled companions, create a current rollover/turn checkpoint, then continue the active task")
+        print("next: verify the upgraded Sloar version and companion versions, create a current rollover/turn checkpoint, then continue the active task")
     else:
         print("next: ask your agent to run Sloar first-run capability check before repository modification")
 
