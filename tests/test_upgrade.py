@@ -51,7 +51,14 @@ class UpgradeTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stderr)
             installed = (target / ".agents/skills/sloar-chat-coder/SKILL.md").read_text(encoding="utf-8")
             self.assertIn(f'version: "{source_version()}"', installed)
-            self.assertTrue((target / ".agents/skills/web-design-guidance/SKILL.md").is_file())
+            design = target / ".agents/skills/web-design-guidance"
+            self.assertTrue((design / "SKILL.md").is_file())
+            for rel in (
+                "references/adaptive-design-discovery.md",
+                "references/design-taxonomy.md",
+                "references/anti-ai-slop.md",
+            ):
+                self.assertTrue((design / rel).is_file(), rel)
             self.assertEqual((target / "product.txt").read_text(encoding="utf-8"), before_product)
             self.assertEqual((target / ".agents/skills/apple-web-design/SKILL.md").read_text(encoding="utf-8"), before_companion)
             agents = (target / "AGENTS.md").read_text(encoding="utf-8")
