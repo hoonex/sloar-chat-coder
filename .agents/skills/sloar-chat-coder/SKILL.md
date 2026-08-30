@@ -4,7 +4,7 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.6.0"
+  version: "0.6.1"
 ---
 
 # Sloar Chat Coder
@@ -24,6 +24,8 @@ When the user explicitly asks to use Sloar for a repository, prefer chat-native 
 When an already-running repository session uses an older Sloar release and the user asks to upgrade, preserve the current task and repository state instead of restarting the workflow. Re-resolve identity, upgrade only Sloar-owned files, verify the new release, bridge the active task into the newer checkpoint model, and continue the same task. Read [references/upgrading.md](references/upgrading.md) before an in-session upgrade write. Do not silently upgrade merely because a newer release exists.
 
 For long, interruption-prone, remote-write, CI/deployment-heavy tasks—or when the host has previously left responses stuck in an unterminated "answering" state—use durable turn state when a suitable transport exists. Sloar cannot force the host UI/runtime to finish or cancel a stuck response; it can separate engineering terminality from response delivery, preserve bounded progress, and fence a stale prior session after explicit takeover. Read [references/operational-continuity.md](references/operational-continuity.md). Do not add this ceremony to trivial read-only answers.
+
+Long autonomous work must also terminate. A required gate that stays RED, pending, or externally blocked is a reason to return `PARTIAL`, `BLOCKED`, or `FAILED` as appropriate—not a reason to keep the visible turn ACTIVE indefinitely. Use the bounded failure-cycle and anti-rabbit-hole rules in [references/turn-terminalization.md](references/turn-terminalization.md). `ULW`, "finish it", or similar requests permit deeper work but never authorize an infinite retry, wait, search, or polling loop.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
@@ -131,6 +133,8 @@ same fingerprint + changed evidence/input = possible bounded retry
 
 Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`; permission/policy/gate failures should transition to `REMOTE_PARTIAL` / `PUBLICATION_BLOCKED`. Neither state is a reason to rewrite correct product code. Read [references/recovery.md](references/recovery.md) when execution, transport, chat state, or turn delivery is lost or ambiguous.
 
+For one unchanged failure fingerprint, default to one bounded corrective cycle: diagnose from concrete evidence, make at most one corrective change for that diagnosis, and re-run the affected verification once. If the same fingerprint remains, terminalize and report rather than recursively starting "one more check." A materially different fingerprint may begin a new bounded cycle. Read [references/turn-terminalization.md](references/turn-terminalization.md).
+
 A host that remains visibly "answering" is not by itself evidence that product code, GitHub, CI, or the repository failed. Recover from durable repository/turn state rather than rewriting correct work to make the chat UI stop spinning.
 
 ## Concurrent actors and publication guard
@@ -146,6 +150,8 @@ If a durable ACTIVE turn is in use, guard later durable writes with its `turn_id
 Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
 
 Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), and [references/operational-continuity.md](references/operational-continuity.md).
+
+A required check that is still RED or running after the allowed bounded diagnosis/wait policy must be reported as RED/running. Do not keep the turn open merely to avoid returning a non-COMPLETED status. Long-running remote checks without new evidence must not be polled indefinitely; preserve their exact run/request identity and return a safe next action.
 
 For substantial work, keep a compact change boundary when useful:
 
@@ -226,6 +232,8 @@ At completion, report only:
 - any relevant verification/runtime anchor that differs from current repository HEAD;
 - any reconciliation caused by concurrent remote movement, forge recovery, capability change, in-session upgrade, or explicit turn takeover;
 - any temporary remote resource that could not be cleaned up.
+
+`COMPLETED` is not the only valid end state. If required evidence remains RED/pending after its bounded corrective/wait policy, finish the turn as `PARTIAL`, `BLOCKED`, or `FAILED` and return the exact remaining gate plus one safe next action. Do not withhold the user-visible response indefinitely while chasing perfection.
 
 If a terminal turn snapshot was durably written but the host later failed to deliver the visible completion response, a fresh session may report that terminal state after revalidation. Do not imply the previous user-visible response was delivered when that fact is unknown.
 
