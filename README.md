@@ -38,6 +38,28 @@ The fresh chat reloads compact durable task state, revalidates the repository be
 
 See [`.agents/skills/sloar-chat-coder/references/chat-native-continuity.md`](.agents/skills/sloar-chat-coder/references/chat-native-continuity.md) for the exact rollover contract and host capability boundaries.
 
+### Upgrade an active older Sloar session
+
+You do not need to open a new chat or restate the current task. In the running session, ask the agent to upgrade Sloar and preserve the work in progress:
+
+```text
+Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.
+```
+
+A valid in-session upgrade must re-resolve repository identity first, replace only Sloar-owned files, verify the new release, convert the current task into the first 0.5+ rollover checkpoint, and continue the same task. It must not reset the product branch or ask the user to reconstruct prior progress.
+
+Local/manual fallback from a checkout of the newer Sloar release:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/install.py \
+  --target /path/to/your-project \
+  --upgrade
+```
+
+`--upgrade` backs up the previous installed Sloar under `.git/sloar-upgrade-backups/`, upgrades only `sloar-chat-coder`, preserves unrelated companion skills and product files, refuses downgrades, and will not silently overwrite a divergent same-version installation.
+
+See [`.agents/skills/sloar-chat-coder/references/upgrading.md`](.agents/skills/sloar-chat-coder/references/upgrading.md) for the exact upgrade contract.
+
 ### Local/manual fallback
 
 If the current chat cannot perform a safe durable bootstrap, use the installer:
@@ -81,6 +103,7 @@ BOOTSTRAP_SESSION? -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION -> NORMA
 Key rules:
 
 - first-time users can begin from a repository URL when the current session can safely bootstrap Sloar;
+- active older Sloar sessions can transition through `UPGRADE_SESSION` without restarting the task;
 - `sloar/rollover-state` is the preferred sidecar branch for durable rollover metadata;
 - the product branch stays free of runtime checkpoint files;
 - fresh sessions revalidate repository reality before trusting checkpoint facts;
@@ -187,7 +210,7 @@ Every repository task moves through an explicit lifecycle:
 RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY -> PUBLISH -> REMOTE_VERIFY -> CLEANUP
 ```
 
-Before that lifecycle begins, a first-time environment may run a lightweight **ONBOARD** capability check.
+Before that lifecycle begins, a first-time environment may run a lightweight **ONBOARD** capability check. An explicit version change inside a running task may enter the bounded `UPGRADE_SESSION` transition without resetting the task lifecycle.
 
 Publication is guarded by five concepts:
 
@@ -228,7 +251,8 @@ Publication is guarded by five concepts:
 │   └── FORGE_RESILIENCE.ko.md
 ├── tests/
 │   ├── test_chat_native_contract.py
-│   └── test_session_rollover.py
+│   ├── test_session_rollover.py
+│   └── test_upgrade.py
 └── .agents/skills/sloar-chat-coder/
     ├── SKILL.md
     ├── references/
@@ -239,6 +263,7 @@ Publication is guarded by five concepts:
     │   ├── forge-resilience.md
     │   ├── recovery.md
     │   ├── state-machine.md
+    │   ├── upgrading.md
     │   └── verification.md
     └── scripts/
         ├── doctor.py
@@ -266,13 +291,13 @@ python3 .agents/skills/sloar-chat-coder/scripts/write-checkpoint.py \
 
 ## What Sloar intentionally does not do
 
-Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar only controls continuity, exactness, escalation, publication safety, onboarding capability discovery, chat-session rollover, forge resilience, and evidence.
+Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar only controls continuity, exactness, escalation, publication safety, onboarding capability discovery, active-session upgrades, chat-session rollover, forge resilience, and evidence.
 
 ## Status
 
-Current version: **0.5.0**
+Current version: **0.5.1**
 
-0.5.0 adds chat-native first-use bootstrap and durable fresh-chat rollover with sidecar checkpoints, partial identity observability, response-language continuity, and an explicit host capability boundary for pre-response recovery.
+0.5.1 adds a safe in-session upgrade path for older Sloar installations. It preserves current task state, backs up the previous local Sloar installation outside the worktree, upgrades only Sloar-owned files, verifies the new release, and bridges the running task into the 0.5+ rollover model.
 
 ## License
 
