@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T100010Z-534e933-stable3",
+  "created_at": "2026-08-30T10:00:10Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "534e93352d81c8e2d323ee42f56568e689404364",
+    "tree": "475de6cde2cfcead9797e6a24bb94eb54753d35f",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Prevent Sloar coding turns from remaining indefinitely active when the agent keeps extending work around a RED or pending gate, while retaining 0.6 interrupted-turn recovery for true host/session stalls.",
+    "completed": [
+      "Distinguished host-level stuck-response failures from agent self-extension / anti-terminalization failures.",
+      "Added references/turn-terminalization.md with bounded corrective-cycle, anti-rabbit-hole, CI wait, optional-scope, and ULW terminalization rules.",
+      "Integrated bounded terminalization into SKILL.md and operational-continuity.md.",
+      "Added contract regression tests and installer/wizard/CI coverage for the new reference.",
+      "Published Sloar 0.6.1 to main at 534e93352d81c8e2d323ee42f56568e689404364 with tree 475de6cde2cfcead9797e6a24bb94eb54753d35f.",
+      "PR #11 is merged/closed at the exact release head.",
+      "Validate Sloar PR run #222 and main push run #223 both succeeded on the exact 0.6.1 head."
+    ],
+    "active": [],
+    "pending": [
+      "README top-level prose still describes the broader 0.6 operational-continuity feature set; VERSION/SKILL/CHANGELOG are authoritative for the 0.6.1 patch release.",
+      "A future real-project E2E can validate a RED gate surviving one bounded corrective cycle and returning PARTIAL/BLOCKED instead of recursively extending the chat."
+    ],
+    "decisions": [
+      "A RED or unavailable required gate changes terminal status; it does not remove the obligation to terminate the turn.",
+      "Default unchanged-fingerprint cycle is diagnose once from concrete evidence, at most one corrective edit for that diagnosis, then one affected revalidation.",
+      "If the same fingerprint remains after the bounded cycle, terminalize PARTIAL/BLOCKED/FAILED and report instead of recursively starting one more check.",
+      "ULW and similar autonomous requests permit deeper work but never infinite retry, search, wait, or polling loops.",
+      "True host/session stalls remain covered by 0.6 terminal snapshots, takeover, and fencing; Sloar still cannot control the host spinner itself."
+    ],
+    "evidence": [
+      "main: 534e93352d81c8e2d323ee42f56568e689404364 / tree 475de6cde2cfcead9797e6a24bb94eb54753d35f",
+      "VERSION on main: 0.6.1",
+      "PR #11: merged/closed at exact head 534e93352d81c8e2d323ee42f56568e689404364",
+      "Validate Sloar PR run #222: success",
+      "Validate Sloar main push run #223: success",
+      "bounded terminalization contract tests: pass"
+    ],
+    "blockers": [],
+    "next_action": "Use Sloar 0.6.1 on a real long-running project and verify that a persistent same-fingerprint RED gate returns a bounded PARTIAL/BLOCKED terminal report instead of self-extending indefinitely.",
+    "response_language": "ko-KR"
+  }
+}
