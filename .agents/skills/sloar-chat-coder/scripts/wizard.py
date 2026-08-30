@@ -122,7 +122,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.4.0",
+        "sloar_version": "0.5.0",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
