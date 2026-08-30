@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.8.1 - 2026-08-30
+
+Automatic update-awareness patch.
+
+- Added bounded `UPDATE_AWARENESS` at the first Sloar repository turn in a chat and after intentional fresh-chat resume/takeover when the canonical stable source is reachable.
+- Separated automatic version discovery from upgrade authorization: current installs stay silent, newer stable releases produce one compact notice, and no Sloar write occurs until the user explicitly approves or independently requests an upgrade.
+- Made stable-version lookup failure non-blocking. Unavailable, degraded, rate-limited, or unauthorized lookup becomes update status `unknown`; Sloar continues ordinary repository work and does not poll indefinitely.
+- Preserved the existing automated `UPGRADE_SESSION` after approval, including repository identity revalidation, Git-metadata backup, Sloar-owned file replacement, known-official companion migration, custom companion preservation, validation, checkpoint bridging, and continuation of the active task.
+- Extended the local First Run Wizard with deterministic `--stable-version` comparison while keeping the Wizard network-free. It now reports `current`, `update_available`, `ahead`, `unknown`, or `not_installed` and never treats update availability as write authorization.
+- Added regression and CI coverage proving current stable is silent, a newer stable asks for approval, ahead-of-stable installs are not downgraded, and unavailable stable resolution remains non-blocking.
+- Updated Korean/English README and user guides plus the readiness example so the public UX clearly states: update checking is automatic when possible; installation is automated only after user approval.
+
 ## 0.8.0 - 2026-08-30
 
 Adaptive design discovery and Anti-AI-Slop release.
