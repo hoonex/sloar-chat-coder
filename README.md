@@ -6,6 +6,21 @@ Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxe
 
 Current stable: **0.8.0**
 
+<p align="center">
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.0-2563eb?style=flat-square" alt="stable 0.8.0"></a>
+  <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#first-time-paste-this-first"><b>Quick Start</b></a> ·
+  <a href="docs/USER_GUIDE.md"><b>User Guide</b></a> ·
+  <a href="#upgrade-without-restarting-the-task"><b>Upgrade</b></a> ·
+  <a href="#move-to-a-fresh-chat"><b>Fresh Chat</b></a> ·
+  <a href="#web-development-includes-design-reasoning"><b>Design</b></a> ·
+  <a href="README.ko.md">한국어</a>
+</p>
+
 > Durable repository truth over reconstructed conversation memory. Evidence before completion claims.
 
 ## First time? Paste this first
