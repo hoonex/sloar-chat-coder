@@ -7,7 +7,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$skill" ]] || { echo "missing SKILL.md" >&2; exit 1; }
   grep -q '^name: sloar-chat-coder$' "$skill" || { echo "invalid skill name" >&2; exit 1; }
   grep -q '^description:' "$skill" || { echo "missing description" >&2; exit 1; }
-  [[ "$(cat "$root/VERSION")" == "0.6.0" ]] || { echo "VERSION mismatch" >&2; exit 1; }
+  [[ "$(cat "$root/VERSION")" == "0.6.1" ]] || { echo "VERSION mismatch" >&2; exit 1; }
   for f in "$root"/.agents/skills/sloar-chat-coder/scripts/*.sh; do bash -n "$f"; done
   python3 -m py_compile "$root"/.agents/skills/sloar-chat-coder/scripts/*.py
   [[ -f "$root/docs/FIRST_RUN.md" ]] || { echo "missing first-run guide" >&2; exit 1; }
@@ -25,6 +25,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/chat-native-continuity.md" ]] || { echo "missing chat-native continuity reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/upgrading.md" ]] || { echo "missing upgrade reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/operational-continuity.md" ]] || { echo "missing operational continuity reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/sloar-chat-coder/references/turn-terminalization.md" ]] || { echo "missing turn terminalization reference" >&2; exit 1; }
   echo "sloar self-test: ok"
   exit 0
 fi
