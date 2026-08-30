@@ -4,7 +4,7 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 저장소 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-0.5.1은 0.5.0의 **Chat-native Continuity**에 기존 0.4.x 작업 세션을 끊지 않고 업그레이드하는 경로를 추가한다. 처음 사용자는 저장소 URL만으로 시작할 수 있고, 기존 사용자는 현재 작업 상태를 유지한 채 0.5.x로 승격한 뒤 새 채팅 rollover 기능을 바로 사용할 수 있다.
+0.6.0은 0.5.x의 **Chat-native Continuity / 세션 업그레이드** 위에 **Operational Continuity**를 추가한다. 장시간 개발 중 ChatGPT 같은 host가 계속 `답변 중`으로 보이면서 최종 응답을 끝내지 못하더라도, 작업 자체의 진행/완료 상태를 durable turn으로 남겨 새 채팅에서 복구하고 stale session의 후속 write를 fence할 수 있게 한다.
 
 > **저장소의 정확한 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
 
@@ -13,9 +13,10 @@ Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 
 ```text
 처음 사용 → 저장소 URL + "이 저장소 Sloar로 개발해"
 평소 작업 → 그냥 개발 요청
-기존 0.4 세션 업그레이드 → "이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해"
+기존 세션 업그레이드 → "이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해"
 채팅 이동 → "새 채팅으로 넘겨줘"
 새 채팅 → Sloar가 준 Resume 문장 붙여넣기
+답변이 계속 안 끝남 → 새 채팅에서 "이전 Sloar 작업이 답변 중에 멈춘 것 같아. 저장된 turn 상태와 현재 저장소를 확인해서 이어서 진행해."
 ```
 
 ## 처음 쓰는 사람
@@ -51,7 +52,7 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 
 기존 `AGENTS.md` 내용을 지우지 않고 Sloar 진입 블록만 추가하며, 같은 설치를 다시 실행해도 블록이 중복되지 않는다.
 
-## 기존 0.4.x 작업 세션을 0.5.x로 업그레이드
+## 기존 작업 세션을 최신 Sloar로 업그레이드
 
 **새 채팅을 만들 필요 없다. 지금 하던 채팅에서 그대로 요청하면 된다.**
 
@@ -72,7 +73,7 @@ Sloar 소유 파일만 업그레이드
         ↓
 검증
         ↓
-현재 0.4 작업 내용을 첫 0.5+ rollover checkpoint로 변환
+현재 작업 내용을 최신 checkpoint/turn 모델로 bridge
         ↓
 원래 하던 작업 계속
 ```
@@ -84,7 +85,7 @@ Sloar 소유 파일만 업그레이드
 - Sloar 외의 Skill이나 프로젝트 지침을 임의로 덮어쓰지 않는다.
 - local manual upgrade는 기존 Sloar 설치본을 `.git/sloar-upgrade-backups/`에 보존한 뒤 Sloar 폴더만 교체한다. 백업이 `.git` 아래에 있으므로 제품 working tree를 더럽히지 않는다.
 - 같은 버전인데 설치 내용이 다른 경우 자동으로 덮어쓰지 않는다. 커스텀/부분 수정 설치일 수 있으므로 명시적 replacement가 필요하다.
-- 업그레이드 후 현재 세션 상태를 새 checkpoint로 한 번 기록하면 그다음부터 `새 채팅으로 넘겨줘`를 사용할 수 있다.
+- 업그레이드 후 현재 세션 상태를 새 checkpoint로 기록하면 최신 rollover/turn recovery 기능을 사용할 수 있다.
 
 로컬/수동 fallback은 최신 Sloar checkout에서:
 
@@ -95,6 +96,83 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
 ```
 
 자세한 계약: [`.agents/skills/sloar-chat-coder/references/upgrading.md`](.agents/skills/sloar-chat-coder/references/upgrading.md)
+
+## 0.6 핵심: 답변이 끝나지 않아도 작업 상태 복구
+
+장시간 repository 작업 중 host가 멈추면 `답변 중` UI가 몇 시간/며칠 계속될 수 있다. **Sloar는 그 host spinner나 server-side generation을 직접 종료/재시작할 수는 없다.** 0.6이 해결하는 부분은 작업 상태 손실과 중복 작업/중복 write 위험이다.
+
+장시간·remote-write·CI/배포 작업에서는 필요할 때 다음 turn lifecycle을 사용한다.
+
+```text
+BEGIN_TURN
+  -> ACTIVE
+  -> 중요한 durable 사실이 바뀔 때만 PROGRESS snapshot
+  -> 작업이 끝나면 최종 사용자 답변 전에 TERMINALIZE
+  -> 최종 사용자-visible 답변
+```
+
+핵심은:
+
+```text
+engineering work terminality != response delivery terminality
+```
+
+이다. 코드/PR/CI 작업이 실제로 끝난 뒤 마지막 채팅 답변만 멈췄다면 terminal snapshot이 남아 있으므로 새 채팅에서 저장소를 다시 확인하고 결과만 복구할 수 있다.
+
+### 새 채팅에서 복구
+
+마지막 turn이 terminal이면:
+
+```text
+TERMINAL_REPLAY_AVAILABLE
+```
+
+현재 repository를 재검증한 뒤 완료/부분완료/차단 결과를 다시 보고한다. 최종 답변이 전달되지 않았다는 이유만으로 완료된 작업을 처음부터 다시 하지 않는다.
+
+마지막 turn이 아직 ACTIVE이면:
+
+```text
+ACTIVE_OR_INTERRUPTED
+```
+
+라고 분류한다. **1일이나 2일 지났다는 시간만으로 이전 실행이 완전히 죽었다고 단정하지 않는다.** 먼저 현재 GitHub/repository가 마지막 snapshot 이후 실제로 움직였는지 확인한다.
+
+사용자가 새 채팅에서 이어서 하라고 명시적으로 요청하면 takeover할 수 있다.
+
+```text
+old turn epoch: 4
+new turn epoch: 5
+```
+
+새 turn은 더 높은 fencing epoch를 가진다. 이후 durable write/publication 전에 최신 `turn_id + epoch`인지 확인한다. 예전 멈춘 채팅이 뒤늦게 살아나더라도 다음 guarded write에서 stale 상태를 감지하고 중단하도록 하는 구조다.
+
+단, epoch 변경 전에 이미 외부로 in-flight된 write를 소급 취소할 수는 없다.
+
+### 로컬 helper
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/turn-state.py begin . \
+  --goal "설정 화면 마무리" \
+  --response-language "ko-KR"
+```
+
+기본 상태는 `.git/sloar-turn-state/`에 저장되므로 제품 worktree를 dirty하게 만들지 않는다. 권한이 있으면 필요한 turn pointer/events를 기존 `sloar/rollover-state` sidecar branch의 `.sloar/turns/`로 durable하게 mirror할 수 있다.
+
+자세한 사용자 설명: [docs/INTERRUPTED_TURNS.ko.md](docs/INTERRUPTED_TURNS.ko.md)
+
+정식 계약: [`.agents/skills/sloar-chat-coder/references/operational-continuity.md`](.agents/skills/sloar-chat-coder/references/operational-continuity.md)
+
+### Blank app 장기 개발에서 일반화한 운영 규칙
+
+0.6에는 장기간 실제 repository를 굴리면서 유용했던 패턴도 Sloar 범위에 맞게 일반화했다.
+
+- 현재 repository HEAD와 마지막으로 검증된 product state, 실제 serving runtime을 필요할 때 별도 anchor로 관리한다.
+- 다음 행동에 필요한 짧은 hot state와 오래된 결정/실패/설계 이유인 cold history를 분리한다.
+- compile/CI GREEN/visual/live integration/deployment/production health 증거는 서로 같은 것으로 취급하지 않는다. claim에 맞는 evidence가 필요하다.
+- 실패한 실험은 성공한 결과에 숨기지 않고 동일 구조 실수를 반복하지 않을 만큼만 기록한다.
+- substantial change에는 `changed / preserved / deliberately_not_changed / limitations` 경계를 남길 수 있다.
+
+이 규칙들은 특정 프로젝트의 기술 선택이나 UI/API 정책을 Sloar가 대신 결정한다는 뜻이 아니다. 대상 repository 지침이 항상 우선한다.
 
 ## 0.5 핵심: 새 채팅으로 이어가기
 
@@ -304,6 +382,16 @@ PUBLICATION_BLOCKED | ready
 identity = HEAD SHA + tree SHA + working-tree state
 ```
 
+### Verification / Runtime Anchors
+
+```text
+repository anchor = 지금 저장소 상태
+verification anchor = 어떤 exact source까지 검증됐는지
+runtime anchor = 실제 serving 중인 source/deployment
+```
+
+필요할 때만 분리하고, 증거 없이 추측하지 않는다.
+
 ### Capability Ladder
 
 항상 가장 낮은 충분 단계부터 사용한다.
@@ -324,12 +412,14 @@ same failure + same inputs = change strategy
 No evidence -> no completion claim.
 ```
 
-### Publication Guard
+증거 종류와 주장 범위도 맞아야 한다.
 
-게시 직전 remote base/head를 다시 확인해 동시 작업을 덮어쓰지 않는다. 장애나 권한 차단이 오래 지속된 뒤 publication할 때도 반드시 다시 확인한다.
+### Publication / Turn Fence Guard
+
+게시 직전 remote base/head를 다시 확인해 동시 작업을 덮어쓰지 않는다. durable turn을 쓰는 경우 현재 `turn_id + epoch` 소유권도 확인한다.
 
 ## 원칙
 
-Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 세션 업그레이드, 채팅 rollover, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
+Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 세션 업그레이드, 채팅 rollover, interrupted-turn recovery, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
 
-버전: **0.5.1**
+버전: **0.6.0**
