@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.6.0 - 2026-08-30
+
+Operational continuity release.
+
+- Added durable interrupted-turn recovery for long repository tasks when a chat host stalls or remains visibly "answering" without delivering a final response.
+- Explicitly separates engineering terminality from response-delivery terminality; Sloar does not claim to control the host spinner, cancel server-side generation, or revive a stuck host process.
+- Added `scripts/turn-state.py` with ACTIVE/progress/terminal turn snapshots, terminal replay, explicit user-authorized takeover, monotonic fencing epochs, and pre-write fence checks.
+- Added `ACTIVE_OR_INTERRUPTED` and `TERMINAL_REPLAY_AVAILABLE` recovery states without time-based automatic takeover.
+- Added a stale-session fencing contract so an old apparently-stuck chat can be rejected on later guarded writes after a fresh chat has taken over; already-in-flight writes remain outside that guarantee.
+- Added repository/verification/runtime anchors for projects where current HEAD, last verified product state, and serving production state legitimately differ.
+- Added hot-state vs cold-history guidance for long-lived repositories while preserving repository-owned current-status/history/ADR conventions instead of imposing Sloar-specific project docs.
+- Strengthened the evidence ledger so evidence type/scope must match the completion claim; compile, rendered UI, live integration, merge/deploy, and production-health evidence are not interchangeable.
+- Added a compact change-boundary contract: `changed / preserved / deliberately_not_changed / limitations`.
+- Added durable failed-experiment guidance to prevent repeated structural mistakes without promoting speculative diagnoses into facts.
+- Added English/Korean stuck-response recovery guides and CI coverage for terminal snapshots, repository movement, explicit takeover, stale-fence rejection, anchors, and no-timeout semantics.
+
 ## 0.5.1 - 2026-08-30
 
 Active-session upgrade release.
