@@ -1,29 +1,29 @@
 # Sloar Chat Coder
 
-**대화가 끊겨도 개발 상태는 끊기지 않게. GitHub가 흔들리거나 권한이 일부 부족해도 정확한 작업은 보존되게.**
+**대화가 끊겨도 개발 상태는 끊기지 않게. 저장소가 움직이거나 도구가 실패해도 추측 대신 durable state와 증거로 이어가게.**
 
-Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 저장소 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
+Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-0.6.0은 0.5.x의 **Chat-native Continuity / 세션 업그레이드** 위에 **Operational Continuity**를 추가한다. 장시간 개발 중 ChatGPT 같은 host가 계속 `답변 중`으로 보이면서 최종 응답을 끝내지 못하더라도, 작업 자체의 진행/완료 상태를 durable turn으로 남겨 새 채팅에서 복구하고 stale session의 후속 write를 fence할 수 있게 한다.
+현재 버전: **0.7.0**
 
-> **저장소의 정확한 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
+> **저장소의 실제 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
 
 ## 10초 사용법
 
 ```text
 처음 사용 → 저장소 URL + "이 저장소 Sloar로 개발해"
 평소 작업 → 그냥 개발 요청
+웹 UI 작업 → Sloar가 web-design-guidance를 repository 규칙 다음으로 자동 참고
+Apple 느낌 요청 → 필요할 때만 apple-web-design 추가 적용
 기존 세션 업그레이드 → "이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해"
 채팅 이동 → "새 채팅으로 넘겨줘"
 새 채팅 → Sloar가 준 Resume 문장 붙여넣기
-답변이 계속 안 끝남 → 새 채팅에서 "이전 Sloar 작업이 답변 중에 멈춘 것 같아. 저장된 turn 상태와 현재 저장소를 확인해서 이어서 진행해."
+답변이 계속 안 끝남 → 새 채팅에서 저장된 turn과 현재 repository를 확인해 takeover/replay
 ```
 
 ## 처음 쓰는 사람
 
-### 권장: 채팅에서 바로 시작
-
-현재 채팅에 안전한 repository write/execution capability가 있다면 사용자는 설치 명령을 몰라도 된다.
+설치 명령을 몰라도 현재 채팅이 안전한 repository write/execution capability를 가지고 있다면 다음처럼 시작하면 된다.
 
 ```text
 이 저장소 Sloar로 개발해.
@@ -32,9 +32,7 @@ https://github.com/OWNER/REPO
 <원하는 작업>
 ```
 
-Agent는 현재 capability를 확인하고, 기존 저장소 지침을 보존하고, 가능한 경우 stable Sloar를 durable하게 설치/복구하고, 저장소 identity를 다시 확인한 뒤 실제 작업을 시작한다.
-
-권한이 없는데 설치가 됐다고 주장하면 안 된다. durable bootstrap이 불가능할 때만 아래 로컬 설치 경로를 fallback으로 사용한다.
+Agent는 기존 `AGENTS.md`와 repository 지침을 보존하고, 가능한 경우 stable Sloar를 durable하게 설치/복구한 뒤 repository identity를 다시 확인하고 작업한다. 실제 write capability가 없으면 설치됐다고 주장하지 않는다.
 
 ### 로컬/수동 fallback
 
@@ -44,139 +42,203 @@ cd sloar-chat-coder
 python3 .agents/skills/sloar-chat-coder/scripts/install.py --target /path/to/your-project
 ```
 
-대상 프로젝트에서 First Run Wizard도 계속 사용할 수 있다.
+First Run Wizard:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 ```
 
-기존 `AGENTS.md` 내용을 지우지 않고 Sloar 진입 블록만 추가하며, 같은 설치를 다시 실행해도 블록이 중복되지 않는다.
+설치기는 Sloar 소유 marker block만 `AGENTS.md`에 추가하며 기존 repository 지침을 지우지 않는다.
 
-## 기존 작업 세션을 최신 Sloar로 업그레이드
+## 0.7 핵심: 웹개발 디자인 가이드
 
-**새 채팅을 만들 필요 없다. 지금 하던 채팅에서 그대로 요청하면 된다.**
+0.7.0부터 일반적인 user-facing 웹 UI 작업에는 bundled companion인:
+
+```text
+.agents/skills/web-design-guidance/SKILL.md
+```
+
+를 사용할 수 있다.
+
+이 companion은 특정 유행 스타일을 강제하는 템플릿이 아니다. 우선순위는 항상:
+
+```text
+사용자가 직접 준 디자인 요구
+> repository의 design system / brand / product 규칙
+> 이미 배포된 UI, tokens, components, assets
+> Sloar web-design-guidance fallback
+```
+
+이다.
+
+즉 기존 제품이 이미 명확한 디자인 언어를 가지고 있으면 그걸 보존한다. `AI 느낌`, `요즘 스타일` 같은 이유로 전체 화면을 임의로 purple gradient, glass, bento card로 바꾸지 않는다.
+
+### Design Read
+
+새 화면이나 큰 redesign에서는 필요한 경우 다음 정도만 짧게 정리한다.
+
+```text
+surface: product | dashboard | landing | auth/onboarding | settings | content | commerce | other
+primary user job:
+visual tone:
+density: compact | balanced | spacious
+existing system to preserve:
+signature decision:
+responsive risk:
+interaction/state risk:
+```
+
+사용자 prompt와 repository가 이미 충분한 답을 주면 별도 질문 없이 추론하고 진행한다.
+
+### 기본적으로 보는 것
+
+- 기존 design tokens, typography, spacing, radius, shadows, icon system
+- user journey와 information hierarchy
+- landing/dashboard/auth/settings/content/commerce 등 surface 특성
+- mobile/tablet/desktop responsive behavior
+- long text, chip, badge, table, URL/ID overflow
+- hover/pressed/focus/loading/empty/error/selected 같은 실제 states
+- keyboard/touch/accessibility
+- motion이 실제 causality/continuity를 설명하는지
+- 흔한 generated UI 패턴을 무의식적으로 반복하는지
+
+### 흔한 AI UI를 자동으로 정답 취급하지 않음
+
+다음은 금지 목록이 아니라 **맥락 없이 자동 선택하지 말라는 anti-pattern check**다.
+
+- 모든 landing을 `왼쪽 텍스트 + 오른쪽 장식 카드` hero로 만드는 것
+- 이유 없는 보라/핑크 AI glow gradient
+- 내용 구조와 상관없는 bento/card 남발
+- 모든 section에 큰 rounded rectangle
+- hierarchy가 아닌 장식용 glassmorphism
+- 의미 없는 floating blob/sparkle/fake chart
+- 기존 icon system 대신 emoji 사용
+- dense product UI에서 과도한 hero whitespace
+- 모든 제목/CTA를 중앙 정렬
+- 모든 element에 개별 entrance animation
+
+제품/사용자 요구가 정당화하면 당연히 사용할 수 있다.
+
+### Visual verification
+
+웹 UI에 대해:
+
+```text
+build/compile GREEN != 시각적으로 정상
+DOM geometry GREEN != hierarchy/spacing 정상
+CSS 속성 존재 != 실제 렌더에서 읽기 좋음
+```
+
+브라우저/screenshot capability가 있다면 실제 rendered surface를 보고 visual claim을 해야 한다. responsive/state risk도 변경 범위에 맞게 확인한다.
+
+브라우저가 없거나 provider가 막혔다면 그 범위를 `unverified` 또는 `PARTIAL`로 보고하고 **답변을 무한정 붙잡고 기다리지 않는다.** 0.6.1의 bounded terminalization 규칙이 그대로 적용된다.
+
+### Apple 스타일은 별도 전문 companion
+
+`apple-web-design`은 계속 포함되지만 일반 웹의 기본 디자인 언어는 아니다.
+
+사용자가 Apple-like direct manipulation, interruptible motion, velocity-aware settling, translucent functional chrome 등을 명시적으로 원할 때만 일반 `web-design-guidance` 다음에 전문 companion으로 적용한다.
+
+### 참고한 공개 프로젝트
+
+0.7 companion은 다음 MIT-licensed 프로젝트들의 유용한 구조를 분석해 Sloar 방식으로 새로 일반화했다.
+
+- `nextlevelbuilder/ui-ux-pro-max-skill` — product-aware design decision / style-color-type / anti-pattern 구조
+- `superdesigndev/superdesign-skill` — repository-aware persistent design-system memory
+- `educlopez/ui-craft` — surface recipe / acceptance bar / rendered self-review / anti-generic generated UI
+
+외부 runtime dependency는 없고 코드를 통째로 vendor하지 않는다. 자세한 출처 메모는 `.agents/skills/web-design-guidance/NOTICE.md`에 있다.
+
+## 기존 작업 세션 업그레이드
+
+새 채팅을 만들 필요 없다.
 
 ```text
 이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해.
 ```
 
-정상적인 agent upgrade는 다음 순서로 동작한다.
+정상적인 upgrade는:
 
 ```text
 현재 repository identity 재확인
         ↓
 설치된 Sloar 버전 확인
         ↓
-현재 stable Sloar 확인
+현재 stable release 확인
         ↓
-Sloar 소유 파일만 업그레이드
+기존 Sloar core 백업
         ↓
-검증
+Sloar core 업그레이드
         ↓
-현재 작업 내용을 최신 checkpoint/turn 모델로 bridge
+새 bundled companion이 없으면 추가
         ↓
-원래 하던 작업 계속
+기존 custom companion은 보존
+        ↓
+Sloar-owned AGENTS marker만 필요 시 갱신
+        ↓
+검증 + 최신 checkpoint/turn bridge
+        ↓
+원래 작업 계속
 ```
 
-중요한 점:
+한다.
 
-- product source, 현재 task branch, PR, 기존 테스트를 초기화하지 않는다.
-- 사용자가 지금까지 한 작업을 다시 설명할 필요가 없다.
-- Sloar 외의 Skill이나 프로젝트 지침을 임의로 덮어쓰지 않는다.
-- local manual upgrade는 기존 Sloar 설치본을 `.git/sloar-upgrade-backups/`에 보존한 뒤 Sloar 폴더만 교체한다. 백업이 `.git` 아래에 있으므로 제품 working tree를 더럽히지 않는다.
-- 같은 버전인데 설치 내용이 다른 경우 자동으로 덮어쓰지 않는다. 커스텀/부분 수정 설치일 수 있으므로 명시적 replacement가 필요하다.
-- 업그레이드 후 현재 세션 상태를 새 checkpoint로 기록하면 최신 rollover/turn recovery 기능을 사용할 수 있다.
-
-로컬/수동 fallback은 최신 Sloar checkout에서:
+로컬 fallback:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/install.py \
-  --target /path/to/your-project \
+  --target /path/to/project \
   --upgrade
 ```
 
+기존 Sloar core는 `.git/sloar-upgrade-backups/` 아래에 백업된다. product source와 unrelated repository guidance를 초기화하지 않는다.
+
 자세한 계약: [`.agents/skills/sloar-chat-coder/references/upgrading.md`](.agents/skills/sloar-chat-coder/references/upgrading.md)
 
-## 0.6 핵심: 답변이 끝나지 않아도 작업 상태 복구
+## 답변이 끝나지 않는 문제
 
-장시간 repository 작업 중 host가 멈추면 `답변 중` UI가 몇 시간/며칠 계속될 수 있다. **Sloar는 그 host spinner나 server-side generation을 직접 종료/재시작할 수는 없다.** 0.6이 해결하는 부분은 작업 상태 손실과 중복 작업/중복 write 위험이다.
+Sloar는 두 문제를 구분한다.
 
-장시간·remote-write·CI/배포 작업에서는 필요할 때 다음 turn lifecycle을 사용한다.
-
-```text
-BEGIN_TURN
-  -> ACTIVE
-  -> 중요한 durable 사실이 바뀔 때만 PROGRESS snapshot
-  -> 작업이 끝나면 최종 사용자 답변 전에 TERMINALIZE
-  -> 최종 사용자-visible 답변
-```
-
-핵심은:
+### 1. Agent self-extension
 
 ```text
-engineering work terminality != response delivery terminality
+RED → 하나만 더 로그 → 하나만 더 수정 → 하나만 더 검증 → ...
 ```
 
-이다. 코드/PR/CI 작업이 실제로 끝난 뒤 마지막 채팅 답변만 멈췄다면 terminal snapshot이 남아 있으므로 새 채팅에서 저장소를 다시 확인하고 결과만 복구할 수 있다.
-
-### 새 채팅에서 복구
-
-마지막 turn이 terminal이면:
+0.6.1부터 동일 failure fingerprint의 기본 corrective cycle은 bounded다.
 
 ```text
-TERMINAL_REPLAY_AVAILABLE
+진단 1회
+→ 그 진단에 대한 수정 최대 1회
+→ 영향받은 검증 1회
 ```
 
-현재 repository를 재검증한 뒤 완료/부분완료/차단 결과를 다시 보고한다. 최종 답변이 전달되지 않았다는 이유만으로 완료된 작업을 처음부터 다시 하지 않는다.
+같은 fingerprint가 그대로 실패하면 `PARTIAL`, `BLOCKED`, 또는 `FAILED`로 턴을 종료하고 사용자에게 결과를 돌려준다. `ULW`, `finish it`도 무한 retry/search/wait/polling 권한이 아니다.
 
-마지막 turn이 아직 ACTIVE이면:
+정식 계약: [`.agents/skills/sloar-chat-coder/references/turn-terminalization.md`](.agents/skills/sloar-chat-coder/references/turn-terminalization.md)
+
+### 2. Host 자체 stall
+
+ChatGPT/app/server가 실제로 계속 `답변 중`인 채 delivery를 끝내지 못하는 경우 Sloar가 host spinner를 강제로 종료할 수는 없다.
+
+대신 interruption-prone 작업에서:
 
 ```text
-ACTIVE_OR_INTERRUPTED
+BEGIN_TURN -> ACTIVE -> bounded PROGRESS -> TERMINALIZE -> visible final response
 ```
 
-라고 분류한다. **1일이나 2일 지났다는 시간만으로 이전 실행이 완전히 죽었다고 단정하지 않는다.** 먼저 현재 GitHub/repository가 마지막 snapshot 이후 실제로 움직였는지 확인한다.
+를 사용해 engineering terminality와 response delivery를 분리한다.
 
-사용자가 새 채팅에서 이어서 하라고 명시적으로 요청하면 takeover할 수 있다.
-
-```text
-old turn epoch: 4
-new turn epoch: 5
-```
-
-새 turn은 더 높은 fencing epoch를 가진다. 이후 durable write/publication 전에 최신 `turn_id + epoch`인지 확인한다. 예전 멈춘 채팅이 뒤늦게 살아나더라도 다음 guarded write에서 stale 상태를 감지하고 중단하도록 하는 구조다.
-
-단, epoch 변경 전에 이미 외부로 in-flight된 write를 소급 취소할 수는 없다.
-
-### 로컬 helper
-
-```bash
-python3 .agents/skills/sloar-chat-coder/scripts/turn-state.py begin . \
-  --goal "설정 화면 마무리" \
-  --response-language "ko-KR"
-```
-
-기본 상태는 `.git/sloar-turn-state/`에 저장되므로 제품 worktree를 dirty하게 만들지 않는다. 권한이 있으면 필요한 turn pointer/events를 기존 `sloar/rollover-state` sidecar branch의 `.sloar/turns/`로 durable하게 mirror할 수 있다.
+- terminal turn 발견 → `TERMINAL_REPLAY_AVAILABLE`
+- unterminated active turn 발견 → `ACTIVE_OR_INTERRUPTED`
+- 새 채팅 takeover → fencing epoch 증가
+- old session이 뒤늦게 살아나면 다음 guarded write에서 stale fence 확인
 
 자세한 사용자 설명: [docs/INTERRUPTED_TURNS.ko.md](docs/INTERRUPTED_TURNS.ko.md)
 
 정식 계약: [`.agents/skills/sloar-chat-coder/references/operational-continuity.md`](.agents/skills/sloar-chat-coder/references/operational-continuity.md)
 
-### Blank app 장기 개발에서 일반화한 운영 규칙
-
-0.6에는 장기간 실제 repository를 굴리면서 유용했던 패턴도 Sloar 범위에 맞게 일반화했다.
-
-- 현재 repository HEAD와 마지막으로 검증된 product state, 실제 serving runtime을 필요할 때 별도 anchor로 관리한다.
-- 다음 행동에 필요한 짧은 hot state와 오래된 결정/실패/설계 이유인 cold history를 분리한다.
-- compile/CI GREEN/visual/live integration/deployment/production health 증거는 서로 같은 것으로 취급하지 않는다. claim에 맞는 evidence가 필요하다.
-- 실패한 실험은 성공한 결과에 숨기지 않고 동일 구조 실수를 반복하지 않을 만큼만 기록한다.
-- substantial change에는 `changed / preserved / deliberately_not_changed / limitations` 경계를 남길 수 있다.
-
-이 규칙들은 특정 프로젝트의 기술 선택이나 UI/API 정책을 Sloar가 대신 결정한다는 뜻이 아니다. 대상 repository 지침이 항상 우선한다.
-
-## 0.5 핵심: 새 채팅으로 이어가기
-
-평소에는 그냥 개발 요청을 하면 된다. 매번 `Sloar`를 붙일 필요가 없다.
+## 새 채팅으로 이어가기
 
 채팅이 길어졌을 때:
 
@@ -184,25 +246,10 @@ python3 .agents/skills/sloar-chat-coder/scripts/turn-state.py begin . \
 새 채팅으로 넘겨줘.
 ```
 
-Sloar는 대화 전체를 복사하지 않고 다음 durable state만 압축한다.
+권한이 있으면 기본 durable transport는 제품 branch와 분리된 sidecar다.
 
 ```text
-goal
-completed
-active
-pending
-decisions
-evidence
-blockers
-next_action
-response_language
-observable repository identity
-```
-
-권한이 있으면 기본 durable transport는 별도 sidecar branch다.
-
-```text
-sloar/rollover-state
+branch: sloar/rollover-state
 
 .sloar/rollover/
   latest.json
@@ -210,216 +257,85 @@ sloar/rollover-state
     <checkpoint-id>.json
 ```
 
-제품 branch에는 runtime checkpoint를 섞지 않는다.
-
-기존 채팅은 새 채팅용 control sentence 하나를 준다.
+새 채팅에는 보통:
 
 ```text
 Resume the latest Sloar session for OWNER/REPO.
 ```
 
-새 채팅은 이전 대화를 다시 설명하라고 하기 전에 repository와 checkpoint를 읽고 현재 durable state를 재검증한다.
+만 전달하면 된다.
 
-- 현재 observable identity가 checkpoint와 맞으면 `EXACT`
-- observable HEAD/tree/branch 등이 움직였으면 `RECONCILE_REQUIRED`
-- 로컬 working tree를 볼 수 없는 remote-only 채팅이면 `unobserved`라고 기록하고 clean으로 꾸며내지 않는다.
-
-### 언어 연속성
-
-영어 resume 문장은 control phrase일 뿐 사용자 대화 언어를 영어로 바꾸라는 뜻이 아니다.
-
-Checkpoint에는 예를 들어 다음처럼 사용자-visible 응답 언어를 따로 저장할 수 있다.
-
-```json
-{
-  "response_language": "ko-KR"
-}
-```
-
-다만 ChatGPT 같은 host가 durable checkpoint를 읽기 전에 visible 진행 메시지를 강제할 수 있다. 그런 경우 Sloar는:
-
-```text
-PRE_RESPONSE_READ_BLOCKED
-```
-
-로 분류한다.
-
-이 상태에서는 “checkpoint 덕분에 첫 응답부터 한국어가 됐다”고 증거 없이 주장하지 않고, 같은 host 조건에서 같은 테스트를 무작정 반복하지 않는다. Host가 silent durable read를 허용하거나 인증된 early language hint를 제공할 때만 differentiated validation을 다시 한다.
+Fresh chat은 checkpoint보다 먼저/current repository를 다시 검증하며, remote-only 환경에서 local worktree를 못 보면 `unobserved`로 남긴다. 영어 control sentence와 사용자-visible `response_language`는 별개다.
 
 자세한 규칙: [`.agents/skills/sloar-chat-coder/references/chat-native-continuity.md`](.agents/skills/sloar-chat-coder/references/chat-native-continuity.md)
 
-### 로컬 checkpoint helper
+## Forge resilience
 
-```bash
-python3 .agents/skills/sloar-chat-coder/scripts/session-rollover.py handoff . \
-  --goal "설정 화면 마무리" \
-  --active "desktop UI" \
-  --next "browser regression 실행" \
-  --response-language "ko-KR"
-```
-
-기본 로컬 상태는 `.git/sloar-rollover/`에 저장되므로 handoff 자체가 제품 working tree를 dirty하게 만들지 않는다.
-
-## 0.4 핵심: Forge Resilience
-
-Git 저장소와 GitHub/GitLab/Actions는 같은 장애 영역이 아니다.
-
-원격 서비스 자체가 불안정하지만 로컬 source/tree와 검증은 정상이라면:
+Git, GitHub/GitLab API, Actions/CI, permissions/policy는 같은 failure domain이 아니다.
 
 ```text
 LOCAL_READY + REMOTE_DEGRADED
-= 구현/로컬 검증은 계속
-= publication만 보류
-```
+→ 로컬 IMPLEMENT/VERIFY 계속
+→ publication만 보류
 
-GitHub 자체는 정상인데 현재 identity/정책으로 필요한 작업만 할 수 없다면:
-
-```text
 LOCAL_READY + REMOTE_PARTIAL
-= 검증된 tree 보존
-= 같은 권한으로 같은 요청 재시도 금지
-= capability / identity / approval / policy 경로 변경
+→ verified tree 보존
+→ capability/identity/approval/policy 경로 변경
+→ 같은 금지 operation 반복 금지
 ```
 
-### 상태 확인
-
-네트워크 없이 로컬 상태만:
+로컬 상태:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py .
 ```
 
-원격을 딱 한 번만 bounded probe:
+bounded remote probe:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py . --probe
 ```
 
-### 이미 발생한 오류 분류
-
-네트워크 요청 없이 기존 로그를 읽는다.
+기존 오류 분류:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py \
   --classify-file /path/to/error.log --json
 ```
 
-대표적으로 다음을 구분한다.
-
-- GitHub App이 일반 파일은 쓰지만 workflow 파일은 못 씀 → `CAPABILITY_MISMATCH / REMOTE_PARTIAL`
-- CI `action_required`/승인 필요 → `REMOTE_ACTION_REQUIRED / REMOTE_PARTIAL`
-- branch protection/ruleset → `POLICY_BLOCKED / REMOTE_PARTIAL`
-- non-fast-forward/stale lease → `REMOTE_MOVED`, remote base 재확인 후 reconcile
-- 429/5xx/DNS/timeout → `REMOTE_DEGRADED`
-
-분류기는 raw error를 다시 출력하지 않고 class/layer/retry 전략/다음 행동과 SHA-256 fingerprint만 반환한다.
-
 자세한 설명: [docs/FORGE_RESILIENCE.ko.md](docs/FORGE_RESILIENCE.ko.md)
 
-## ChatGPT에서 Plugin / App / Skill 차이
+## 핵심 모델
 
-- **Skill**: AI가 어떤 절차로 일할지 알려주는 재사용 가능한 지침. Sloar의 핵심.
-- **App**: GitHub 같은 외부 서비스에 인증하고 실제 데이터/동작 권한을 제공하는 연결 계층.
-- **Plugin**: 특정 워크플로를 위해 Skill과 App 등을 묶어 배포/발견하기 쉽게 만든 패키지.
-
-**Sloar Skill을 설치했다고 GitHub 권한이 자동으로 생기는 게 아니다.** 반대로 GitHub App이 연결돼 있어도 read/write/workflow/merge/Actions 권한이 전부 같다고 가정하면 안 된다.
-
-플랜, 워크스페이스 정책, 역할, 지역, 사용 중인 ChatGPT 화면에 따라 사용할 수 있는 기능은 다를 수 있으므로 Sloar는 항상 **현재 세션에서 실제 노출된 도구/권한과 실제 실패 증거**를 기준으로 판단한다.
-
-## 첫 실행에서 Sloar가 확인할 것
+Repository work lifecycle:
 
 ```text
-execution: sandbox / terminal / none
-repository read: native git / GitHub app / manual
-repository write: native git / GitHub app / none
-web: available / unavailable
-CI/log access: available / unavailable
-artifact transport: available / unavailable
-forge health/capability: healthy / partial / degraded / unknown
+ONBOARD? -> RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY -> PUBLISH -> REMOTE_VERIFY -> CLEANUP
 ```
 
-그리고 가능한 가장 낮은 capability level로 시작한다.
+핵심 invariant:
 
 ```text
-L0 sandbox native
-L1 sandbox acquisition
-L2 connected repository transport
-L3 supply mission
-L4 bounded remote execution
-L5 blocked
-```
-
-쓰기 권한이 없거나 workflow write만 막혀 있다는 이유로 로컬 구현까지 포기하지 않는다. 정확한 source가 있고 로컬 검증이 가능하면 거기까지 진행하고 durable patch/tree/checkpoint를 남긴다.
-
-## 실행 상태 머신
-
-```text
-ONBOARD (필요할 때만)
-  -> RECOVER
-  -> IDENTIFY
-  -> MATERIALIZE
-  -> BRANCH
-  -> IMPLEMENT
-  -> VERIFY
-  -> PUBLISH
-  -> REMOTE_VERIFY
-  -> CLEANUP
-```
-
-Forge 상태는 이 lifecycle 위에 별도로 겹친다.
-
-```text
-LOCAL_READY
-REMOTE_HEALTHY | REMOTE_PARTIAL | REMOTE_DEGRADED
-PUBLICATION_BLOCKED | ready
-```
-
-## 핵심 차별점
-
-### Repository Identity Contract
-
-```text
-identity = HEAD SHA + tree SHA + working-tree state
-```
-
-### Verification / Runtime Anchors
-
-```text
-repository anchor = 지금 저장소 상태
-verification anchor = 어떤 exact source까지 검증됐는지
-runtime anchor = 실제 serving 중인 source/deployment
-```
-
-필요할 때만 분리하고, 증거 없이 추측하지 않는다.
-
-### Capability Ladder
-
-항상 가장 낮은 충분 단계부터 사용한다.
-
-### Forge Capability Overlay
-
-서비스 장애와 부분 권한/정책 문제를 분리한다.
-
-### Failure Fingerprint
-
-```text
+Repository identity = HEAD SHA + tree SHA + observable working-tree state
 same failure + same inputs = change strategy
+No evidence -> no completion claim
+publication 직전 mutable remote state 재검증
 ```
 
-### Evidence Ledger
+필요한 프로젝트에서는 repository/verification/runtime anchor를 따로 관리한다.
 
-```text
-No evidence -> no completion claim.
-```
+Sloar는 framework, package manager, database, UI library, deploy provider 같은 제품 기술 선택을 대신하지 않는다. 대상 repository가 engineering/design method를 결정한다.
 
-증거 종류와 주장 범위도 맞아야 한다.
+## 문서
 
-### Publication / Turn Fence Guard
+- 처음 실행: [docs/FIRST_RUN.ko.md](docs/FIRST_RUN.ko.md)
+- 연결/권한: [docs/CONNECTIONS.ko.md](docs/CONNECTIONS.ko.md)
+- ChatGPT Plugin/App/Skill: [docs/CHATGPT_PLUGINS.ko.md](docs/CHATGPT_PLUGINS.ko.md)
+- Forge resilience: [docs/FORGE_RESILIENCE.ko.md](docs/FORGE_RESILIENCE.ko.md)
+- interrupted turn: [docs/INTERRUPTED_TURNS.ko.md](docs/INTERRUPTED_TURNS.ko.md)
+- 일반 웹 디자인 companion: [`.agents/skills/web-design-guidance/SKILL.md`](.agents/skills/web-design-guidance/SKILL.md)
+- Apple 전문 companion: [`.agents/skills/apple-web-design/SKILL.md`](.agents/skills/apple-web-design/SKILL.md)
 
-게시 직전 remote base/head를 다시 확인해 동시 작업을 덮어쓰지 않는다. durable turn을 쓰는 경우 현재 `turn_id + epoch` 소유권도 확인한다.
+## License
 
-## 원칙
-
-Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 세션 업그레이드, 채팅 rollover, interrupted-turn recovery, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
-
-버전: **0.6.0**
+MIT. [LICENSE](LICENSE)
