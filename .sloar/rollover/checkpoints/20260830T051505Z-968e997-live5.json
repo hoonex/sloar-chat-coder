@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T051505Z-968e997-live5",
+  "created_at": "2026-08-30T05:15:05Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "968e9974507b21df755bf85f44db4589439804ff",
+    "tree": "a70ffd78834d1345aef6289c9f293aca5285c697",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null
+  },
+  "context": {
+    "response_language": "ko-KR",
+    "goal": "Continue real cross-chat validation of Sloar's chat-native bootstrap and seamless rollover experiment, with special focus on restoring the established response language before any user-visible fresh-chat output.",
+    "completed": [
+      "Revalidated checkpoint live4 against current durable repository state; main, PR #7, experiment head/tree, and CI matched exactly for observable remote identity.",
+      "Second real fresh-chat recovery again reconstructed the durable task context without requiring the user to restate the prior conversation.",
+      "Second live test exposed a pre-response timing defect: an English progress update was emitted before the language-aware checkpoint was loaded.",
+      "Updated PROTOCOL.md so rollover checkpoint discovery is a silent control-plane preflight and no user-visible acknowledgement, progress update, or status message is emitted before response_language restoration unless user action is required to unblock retrieval.",
+      "Updated rollover.py so latest.json copies response_language as an early pre-response hint while the full checkpoint remains authoritative.",
+      "Added regression coverage for pointer language hints and the silent pre-response protocol rule.",
+      "Added the seamless-rollover experiment compile and targeted unit suite to Validate Sloar CI.",
+      "Validate Sloar run 145 completed successfully on head 968e9974507b21df755bf85f44db4589439804ff; the experiment compile step and all 11 targeted unit tests passed, and all existing stable Sloar validation steps also passed.",
+      "Recorded the second live-test defect and repair in draft PR #7."
+    ],
+    "active": [
+      "Keep PR #7 draft while running a third real fresh-chat rollover test against this repaired checkpoint."
+    ],
+    "pending": [
+      "Open a new ChatGPT chat and send the exact resume control sentence recorded below.",
+      "Before any user-visible acknowledgement/progress/status text, silently load sloar/rollover-state, restore response_language=ko-KR, then revalidate current repository state.",
+      "Verify that the very first visible fresh-chat response is Korean even though the resume control sentence is English.",
+      "Verify that main, PR #7, experiment head/tree, CI, and observable capabilities are revalidated before recorded work continues.",
+      "If the third live test passes without a pre-checkpoint English message, record the result in PR #7 and evaluate whether the experiment is ready for stabilization planning; do not merge or modify stable Sloar automatically."
+    ],
+    "decisions": [
+      "Stable Sloar 0.4.0 remains untouched; PR #7 stays an isolated draft experiment.",
+      "Repository reality always outranks rollover checkpoint metadata and chat memory.",
+      "The English resume sentence is control input only and does not change response_language.",
+      "A resume control sentence triggers a silent pre-response recovery gate; visible progress updates must wait until response_language is restored.",
+      "latest.json may duplicate response_language only as a UX hint; the pointed checkpoint remains authoritative for recovery metadata.",
+      "Unknown local working-tree state remains explicit rather than being guessed clean."
+    ],
+    "evidence": [
+      "main is 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "PR #7 is open, draft, and mergeable against main.",
+      "PR #7 experiment head is 968e9974507b21df755bf85f44db4589439804ff with tree a70ffd78834d1345aef6289c9f293aca5285c697.",
+      "Validate Sloar run 145 completed with conclusion success on the exact latest head.",
+      "Run 145 step Validate seamless rollover experiment completed successfully and executes python3 -m py_compile plus unittest discovery for the experiment; the targeted suite contains 11 tests."
+    ],
+    "blockers": [
+      "No local product worktree is exposed in this chat, so local dirty/status state remains unobserved; targeted experiment execution is now covered by GitHub Actions instead."
+    ],
+    "next_action": "Open a fresh ChatGPT chat and send exactly: Resume the latest Sloar session for hoonex/sloar-chat-coder from branch sloar/rollover-state; revalidate the current repository state first, then continue the recorded work. The fresh chat must not emit any user-visible acknowledgement, progress update, or status message until it has loaded the rollover metadata and restored response_language."
+  }
+}
