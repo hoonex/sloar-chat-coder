@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.7.0 - 2026-08-30
+
+Repository-aware web design guidance release.
+
+- Added the bundled `web-design-guidance` companion for substantial user-facing web UI work while preserving Sloar's separation between repository engineering continuity and project-specific design decisions.
+- Defined design precedence as explicit user direction > repository design/brand rules > shipped UI/tokens/components > bundled fallback guidance, preventing generic style catalogs from overriding an established product language.
+- Added compact design discovery and a working `Design Read` covering surface type, primary user job, visual tone, density, existing system, one intentional signature decision, and responsive/interaction risks.
+- Added fallback recipes for product applications, dashboards, landing pages, auth/onboarding, settings, content/docs, and commerce without turning them into rigid templates.
+- Added contextual anti-generic-generated-UI heuristics for repetitive split heroes, generic AI gradients, gratuitous bento/card layouts, decorative glass, fake charts, meaningless floating effects, and one-style-fits-all component rhythm; these are decision checks, not absolute style bans.
+- Added text/responsive resilience, interactive state, accessibility, motion, and visual-evidence contracts. Build/compile/DOM checks no longer count as proof of visual correctness when rendered browser/screenshot evidence is available.
+- Added a bounded visual-verification policy that can return `PARTIAL` when rendered evidence is unavailable or blocked rather than keeping the chat turn open indefinitely.
+- Generalized useful structures from the MIT-licensed `nextlevelbuilder/ui-ux-pro-max-skill`, `superdesigndev/superdesign-skill`, and `educlopez/ui-craft` projects without vendoring or requiring them at runtime; source notes are recorded in the companion `NOTICE.md`.
+- Kept the existing `apple-web-design` companion as a specialized opt-in refinement for explicitly Apple-like interaction/material requests rather than making Apple styling the default web language.
+- Updated the installer so fresh installs bundle both general and specialized design companions. `--upgrade` installs newly missing bundled companions, preserves divergent/customized existing companions, and refreshes only Sloar's owned `AGENTS.md` marker block.
+- Added upgrade and contract regression tests plus First Run Wizard/CI coverage for design companion readiness and activation safety.
+
 ## 0.6.1 - 2026-08-30
 
 Bounded turn terminalization patch.
