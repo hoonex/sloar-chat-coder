@@ -110,6 +110,9 @@ def build(repo: Path):
     origin = local["git"].get("origin")
     connections = detect_connections(repo, origin)
     web_design = repo / ".agents/skills/web-design-guidance/SKILL.md"
+    adaptive_design = repo / ".agents/skills/web-design-guidance/references/adaptive-design-discovery.md"
+    design_taxonomy = repo / ".agents/skills/web-design-guidance/references/design-taxonomy.md"
+    anti_slop = repo / ".agents/skills/web-design-guidance/references/anti-ai-slop.md"
     apple_design = repo / ".agents/skills/apple-web-design/SKILL.md"
 
     recommendations = []
@@ -124,7 +127,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.7.0",
+        "sloar_version": "0.8.0",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -165,8 +168,11 @@ def build(repo: Path):
         "design": {
             "web_design_companion": "ready" if web_design.is_file() else "missing",
             "web_design_path": ".agents/skills/web-design-guidance/SKILL.md",
+            "adaptive_discovery": "ready" if adaptive_design.is_file() else "missing",
+            "design_taxonomy": "ready" if design_taxonomy.is_file() else "missing",
+            "anti_ai_slop_audit": "ready" if anti_slop.is_file() else "missing",
             "apple_design_companion": "ready" if apple_design.is_file() else "missing",
-            "policy": "user/repository design rules outrank bundled companions; general web guidance applies only to substantial user-facing web UI work",
+            "policy": "user/repository design rules outrank bundled companions; ambiguity controls question depth; anti-slop findings require context and rendered evidence when visual judgment is needed",
         },
         "next": recommendations[0],
         "recommendations": recommendations,
@@ -177,12 +183,13 @@ def render(data):
     repo = data["repository"]
     connections = data.get("connections", {}).get("items", [])
     connection_text = ", ".join(f"{item['name']} ({item['level']})" for item in connections) or "none detected from repository signals"
+    design = data.get("design", {})
     lines = [
         "Sloar readiness",
         f"Repository: {repo['state']}" + (f" ({repo['branch']})" if repo.get("branch") else ""),
         f"Sloar skill: {'ready' if repo['installed'] else 'missing'}",
         f"Execution: {data['execution']['state']}",
-        f"Web design companion: {data.get('design', {}).get('web_design_companion', 'unknown')}",
+        f"Web design companion: {design.get('web_design_companion', 'unknown')} (adaptive={design.get('adaptive_discovery', 'unknown')}, anti-slop={design.get('anti_ai_slop_audit', 'unknown')})",
         "Hosted connections: unknown until the user connects them and the agent verifies actual tools",
         f"Suggested connections: {connection_text}",
         "Forge health/capability: unknown (probe or classify observed failure only when needed)",
