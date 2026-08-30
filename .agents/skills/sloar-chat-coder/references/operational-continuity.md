@@ -6,6 +6,8 @@ This contract covers long or interruption-prone repository turns where the chat 
 
 Sloar cannot force the host UI/runtime to finish, cancel, or revive such a response. Do not claim that it can. Sloar's responsibility is to make the engineering turn recoverable and concurrency-safe even when the visible response never terminates.
 
+A second failure mode is different: the host is still executing, but the agent keeps extending its own work because a gate remains RED or every check creates another follow-up. That is not primarily an interruption-recovery problem. Apply [turn-terminalization.md](turn-terminalization.md): a RED/pending gate changes the terminal outcome; it does not remove the obligation to end the turn.
+
 ## Entry conditions
 
 Use durable turn state when at least one of these is true:
@@ -247,5 +249,7 @@ Operational continuity for a turn is satisfied when either:
 
 - a terminal state was durably recorded and the repository/evidence anchors are exact enough to support the declared outcome; or
 - a concrete blocker was durably recorded with a safe next action.
+
+A required gate that remains RED after its bounded corrective cycle is a reason to choose `PARTIAL`, `BLOCKED`, or `FAILED` as appropriate and return a report. It is not a reason to leave the turn ACTIVE indefinitely. See [turn-terminalization.md](turn-terminalization.md).
 
 If no durable transport was available, say that recovery was local-only or unavailable. Never claim cross-chat protection without evidence that the turn state was actually persisted somewhere the next session can read.
