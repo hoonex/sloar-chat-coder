@@ -122,7 +122,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.5.1",
+        "sloar_version": "0.6.0",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -154,6 +154,10 @@ def build(repo: Path):
             "publication": "unknown",
             "probe_command": "python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py . --probe --json",
             "classify_command": "python3 .agents/skills/sloar-chat-coder/scripts/forge-health.py --classify-file /path/to/error.log --json",
+        },
+        "continuity": {
+            "turn_state_helper": ".agents/skills/sloar-chat-coder/scripts/turn-state.py",
+            "stuck_response_recovery": "host-dependent; Sloar preserves terminal/interrupted engineering state but cannot control the chat host spinner",
         },
         "next": recommendations[0],
         "recommendations": recommendations,
