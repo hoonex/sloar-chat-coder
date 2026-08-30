@@ -8,9 +8,9 @@ from pathlib import Path
 
 BEGIN = "<!-- sloar-chat-coder:begin -->"
 END = "<!-- sloar-chat-coder:end -->"
-BLOCK = f"""{BEGIN}\n## Sloar Chat Coder\n\nWhen repository development is requested from a chat/agent environment, read `.agents/skills/sloar-chat-coder/SKILL.md` before repository work. Sloar governs continuity, exact state, capability escalation, failure handling, publication safety, and evidence; the repository still defines engineering method. When Apple-style web interaction/design is explicitly requested and `.agents/skills/apple-web-design/SKILL.md` exists, read that companion only after the target repository guidance; it is opt-in and never overrides the repository's product/design rules.\n{END}\n"""
+BLOCK = f"""{BEGIN}\n## Sloar Chat Coder\n\nWhen repository development is requested from a chat/agent environment, read `.agents/skills/sloar-chat-coder/SKILL.md` before repository work. Sloar governs continuity, exact state, capability escalation, failure handling, publication safety, and evidence; the repository still defines engineering method. For substantial user-facing web UI/design work, when `.agents/skills/web-design-guidance/SKILL.md` exists, read that companion after repository design guidance unless the repository already defines a stronger design workflow or the user explicitly asks not to use it. When Apple-style web interaction/design is explicitly requested and `.agents/skills/apple-web-design/SKILL.md` exists, read that specialized companion after the repository guidance and general web-design guidance; companions never override the repository's product/design rules.\n{END}\n"""
 
-BUNDLED_SKILLS = ("sloar-chat-coder", "apple-web-design")
+BUNDLED_SKILLS = ("sloar-chat-coder", "web-design-guidance", "apple-web-design")
 IGNORE_PATTERNS = shutil.ignore_patterns("__pycache__", "*.pyc")
 VERSION_RE = re.compile(r'^\s*version:\s*["\']?([0-9]+\.[0-9]+\.[0-9]+)["\']?\s*$')
 
@@ -127,8 +127,7 @@ def upgrade_sloar(target: Path, source: Path, dest: Path, dry_run: bool) -> list
 def copy_bundled_skills(target: Path, force: bool, dry_run: bool, upgrade: bool) -> list[str]:
     root = skills_root()
     messages = []
-    names = ("sloar-chat-coder",) if upgrade else BUNDLED_SKILLS
-    for name in names:
+    for name in BUNDLED_SKILLS:
         source = root / name
         if not (source / "SKILL.md").is_file():
             raise SystemExit(f"bundled skill source is missing: {source}")
@@ -138,6 +137,20 @@ def copy_bundled_skills(target: Path, force: bool, dry_run: bool, upgrade: bool)
             continue
         if upgrade and name == "sloar-chat-coder":
             messages.extend(upgrade_sloar(target, source, dest, dry_run))
+            continue
+        if upgrade:
+            if dest.exists():
+                if skill_matches(source, dest):
+                    messages.append(f"companion already current -> {dest}")
+                else:
+                    messages.append(f"preserved existing companion customization -> {dest}")
+                continue
+            if dry_run:
+                messages.append(f"would install missing companion {source} -> {dest}")
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source, dest, ignore=IGNORE_PATTERNS)
+            messages.append(f"installed missing companion -> {dest}")
             continue
         if dest.exists() and not force:
             if skill_matches(source, dest):
@@ -158,10 +171,17 @@ def copy_bundled_skills(target: Path, force: bool, dry_run: bool, upgrade: bool)
 def update_agents(target: Path, dry_run: bool) -> str:
     path = target / "AGENTS.md"
     existing = path.read_text(encoding="utf-8") if path.exists() else ""
-    if BEGIN in existing and END in existing:
-        return "AGENTS.md already wired"
-    if BEGIN in existing or END in existing:
+    if (BEGIN in existing) != (END in existing):
         raise SystemExit("AGENTS.md contains an incomplete Sloar marker block; fix it manually before installing")
+    if BEGIN in existing and END in existing:
+        pattern = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END), re.DOTALL)
+        updated = pattern.sub(BLOCK.strip(), existing, count=1)
+        if updated == existing:
+            return "AGENTS.md already wired"
+        if dry_run:
+            return f"would refresh Sloar block -> {path}"
+        path.write_text(updated, encoding="utf-8")
+        return f"refreshed Sloar block -> {path}"
     updated = existing.rstrip()
     if updated:
         updated += "\n\n"
@@ -179,7 +199,7 @@ def main() -> None:
     parser.add_argument("--no-agents", action="store_true", help="Do not create/update target AGENTS.md")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--force", action="store_true", help="Replace existing different bundled skill directories")
-    mode.add_argument("--upgrade", action="store_true", help="Safely upgrade only an older installed sloar-chat-coder skill")
+    mode.add_argument("--upgrade", action="store_true", help="Safely upgrade Sloar, add missing bundled companions, and preserve existing companion customizations")
     args = parser.parse_args()
 
     target = Path(args.target).expanduser().resolve()
@@ -191,7 +211,7 @@ def main() -> None:
     if not args.no_agents:
         print(update_agents(target, args.dry_run))
     if args.upgrade:
-        print("next: verify the upgraded Sloar version, create a 0.5+ rollover checkpoint for the active session, then continue the current task")
+        print("next: verify the upgraded Sloar version, confirm bundled companions, create a current rollover/turn checkpoint, then continue the active task")
     else:
         print("next: ask your agent to run Sloar first-run capability check before repository modification")
 
