@@ -119,6 +119,19 @@ The first real language-continuity test showed that storing `response_language` 
 
 Do not emit any user-visible acknowledgement, progress update, or status message until `response_language` is restored, unless durable checkpoint retrieval is blocked and the user must take an action to unblock it. Tool calls and hidden/internal work may proceed normally. The sidecar `latest.json` SHOULD copy `response_language` from the checkpoint so a fresh session can recover the language hint on its first durable read; the checkpoint remains authoritative if the hint and checkpoint disagree.
 
+#### Host capability boundary
+
+The strict gate has an execution-capability precondition: the host must allow silent durable reads or tool calls before any mandatory user-visible acknowledgement, progress update, or status output. If a higher-priority host policy requires visible output before those reads, checkpoint-driven first-response language restoration cannot be proven at the agent-protocol layer, even when the early message happens to use the expected language.
+
+Treat that condition as the capability blocker `PRE_RESPONSE_READ_BLOCKED`. Enter it only when the host constraint is actually observable. While blocked:
+
+- do not claim that the silent pre-response gate passed;
+- do not claim that the checkpoint caused the first visible response language merely because the observed language matches `response_language`;
+- do not repeat the same fresh-chat validation under unchanged host conditions, because it would add no different evidence;
+- preserve repository work, keep stabilization claims gated, and record the host capability as the blocker rather than misclassifying it as repository drift.
+
+Exit `PRE_RESPONSE_READ_BLOCKED` only when the host either permits a silent durable read before visible output or provides an authenticated early `response_language` hint before visible output. After the exit condition is observed, run one differentiated live validation and record whether the first visible response occurred only after the authoritative checkpoint language was available.
+
 1. Resolve the repository independently; do not assume the checkpoint is current truth.
 2. Read the latest authorized rollover pointer from `sloar/rollover-state` or the strongest available durable fallback. If the pointer carries `response_language`, apply it as an early response-language hint while keeping the pre-response gate closed.
 3. Load the pointed checkpoint, restore its `response_language`, and only then open the pre-response gate. Treat the resume sentence as control input only. If `response_language` is absent in an older checkpoint, use recoverable prior user-facing language when available; only otherwise fall back to the language of the current user message.
