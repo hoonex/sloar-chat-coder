@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T071253Z-c159c09-stable2",
+  "created_at": "2026-08-30T07:12:53Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "c159c09178bf2ce7357b737f5e7c1036c42662b8",
+    "tree": "bcba9b62f0dcfe9996d66842c6b76e0d5e08493a",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Keep long chat-based repository work recoverable even when the host itself stalls before delivering a final response, without claiming control over the host spinner or server-side generation.",
+    "completed": [
+      "Analyzed long-lived hoonex/blank-app operating practices without modifying or installing Sloar into Blank app.",
+      "Generalized repository/verification/runtime anchors, hot-state versus cold-history, evidence-to-claim matching, failed-experiment records, and change-boundary contracts into Sloar rather than copying Flow-specific engineering rules.",
+      "Added operational continuity with durable ACTIVE/progress/terminal turn snapshots and terminal state written before the final visible completion response when durable transport exists.",
+      "Added ACTIVE_OR_INTERRUPTED and TERMINAL_REPLAY_AVAILABLE recovery states with no automatic timeout takeover.",
+      "Added explicit user-authorized takeover with monotonic fencing epochs so a stale prior session can be rejected on later guarded writes after takeover.",
+      "Added scripts/turn-state.py, operational-continuity.md, interrupted-turn English/Korean user guides, and regression tests.",
+      "Published Sloar 0.6.0 to main by non-force fast-forward after exact base/head revalidation.",
+      "PR #10 is merged/closed at exact head c159c09178bf2ce7357b737f5e7c1036c42662b8.",
+      "Validate Sloar PR run #208 and main push run #209 both completed successfully on the exact 0.6.0 release head."
+    ],
+    "active": [],
+    "pending": [
+      "Host-level stuck-response behavior itself remains outside Sloar control; Sloar provides durable recovery/fencing rather than spinner cancellation.",
+      "A future real-target E2E can validate ACTIVE turn -> interrupted fresh-chat recovery/takeover -> fenced continuation when the user chooses a target repository.",
+      "Blank app remains intentionally unmodified until the user explicitly asks to install or change it."
+    ],
+    "decisions": [
+      "Do not claim Sloar can cancel, finish, or revive a host response that remains stuck in an answering state.",
+      "Engineering terminality and user-visible response delivery are separate facts.",
+      "Elapsed wall-clock time alone never proves an old host process is dead; takeover requires explicit user intent.",
+      "Takeover increments a monotonic fencing epoch; active turns using this contract verify turn_id plus epoch before later guarded durable writes/publication.",
+      "Fencing cannot retroactively cancel a write already in flight before the epoch changed.",
+      "Repository current state, last verified state, and serving runtime may use separate evidence-backed anchors.",
+      "Reuse target-repository current-status/history/ADR conventions when present instead of imposing parallel Sloar product-history files.",
+      "Evidence type and scope must match the claim; CI green is not universal proof of visual, integration, or production health.",
+      "Target repository engineering policy remains authoritative; Flow-specific Blank app rules were not absorbed into Sloar."
+    ],
+    "evidence": [
+      "main: c159c09178bf2ce7357b737f5e7c1036c42662b8 / tree bcba9b62f0dcfe9996d66842c6b76e0d5e08493a",
+      "VERSION on main: 0.6.0",
+      "PR #10: merged/closed at c159c09178bf2ce7357b737f5e7c1036c42662b8",
+      "Validate Sloar PR run #208: success on exact final PR head",
+      "Validate Sloar main push run #209: success on exact published head",
+      "Full unittest discovery including interrupted-turn recovery/fencing plus existing rollover/upgrade tests: pass",
+      "Self-test, installer/wizard/turn-state smoke, forge resilience and frontmatter validation: pass"
+    ],
+    "blockers": [
+      "The ChatGPT/app/server host spinner and server-side response lifecycle are host capabilities and cannot be controlled by repository-level Sloar code."
+    ],
+    "next_action": "On a future explicitly chosen target repository, validate Sloar 0.6.0 end-to-end with a durable ACTIVE turn, simulated/interrupted fresh-chat recovery or explicit takeover, fence validation, and terminal replay; do not modify Blank app unless the user asks.",
+    "response_language": "ko-KR"
+  }
+}
