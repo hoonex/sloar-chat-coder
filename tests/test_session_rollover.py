@@ -1,0 +1,153 @@
+import importlib.util
+import subprocess
+import sys
+import tempfile
+import unittest
+from argparse import Namespace
+from pathlib import Path
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / ".agents/skills/sloar-chat-coder/scripts/session-rollover.py"
+spec = importlib.util.spec_from_file_location("session_rollover", MODULE_PATH)
+rollover = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = rollover
+spec.loader.exec_module(rollover)
+
+
+def git(repo: Path, *args: str) -> str:
+    proc = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+    return proc.stdout.strip()
+
+
+class SessionRolloverTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        git(self.repo, "init", "-b", "main")
+        git(self.repo, "config", "user.email", "demo@example.com")
+        git(self.repo, "config", "user.name", "Demo")
+        git(self.repo, "remote", "add", "origin", "https://github.com/example/demo.git")
+        (self.repo / "README.md").write_text("demo\n", encoding="utf-8")
+        git(self.repo, "add", "README.md")
+        git(self.repo, "commit", "-m", "init")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _args(self, language="ko-KR"):
+        return Namespace(
+            goal="Continue UI work",
+            completed=["typecheck pass"],
+            active=["settings UI"],
+            pending=["mobile regression"],
+            decision=["preserve school behavior"],
+            evidence=["unit: pass"],
+            blocker=[],
+            next_action="run browser regression",
+            response_language=language,
+        )
+
+    def test_checkpoint_round_trip_exact(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        rollover.write_checkpoint(self.repo, checkpoint, rollover.DEFAULT_STATE_DIR)
+        loaded = rollover.load_checkpoint(self.repo, rollover.DEFAULT_STATE_DIR, None)
+        comparison = rollover.compare_identity(loaded, rollover.capture_identity(self.repo))
+        self.assertEqual(comparison["state"], "EXACT")
+        self.assertEqual(comparison["unobserved"], [])
+
+    def test_local_state_dir_does_not_dirty_worktree(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        rollover.write_checkpoint(self.repo, checkpoint, rollover.DEFAULT_STATE_DIR)
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        self.assertEqual(comparison["state"], "EXACT")
+
+    def test_worktree_state_dir_is_detected(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        rollover.write_checkpoint(self.repo, checkpoint, ".sloar/rollover")
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+        self.assertIn("dirty", comparison["changed"])
+        self.assertIn("status_sha256", comparison["changed"])
+
+    def test_repository_move_requires_reconcile(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        (self.repo / "README.md").write_text("changed\n", encoding="utf-8")
+        git(self.repo, "add", "README.md")
+        git(self.repo, "commit", "-m", "move")
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+        self.assertIn("head", comparison["changed"])
+        self.assertIn("tree", comparison["changed"])
+
+    def test_remote_only_identity_can_be_exact(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        checkpoint["identity"].update(
+            {"working_state_observed": False, "dirty": None, "status_sha256": None}
+        )
+        current = dict(checkpoint["identity"])
+        comparison = rollover.compare_identity(checkpoint, current)
+        self.assertEqual(comparison["state"], "EXACT")
+        self.assertEqual(comparison["unobserved"], ["working_state"])
+
+    def test_remote_only_repository_move_still_reconciles(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        checkpoint["identity"].update(
+            {"working_state_observed": False, "dirty": None, "status_sha256": None}
+        )
+        current = dict(checkpoint["identity"])
+        current["head"] = "f" * 40
+        comparison = rollover.compare_identity(checkpoint, current)
+        self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+        self.assertIn("head", comparison["changed"])
+        self.assertIn("working_state", comparison["unobserved"])
+
+    def test_missing_remote_field_is_unobserved_not_changed(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        current = dict(checkpoint["identity"])
+        current["branch"] = None
+        current["working_state_observed"] = False
+        current["dirty"] = None
+        current["status_sha256"] = None
+        comparison = rollover.compare_identity(checkpoint, current)
+        self.assertEqual(comparison["state"], "EXACT")
+        self.assertIn("branch", comparison["unobserved"])
+        self.assertIn("working_state", comparison["unobserved"])
+
+    def test_response_language_persists_to_checkpoint_and_pointer(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args("ko-KR"))
+        rollover.write_checkpoint(self.repo, checkpoint, rollover.DEFAULT_STATE_DIR)
+        pointer = rollover.load_pointer(self.repo, rollover.DEFAULT_STATE_DIR)
+        self.assertEqual(checkpoint["context"]["response_language"], "ko-KR")
+        self.assertEqual(pointer["response_language"], "ko-KR")
+
+    def test_legacy_checkpoint_without_language_remains_renderable(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args(""))
+        checkpoint["context"].pop("response_language", None)
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        capsule = rollover.render_capsule(checkpoint, comparison)
+        self.assertIn("Resume state: EXACT", capsule)
+        self.assertNotIn("Response language:", capsule)
+
+    def test_capsule_contains_compact_durable_context(self):
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        capsule = rollover.render_capsule(checkpoint, comparison)
+        self.assertIn("SLOAR SESSION CAPSULE v1", capsule)
+        self.assertIn("Goal: Continue UI work", capsule)
+        self.assertIn("Response language: ko-KR", capsule)
+        self.assertIn("Next action: run browser regression", capsule)
+        self.assertNotIn("conversation", capsule.lower())
+
+    def test_resume_instruction_is_one_line_and_repository_specific(self):
+        instruction = rollover.resume_instruction("example/demo")
+        self.assertEqual(instruction, "Resume the latest Sloar session for example/demo.")
+        self.assertNotIn("\n", instruction)
+
+
+if __name__ == "__main__":
+    unittest.main()
