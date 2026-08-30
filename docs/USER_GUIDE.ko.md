@@ -2,7 +2,7 @@
 
 이 문서는 Sloar 내부 구조를 몰라도 **처음 시작 → 평소 개발 → 업데이트 → 새 채팅 이동 → 멈춘 응답 복구**까지 할 수 있도록 만든 사용자용 가이드다.
 
-현재 stable: **0.8.0**
+현재 stable: **0.8.1**
 
 ## 1. 처음 시작하기
 
@@ -97,29 +97,51 @@ Sloar는 저장소의 현재 상태를 대화 기억보다 우선해서 확인�
 
 ## 4. Sloar 업데이트
 
-현재 작업 중인 채팅에서 그대로 말한다.
+0.8.1부터 기본 UX는 **업데이트 확인은 자동, 설치는 승인 후 자동**이다.
+
+현재 채팅에서 첫 Sloar repository 작업을 시작하거나, 새 채팅에서 Sloar 세션을 resume/takeover할 때 canonical stable source가 보이면 installed 버전과 stable 버전을 **한 번만** 비교한다.
+
+```text
+설치 버전 == stable
+→ 아무 알림 없이 작업 계속
+
+새 stable 발견
+→ Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?
+→ 사용자가 승인
+→ 안전한 UPGRADE_SESSION 자동 실행
+
+stable 조회 실패/권한 없음/서비스 문제
+→ update status = unknown
+→ 업데이트 확인 때문에 작업을 막지 않고 기존 버전으로 계속
+```
+
+새 stable이 있다는 사실 자체는 repository write 권한이 아니다. 사용자가 승인하기 전에는 Sloar core나 companion을 수정하지 않는다.
+
+승인한 뒤 정상적인 업그레이드는 대략:
+
+```text
+현재 repository identity 재확인
+→ 설치된 Sloar 버전 재확인
+→ 승인된 stable identity 확인
+→ 기존 Sloar 백업
+→ Sloar-owned 파일만 업그레이드
+→ known-official companion만 안전하게 migration
+→ custom/unrecognized companion 보존
+→ 테스트/검증
+→ checkpoint bridge
+→ 원래 작업 계속
+```
+
+으로 진행된다. 제품 코드나 unrelated repository 지침을 초기화하는 방식이 아니다.
+
+사용자가 업데이트 알림을 기다리지 않고 직접 시작하고 싶다면 언제든:
 
 ```text
 이 세션 Sloar 최신 stable 버전으로 업그레이드하고,
 현재 작업 상태는 유지한 채 계속해.
 ```
 
-정상적인 업그레이드는 대략:
-
-```text
-현재 repository identity 재확인
-→ 설치된 Sloar 버전 확인
-→ 현재 stable 확인
-→ 기존 Sloar 백업
-→ Sloar-owned 파일만 업그레이드
-→ bundled companion 확인
-→ 테스트/검증
-→ 현재 작업 계속
-```
-
-으로 진행된다.
-
-제품 코드나 unrelated repository 지침을 초기화하는 방식이 아니다.
+라고 하면 같은 `UPGRADE_SESSION`으로 들어간다.
 
 로컬 fallback:
 
@@ -128,6 +150,15 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
   --target /path/to/project \
   --upgrade
 ```
+
+로컬 Wizard는 stable 버전을 몰래 네트워크에서 가져오지 않는다. 이미 확인한 stable을 비교하려면:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
+  --stable-version 0.8.1 --json
+```
+
+처럼 명시적으로 넘긴다. 출력의 `updates.status`는 `current`, `update_available`, `ahead`, `unknown`, `not_installed` 중 하나다.
 
 자세한 계약: [upgrading.md](../.agents/skills/sloar-chat-coder/references/upgrading.md)
 
@@ -151,7 +182,7 @@ Resume the latest Sloar session for OWNER/REPO.
 
 이다.
 
-새 채팅은 checkpoint를 무조건 믿지 않고 **현재 저장소 상태를 다시 확인한 뒤** 이어서 진행한다.
+새 채팅은 checkpoint를 무조건 믿지 않고 **현재 저장소 상태를 다시 확인한 뒤** 이어서 진행한다. canonical stable source가 정상적으로 보이면 이 fresh-chat resume에서도 update-awareness를 한 번 수행한다.
 
 자세한 계약: [chat-native-continuity.md](../.agents/skills/sloar-chat-coder/references/chat-native-continuity.md)
 
@@ -251,7 +282,7 @@ Sloar: https://github.com/hoonex/sloar-chat-coder
 https://github.com/OWNER/REPO
 <작업>
 
-# 업데이트
+# 업데이트를 수동으로 바로 시작
 이 세션 Sloar 최신 stable 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해.
 
 # 새 채팅 이동
