@@ -18,7 +18,7 @@ jobs:
           bash -n .agents/skills/sloar-chat-coder/scripts/preflight.sh
           bash -n .agents/skills/sloar-chat-coder/scripts/verify-state.sh
           python3 -m py_compile .agents/skills/sloar-chat-coder/scripts/*.py
-      - name: Validate continuity, terminalization, upgrades and interrupted turns
+      - name: Validate continuity, design guidance, terminalization, upgrades and interrupted turns
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests -v
@@ -44,7 +44,7 @@ jobs:
           assert data['dirty'] is False
           print('checkpoint: ok')
           PY
-      - name: Validate first-run installer, doctor, connections and forge resilience
+      - name: Validate first-run installer, doctor, design companions, connections and forge resilience
         run: |
           set -euo pipefail
           target="$RUNNER_TEMP/first-run-target"
@@ -70,7 +70,13 @@ jobs:
           test -s "$target/.agents/skills/sloar-chat-coder/references/turn-terminalization.md"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/session-rollover.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/turn-state.py"
+          test -s "$target/.agents/skills/web-design-guidance/SKILL.md"
+          test -s "$target/.agents/skills/web-design-guidance/references/design-discovery.md"
+          test -s "$target/.agents/skills/web-design-guidance/references/surface-recipes.md"
+          test -s "$target/.agents/skills/web-design-guidance/references/visual-verification.md"
+          test -s "$target/.agents/skills/apple-web-design/SKILL.md"
           grep -q 'sloar-chat-coder:begin' "$target/AGENTS.md"
+          grep -q 'web-design-guidance/SKILL.md' "$target/AGENTS.md"
           test "$(grep -c 'sloar-chat-coder:begin' "$target/AGENTS.md")" -eq 1
 
           python3 .agents/skills/sloar-chat-coder/scripts/install.py --target "$target"
@@ -94,7 +100,7 @@ jobs:
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert data['schema']==2
-          assert data['sloar_version']=='0.6.1'
+          assert data['sloar_version']=='0.7.0'
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
           assert data['execution']['state']=='ready'
@@ -103,16 +109,20 @@ jobs:
           assert data['resilience']['local_status']=='LOCAL_READY'
           assert data['continuity']['turn_state_helper'].endswith('turn-state.py')
           assert 'indefinite self-extension' in data['continuity']['turn_terminalization']
+          assert data['design']['web_design_companion']=='ready'
+          assert data['design']['apple_design_companion']=='ready'
+          assert 'repository design rules outrank' in data['design']['policy']
           items={item['id']:item for item in data['connections']['items']}
           assert {'github','vercel','supabase','openai-platform'} <= set(items)
           assert 'netlify' not in items
           assert items['github']['level']=='baseline_for_remote_workflow'
           assert all(item['status']=='unknown' and item['connect_by_user'] is True for item in items.values())
           assert 'user connects external services explicitly' in data['hosted']['reason']
-          print('wizard connections: ok')
+          print('wizard connections/design: ok')
           PY
 
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q '^Sloar readiness$'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q '^Web design companion: ready$'
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Suggested connections: GitHub'
 
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/turn-state.py" begin "$target" \
@@ -173,8 +183,8 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('.agents/skills/sloar-chat-coder/SKILL.md')
-          text = p.read_text(encoding='utf-8')
+          core = Path('.agents/skills/sloar-chat-coder/SKILL.md')
+          text = core.read_text(encoding='utf-8')
           assert text.startswith('---\n'), 'SKILL.md must start with YAML frontmatter'
           _, fm, body = text.split('---', 2)
           fields = {}
@@ -187,8 +197,8 @@ jobs:
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
-          assert Path('VERSION').read_text().strip() == '0.6.1'
-          assert 'version: "0.6.1"' in text
+          assert Path('VERSION').read_text().strip() == '0.7.0'
+          assert 'version: "0.7.0"' in text
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/chat-native-continuity.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/upgrading.md').is_file()
@@ -197,6 +207,14 @@ jobs:
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/session-rollover.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/turn-state.py').is_file()
+          design = Path('.agents/skills/web-design-guidance/SKILL.md')
+          design_text = design.read_text(encoding='utf-8')
+          assert design_text.startswith('---\n')
+          assert 'name: web-design-guidance' in design_text
+          assert 'version: "0.7.0"' in design_text
+          assert Path('.agents/skills/web-design-guidance/references/design-discovery.md').is_file()
+          assert Path('.agents/skills/web-design-guidance/references/surface-recipes.md').is_file()
+          assert Path('.agents/skills/web-design-guidance/references/visual-verification.md').is_file()
           assert Path('docs/INTERRUPTED_TURNS.md').is_file()
           assert Path('docs/INTERRUPTED_TURNS.ko.md').is_file()
           assert Path('docs/CONNECTIONS.md').is_file()
