@@ -1,10 +1,10 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, or chat context can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.5.1"
+  version: "0.6.0"
 ---
 
 # Sloar Chat Coder
@@ -22,6 +22,8 @@ Read [references/environment-onboarding.md](references/environment-onboarding.md
 When the user explicitly asks to use Sloar for a repository, prefer chat-native bootstrap when the current session has an authorized durable path. A first-time user should not need to understand `git clone`, `install.py`, or the wizard merely to begin work when the agent can safely perform that setup itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) before claiming durable bootstrap or cross-chat rollover.
 
 When an already-running repository session uses an older Sloar release and the user asks to upgrade, preserve the current task and repository state instead of restarting the workflow. Re-resolve identity, upgrade only Sloar-owned files, verify the new release, bridge the active task into the newer checkpoint model, and continue the same task. Read [references/upgrading.md](references/upgrading.md) before an in-session upgrade write. Do not silently upgrade merely because a newer release exists.
+
+For long, interruption-prone, remote-write, CI/deployment-heavy tasks—or when the host has previously left responses stuck in an unterminated "answering" state—use durable turn state when a suitable transport exists. Sloar cannot force the host UI/runtime to finish or cancel a stuck response; it can separate engineering terminality from response delivery, preserve bounded progress, and fence a stale prior session after explicit takeover. Read [references/operational-continuity.md](references/operational-continuity.md). Do not add this ceremony to trivial read-only answers.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
@@ -43,8 +45,8 @@ Do not turn a healthy first run into a long setup tutorial. Keep onboarding brie
 3. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
 4. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
 5. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
-6. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, or behavior as successful without relevant evidence.
-7. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them.
+6. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, turn terminality, or behavior as successful without relevant evidence.
+7. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them; when an ACTIVE durable turn is in use, also verify its current fencing epoch before guarded durable writes.
 
 ## Task state machine
 
@@ -60,6 +62,14 @@ Forge health/capability is a separate overlay on this lifecycle. A task may be `
 
 An explicit Sloar version change inside an active task is a bounded maintenance transition, `UPGRADE_SESSION`, not a restart of the task state machine. Its entry/exit conditions are defined in [references/upgrading.md](references/upgrading.md).
 
+Durable turn state is also an overlay, not a second engineering workflow:
+
+```text
+BEGIN_TURN -> ACTIVE -> PROGRESS* -> TERMINALIZE -> visible completion report
+```
+
+A stuck host response can interrupt visible delivery at any point without changing which repository facts actually exist.
+
 ## Repository identity contract
 
 Treat repository identity as:
@@ -71,6 +81,8 @@ HEAD commit SHA + HEAD tree SHA + working-tree state
 A matching commit SHA with unexpected local modifications is not the same engineering state. Preserve unfamiliar surviving work until ownership is known.
 
 When the current session cannot observe a local worktree, do not invent one. Record working-tree observability explicitly and compare only identity fields that both the checkpoint and current session can actually observe. Unknown working-tree state is neither evidence of a clean tree nor a reconciliation event by itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md).
+
+Current repository identity can legitimately differ from the most recently verified product state or the runtime actually serving production. When evidence exposes those distinctions, track repository, verification, and runtime anchors separately instead of coercing them into one SHA. Read [references/operational-continuity.md](references/operational-continuity.md).
 
 ## Capability selection
 
@@ -117,19 +129,34 @@ same fingerprint + same inputs != useful retry
 same fingerprint + changed evidence/input = possible bounded retry
 ```
 
-Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`; permission/policy/gate failures should transition to `REMOTE_PARTIAL` / `PUBLICATION_BLOCKED`. Neither state is a reason to rewrite correct product code. Read [references/recovery.md](references/recovery.md) when execution, transport, or chat state is lost or ambiguous.
+Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`; permission/policy/gate failures should transition to `REMOTE_PARTIAL` / `PUBLICATION_BLOCKED`. Neither state is a reason to rewrite correct product code. Read [references/recovery.md](references/recovery.md) when execution, transport, chat state, or turn delivery is lost or ambiguous.
+
+A host that remains visibly "answering" is not by itself evidence that product code, GitHub, CI, or the repository failed. Recover from durable repository/turn state rather than rewriting correct work to make the chat UI stop spinning.
 
 ## Concurrent actors and publication guard
 
-Assume branches, PRs, workflows, deployments, and artifacts may move while the task is active. Capture the expected base identity before substantial work, then resolve it again before publication.
+Assume branches, PRs, workflows, deployments, artifacts, and other chat sessions may move while the task is active. Capture the expected base identity before substantial work, then resolve it again before publication.
 
 If the remote identity changed, stop publication, inspect the new durable state, deliberately reconcile, and rerun affected verification. After a forge outage or prolonged capability block, always perform this revalidation even if the original base was known exactly before the incident. Read [references/concurrency.md](references/concurrency.md).
+
+If a durable ACTIVE turn is in use, guard later durable writes with its `turn_id + fencing epoch`. A user-authorized takeover increments the epoch. A stale prior session must stop when its fence is no longer current. Fencing cannot retroactively cancel an external write that was already in flight before the epoch changed.
 
 ## Verification and evidence
 
 Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
 
-Maintain an evidence ledger containing the checks that actually ran, their target state, result, and blocker when applicable. No evidence means no success claim. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md) and [references/evidence-ledger.md](references/evidence-ledger.md).
+Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), and [references/operational-continuity.md](references/operational-continuity.md).
+
+For substantial work, keep a compact change boundary when useful:
+
+```text
+changed
+preserved
+deliberately_not_changed
+limitations
+```
+
+This boundary never replaces the actual diff or repository guidance.
 
 ## Actions and remote missions
 
@@ -145,6 +172,26 @@ For expensive or interruption-prone tasks, persist a machine-readable checkpoint
 
 When publication is deferred by a forge incident or capability limitation, also record local/remote status and the remote checks still pending. If the local workspace is disposable, preserve an exact repository-approved artifact, bundle, or patch with integrity evidence before the workspace can disappear.
 
+When durable turn state is active, bounded progress snapshots should update only when durable facts materially change. Before the final visible completion report, write a terminal turn snapshot when the configured durable transport is available. This makes engineering terminality recoverable even if final response delivery fails afterward. `scripts/turn-state.py` is the local transport-agnostic helper; local state defaults under `.git/` and can be mirrored to the `sloar/rollover-state` sidecar branch when authorized.
+
+## Interrupted or stuck-response turns
+
+A fresh session that finds a terminal turn uses:
+
+```text
+TERMINAL_REPLAY_AVAILABLE
+```
+
+Revalidate the repository, then replay/report the terminal engineering result rather than repeating completed work merely because the old final chat message was not delivered.
+
+A fresh session that finds an unterminated ACTIVE turn uses:
+
+```text
+ACTIVE_OR_INTERRUPTED
+```
+
+Do not infer from elapsed time alone that the previous host process is dead. If the user explicitly chooses to continue from the fresh session, perform a takeover: re-resolve repository truth, create a new turn ID, increment the monotonic fencing epoch, record the predecessor/reason, and continue. No automatic timeout takeover exists. Read [references/operational-continuity.md](references/operational-continuity.md) for the complete entry/exit/fencing contract.
+
 ## Chat-native session rollover
 
 When the user asks to move to a fresh chat, use a compact durable rollover rather than reconstructing the conversation manually. Preserve goal, completed/active/pending work, durable decisions, evidence, blockers, one next action, exact observable repository identity, and the established user-facing `response_language` when known.
@@ -159,14 +206,27 @@ Resume the latest Sloar session for OWNER/REPO.
 
 Treat control language and user-facing response language separately. If host policy forces visible output before the durable reads needed to restore checkpoint language, classify `PRE_RESPONSE_READ_BLOCKED`, do not claim checkpoint-driven first-response language recovery, and do not repeat the same validation under unchanged host conditions. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) for the complete entry/exit/no-retry contract. `scripts/session-rollover.py` is the local transport-agnostic checkpoint helper.
 
+Turn recovery and intentional rollover are related but not identical: rollover is a planned handoff; interrupted-turn recovery handles a response/session that may have stopped without a clean handoff.
+
+## Durable project memory
+
+For long-lived repositories, prefer a small hot working set plus colder history instead of replaying the entire project history into every chat.
+
+If the target repository already maintains current-status files, project history, ADRs, release records, or equivalent durable documents, respect and reuse them. Do not install parallel Sloar-owned product-history files merely to impose a naming convention.
+
+Keep current Git/repository/runtime facts above both hot and cold documentation in the recovery priority. Record failed experiments only to the extent needed to avoid repeating the same structural mistake, and do not hide abandoned attempts inside a successful completion claim.
+
 ## Completion report
 
 At completion, report only:
 
 - the exact durable state changed or published;
-- the checks that actually ran and their results;
+- the checks that actually ran and their results, with important evidence-scope limitations;
 - any blocked check and its concrete blocker;
-- any reconciliation caused by concurrent remote movement, forge recovery, capability change, or in-session upgrade;
+- any relevant verification/runtime anchor that differs from current repository HEAD;
+- any reconciliation caused by concurrent remote movement, forge recovery, capability change, in-session upgrade, or explicit turn takeover;
 - any temporary remote resource that could not be cleaned up.
+
+If a terminal turn snapshot was durably written but the host later failed to deliver the visible completion response, a fresh session may report that terminal state after revalidation. Do not imply the previous user-visible response was delivered when that fact is unknown.
 
 If remote publication is blocked, say so explicitly rather than presenting `LOCAL_READY` as task completion. Do not expose Sloar mechanics when the normal path is healthy unless they materially explain a limitation or result.
