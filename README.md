@@ -12,7 +12,35 @@ Its goal is simple: **make repository work recoverable, exact, and evidence-boun
 
 You do **not** need to understand Sloar's state machine before using it.
 
-### 1. Get Sloar and install it
+### Preferred: chat-native first use
+
+When the current chat has authorized repository write/execution capability, start with the repository and the task:
+
+```text
+Use Sloar for https://github.com/OWNER/REPO and continue with my request.
+```
+
+The agent should inspect the current capabilities, preserve repository guidance, install or restore the stable Sloar core when a safe durable path exists, re-resolve repository identity, and begin the requested work. It must not claim durable installation when the current session cannot actually write it.
+
+After normal work, a rollover can be requested naturally:
+
+```text
+prepare a handoff
+```
+
+A durable handoff returns one fresh-chat control sentence:
+
+```text
+Resume the latest Sloar session for OWNER/REPO.
+```
+
+The fresh chat reloads compact durable task state, revalidates the repository before trusting the checkpoint, and continues without requiring the previous conversation to be reconstructed.
+
+See [`.agents/skills/sloar-chat-coder/references/chat-native-continuity.md`](.agents/skills/sloar-chat-coder/references/chat-native-continuity.md) for the exact rollover contract and host capability boundaries.
+
+### Local/manual fallback
+
+If the current chat cannot perform a safe durable bootstrap, use the installer:
 
 ```bash
 git clone https://github.com/hoonex/sloar-chat-coder.git
@@ -26,9 +54,7 @@ The installer copies the skill into `.agents/skills/sloar-chat-coder/` and adds 
 
 Preview first with `--dry-run` when desired.
 
-### 2. Run the First Run Wizard
-
-Inside the target repository:
+Inside the target repository, the First Run Wizard remains available:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
@@ -36,9 +62,7 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 
 The default output is deliberately short. It checks the local repository/execution side and marks ChatGPT/Codex GitHub, CI, browser, Plugin/App state as `unknown` until the agent verifies its actual current tools. Use `--json` for the full readiness report.
 
-### 3. Tell your coding agent to use Sloar
-
-A minimal first prompt is:
+A minimal local first prompt is:
 
 ```text
 Use Sloar Chat Coder for this repository. Run the first-run capability check before modifying anything, then recover the exact repository state and continue the task.
@@ -46,7 +70,38 @@ Use Sloar Chat Coder for this repository. Run the first-run capability check bef
 
 Read [docs/FIRST_RUN.md](docs/FIRST_RUN.md) for the full beginner path or [README.ko.md](README.ko.md) for Korean.
 
-## New in 0.4: Forge resilience
+## New in 0.5: Chat-native continuity
+
+Sloar 0.5 adds a durable old-chat → fresh-chat continuity path without making checkpoint metadata authoritative.
+
+```text
+BOOTSTRAP_SESSION? -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION -> NORMAL_WORK
+```
+
+Key rules:
+
+- first-time users can begin from a repository URL when the current session can safely bootstrap Sloar;
+- `sloar/rollover-state` is the preferred sidecar branch for durable rollover metadata;
+- the product branch stays free of runtime checkpoint files;
+- fresh sessions revalidate repository reality before trusting checkpoint facts;
+- remote-only sessions may mark local working-tree state as unobserved instead of pretending it is clean;
+- checkpoint `response_language` is separate from English control/protocol text;
+- if host policy forces visible output before durable language reads, Sloar records `PRE_RESPONSE_READ_BLOCKED` and does not claim the strict first-response language gate passed;
+- unchanged blocked validation is not retried without changed host capability/evidence.
+
+Local checkpoint helper:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/session-rollover.py handoff . \
+  --goal "Finish settings" \
+  --active "desktop UI" \
+  --next "run browser regression" \
+  --response-language "ko-KR"
+```
+
+Local helper state defaults to `.git/sloar-rollover/`, so generating a checkpoint does not dirty the product worktree.
+
+## 0.4: Forge resilience
 
 Git is not the same failure domain as GitHub/GitLab/Actions. Sloar 0.4 keeps exact local engineering moving when a hosted layer is unavailable **and** distinguishes a real platform outage from an operation-specific permission/policy failure.
 
@@ -171,10 +226,14 @@ Publication is guarded by five concepts:
 │   ├── CHATGPT_PLUGINS.ko.md
 │   ├── FORGE_RESILIENCE.md
 │   └── FORGE_RESILIENCE.ko.md
+├── tests/
+│   ├── test_chat_native_contract.py
+│   └── test_session_rollover.py
 └── .agents/skills/sloar-chat-coder/
     ├── SKILL.md
     ├── references/
     │   ├── capability-ladder.md
+    │   ├── chat-native-continuity.md
     │   ├── concurrency.md
     │   ├── evidence-ledger.md
     │   ├── forge-resilience.md
@@ -185,6 +244,7 @@ Publication is guarded by five concepts:
         ├── doctor.py
         ├── forge-health.py
         ├── install.py
+        ├── session-rollover.py
         ├── wizard.py
         ├── preflight.sh
         ├── verify-state.sh
@@ -206,13 +266,13 @@ python3 .agents/skills/sloar-chat-coder/scripts/write-checkpoint.py \
 
 ## What Sloar intentionally does not do
 
-Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar only controls continuity, exactness, escalation, publication safety, onboarding capability discovery, forge resilience, and evidence.
+Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar only controls continuity, exactness, escalation, publication safety, onboarding capability discovery, chat-session rollover, forge resilience, and evidence.
 
 ## Status
 
-Current version: **0.4.0**
+Current version: **0.5.0**
 
-0.4.0 adds Forge Resilience: separate local/remote health, `REMOTE_PARTIAL` vs `REMOTE_DEGRADED`, bounded health probes, deterministic observed-failure classification, retry-storm prevention, outage/capability checkpoints, and mandatory remote-base revalidation before delayed publication.
+0.5.0 adds chat-native first-use bootstrap and durable fresh-chat rollover with sidecar checkpoints, partial identity observability, response-language continuity, and an explicit host capability boundary for pre-response recovery.
 
 ## License
 
