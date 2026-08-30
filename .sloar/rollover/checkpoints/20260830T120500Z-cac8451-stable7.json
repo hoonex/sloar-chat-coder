@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T120500Z-cac8451-stable7",
+  "created_at": "2026-08-30T12:05:00Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "cac84515ae2a15e42bdd0953411d57f11872fb3c",
+    "tree": "b7f6d6b1838f565af2acb0f9124b1ccd599e0652",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Keep Sloar Chat Coder easy to start and navigate for first-time users while preserving exact repository continuity and the 0.8.0 design guidance contract.",
+    "completed": [
+      "Published the user-first README and dedicated Korean/English USER_GUIDE documentation on main.",
+      "Added compact README status badges for stable 0.8.0, Validate Sloar CI, and MIT license.",
+      "Added top-level shortcuts for Quick Start, User Guide, Upgrade, Fresh Chat, Design, and language switching without turning the README into a badge wall.",
+      "PR #15 passed Validate Sloar run #287 on exact head cac84515ae2a15e42bdd0953411d57f11872fb3c.",
+      "Fast-forwarded main non-force to the exact verified PR head; GitHub marked PR #15 merged/closed.",
+      "Main push Validate Sloar run #288 completed successfully on the exact same head."
+    ],
+    "active": [],
+    "pending": [
+      "No publication work remains for the README shortcut milestone.",
+      "Future README visual polish should stay compact and user-first rather than accumulating decorative badges."
+    ],
+    "decisions": [
+      "First-use UX must expose a copy-paste prompt containing the canonical Sloar repository URL for fresh chats that do not know Sloar.",
+      "README is the entry page; detailed workflows belong in USER_GUIDE and protocol references.",
+      "README status/navigation should remain compact: a small status row plus a small shortcut row is preferred over a large badge wall.",
+      "Repository durable state always outranks chat memory and checkpoints."
+    ],
+    "evidence": [
+      "main: cac84515ae2a15e42bdd0953411d57f11872fb3c / tree b7f6d6b1838f565af2acb0f9124b1ccd599e0652",
+      "VERSION remains 0.8.0; this milestone is docs-only.",
+      "PR #15: merged/closed at exact head cac84515ae2a15e42bdd0953411d57f11872fb3c",
+      "Validate Sloar PR run #287: success",
+      "Validate Sloar main push run #288: success"
+    ],
+    "blockers": [],
+    "next_action": "If continuing product work, revalidate main first; the next meaningful milestone can focus on real first-use E2E or other user-facing improvements rather than more README decoration.",
+    "response_language": "ko-KR"
+  }
+}
