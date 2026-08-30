@@ -122,7 +122,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.6.0",
+        "sloar_version": "0.6.1",
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -158,6 +158,7 @@ def build(repo: Path):
         "continuity": {
             "turn_state_helper": ".agents/skills/sloar-chat-coder/scripts/turn-state.py",
             "stuck_response_recovery": "host-dependent; Sloar preserves terminal/interrupted engineering state but cannot control the chat host spinner",
+            "turn_terminalization": "bounded; a RED/pending required gate changes terminal status instead of allowing indefinite self-extension",
         },
         "next": recommendations[0],
         "recommendations": recommendations,
