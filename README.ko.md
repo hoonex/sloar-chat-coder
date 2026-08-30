@@ -6,6 +6,21 @@ Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 
 
 현재 stable: **0.8.0**
 
+<p align="center">
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.0-2563eb?style=flat-square" alt="stable 0.8.0"></a>
+  <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#처음이라면-이-문장부터-복붙"><b>빠른 시작</b></a> ·
+  <a href="docs/USER_GUIDE.ko.md"><b>사용자 가이드</b></a> ·
+  <a href="#업데이트"><b>업데이트</b></a> ·
+  <a href="#새-채팅으로-넘어가기"><b>새 채팅</b></a> ·
+  <a href="#웹개발에서는-디자인도-같이-판단"><b>디자인</b></a> ·
+  <a href="README.md">English</a>
+</p>
+
 > **저장소의 실제 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
 
 ## 처음이라면: 이 문장부터 복붙
