@@ -2,8 +2,8 @@
   "schema": 1,
   "kind": "sloar-rollover-pointer",
   "repository": "hoonex/sloar-chat-coder",
-  "checkpoint_id": "20260830T112900Z-527af93-stable5",
-  "checkpoint_file": ".sloar/rollover/checkpoints/20260830T112900Z-527af93-stable5.json",
-  "created_at": "2026-08-30T11:29:00Z",
+  "checkpoint_id": "20260830T115100Z-147e41a-stable6",
+  "checkpoint_file": ".sloar/rollover/checkpoints/20260830T115100Z-147e41a-stable6.json",
+  "created_at": "2026-08-30T11:51:00Z",
   "response_language": "ko-KR"
 }
