@@ -113,9 +113,15 @@ The resume sentence MAY remain English for consistency. Its language MUST NOT ov
 
 Enter this state when a fresh chat receives the resume sentence or an unambiguous equivalent.
 
+### Pre-response recovery gate
+
+The first real language-continuity test showed that storing `response_language` is insufficient if the fresh session emits a progress update before loading the checkpoint. Therefore checkpoint discovery is a **silent control-plane preflight**.
+
+Do not emit any user-visible acknowledgement, progress update, or status message until `response_language` is restored, unless durable checkpoint retrieval is blocked and the user must take an action to unblock it. Tool calls and hidden/internal work may proceed normally. The sidecar `latest.json` SHOULD copy `response_language` from the checkpoint so a fresh session can recover the language hint on its first durable read; the checkpoint remains authoritative if the hint and checkpoint disagree.
+
 1. Resolve the repository independently; do not assume the checkpoint is current truth.
-2. Determine whether Sloar is installed/accessible and load the latest authorized rollover checkpoint from `sloar/rollover-state` or the strongest available durable fallback.
-3. Restore the checkpoint's `response_language` before producing the first visible reply. Treat the resume sentence as control input only. If `response_language` is absent in an older checkpoint, use recoverable prior user-facing language when available; only otherwise fall back to the language of the current user message.
+2. Read the latest authorized rollover pointer from `sloar/rollover-state` or the strongest available durable fallback. If the pointer carries `response_language`, apply it as an early response-language hint while keeping the pre-response gate closed.
+3. Load the pointed checkpoint, restore its `response_language`, and only then open the pre-response gate. Treat the resume sentence as control input only. If `response_language` is absent in an older checkpoint, use recoverable prior user-facing language when available; only otherwise fall back to the language of the current user message.
 4. Re-resolve current HEAD, tree, branch/PR state, working state when available, relevant remote refs, and required capabilities. Record working-tree observability explicitly rather than inventing a clean/dirty value.
 5. Compare current durable reality with the checkpoint.
 6. If no observable identity field contradicts the checkpoint, classify the resume as `EXACT`, reconstruct a compact context capsule, explicitly surface any unobserved identity fields, and continue from the recorded next action.
@@ -136,7 +142,7 @@ branch: sloar/rollover-state
     <checkpoint-id>.json
 ```
 
-`latest.json` is only a pointer. Immutable checkpoint files contain compact recovery metadata. The sidecar branch is metadata transport, not product source.
+`latest.json` is only a pointer. Immutable checkpoint files contain compact recovery metadata. The sidecar branch is metadata transport, not product source. The pointer MAY duplicate `response_language` as a pre-response UX hint, but it must not carry mutable repository truth that bypasses fresh revalidation.
 
 ## Checkpoint schema
 
