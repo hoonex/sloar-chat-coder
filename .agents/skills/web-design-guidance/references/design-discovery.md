@@ -4,6 +4,8 @@
 
 Before changing a substantial user-facing web surface, determine what visual/product system already exists and what the task actually requires. Discovery prevents a coding agent from replacing a coherent product language with a generic template.
 
+Repository discovery answers **what already exists**. When high-impact intent remains ambiguous after that scan, continue with [adaptive-design-discovery.md](adaptive-design-discovery.md) to decide whether clarification is worthwhile and how many questions to ask.
+
 ## Evidence priority
 
 Use this order:
@@ -35,20 +37,22 @@ existing visual tests or screenshots
 
 Do not spend a long turn exhaustively searching every stylesheet. Stop once enough evidence exists to preserve the product's system.
 
-## Design Read
+## Design Read / Design DNA input
 
-Capture a short working view:
+Capture the facts the task actually needs. A minimal working view can start with:
 
 ```text
 surface
 primary user job
-visual tone
+visual tone / philosophy
 density
 existing system to preserve
 signature decision
 responsive risk
 interaction/state risk
 ```
+
+For new or materially redesigned surfaces, expand this through [design-taxonomy.md](design-taxonomy.md) only as useful. Do not fill every design axis mechanically.
 
 ### Surface
 
@@ -83,22 +87,25 @@ Name the durable evidence: e.g. `shadcn primitives + existing 8px spacing scale 
 
 ### Signature decision
 
-One intentional choice can stop a generated surface from becoming generic. Examples:
+One intentional choice can stop a generated surface from becoming generic. Prefer a choice tied to real content/workflow/state, for example:
 
 - a distinctive information hierarchy;
 - an unusual but useful fold composition;
 - a dense command-oriented header;
 - a restrained editorial type treatment;
 - a spatial relation between navigation and content;
-- a product-specific visualization or control.
+- a product-specific visualization or control;
+- context-aware emphasis based on time/task/state.
 
 Do not force a signature flourish onto utility surfaces where consistency and speed are the actual product value.
 
 ## Questions policy
 
-Do not ask broad taste questionnaires when repository evidence or the user's prompt already answers the design direction. Ask only when two materially different directions remain plausible and choosing wrong would cause expensive rework.
+Do not ask broad taste questionnaires when repository evidence or the user's prompt already answers the design direction.
 
-If the user says `you decide`, choose from product context and repository evidence, record the Design Read, and continue.
+When consequential uncertainty remains, use [adaptive-design-discovery.md](adaptive-design-discovery.md): classify facts as `KNOWN / INFERRED / UNKNOWN`, estimate question value from impact/uncertainty/rework/reversibility, and ask only high-value questions in ordinary user language.
+
+If the user says `you decide`, choose from product context and repository evidence, record important assumptions, and continue.
 
 ## Persistent design memory
 
@@ -116,4 +123,4 @@ product current-status/history docs
 
 Respect the existing convention. Do not add another competing design-memory file.
 
-If no durable design memory exists, an in-turn Design Read is enough for ordinary work. Create a new persistent design-system document only when the user requests it or when a substantial new product explicitly needs one and repository guidance allows it.
+If no durable design memory exists, an in-turn Design DNA is enough for ordinary work. Create a new persistent design-system document only when the user requests it or when a substantial new product explicitly needs one and repository guidance allows it.
