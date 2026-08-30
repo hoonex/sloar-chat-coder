@@ -35,7 +35,7 @@ class UpgradeTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(target), "commit", "-qm", "baseline"], check=True)
         return target
 
-    def test_upgrade_replaces_only_sloar_and_preserves_backup(self):
+    def test_upgrade_replaces_sloar_installs_missing_design_companion_and_preserves_custom_companion(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = self.make_target(Path(tmp))
             before_product = (target / "product.txt").read_text(encoding="utf-8")
@@ -51,13 +51,38 @@ class UpgradeTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stderr)
             installed = (target / ".agents/skills/sloar-chat-coder/SKILL.md").read_text(encoding="utf-8")
             self.assertIn(f'version: "{source_version()}"', installed)
+            self.assertTrue((target / ".agents/skills/web-design-guidance/SKILL.md").is_file())
             self.assertEqual((target / "product.txt").read_text(encoding="utf-8"), before_product)
             self.assertEqual((target / ".agents/skills/apple-web-design/SKILL.md").read_text(encoding="utf-8"), before_companion)
+            agents = (target / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("web-design-guidance/SKILL.md", agents)
+            self.assertEqual(agents.count("<!-- sloar-chat-coder:begin -->"), 1)
             backups = list((target / ".git/sloar-upgrade-backups").glob("*/custom-old-file.txt"))
             self.assertEqual(len(backups), 1)
             self.assertEqual(backups[0].read_text(encoding="utf-8"), "preserve in backup\n")
 
-    def test_upgrade_does_not_dirty_product_files_beyond_sloar_owned_path(self):
+    def test_upgrade_preserves_existing_custom_design_companion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = self.make_target(Path(tmp))
+            design = target / ".agents/skills/web-design-guidance"
+            design.mkdir(parents=True)
+            (design / "SKILL.md").write_text("custom web design companion\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(target), "add", "."], check=True)
+            subprocess.run(["git", "-C", str(target), "commit", "-qm", "custom design companion"], check=True)
+            before = (design / "SKILL.md").read_text(encoding="utf-8")
+
+            proc = subprocess.run(
+                ["python3", str(INSTALLER), "--target", str(target), "--upgrade"],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual((design / "SKILL.md").read_text(encoding="utf-8"), before)
+            self.assertIn("preserved existing companion customization", proc.stdout)
+
+    def test_upgrade_does_not_dirty_unrelated_product_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = self.make_target(Path(tmp))
             subprocess.run(["python3", str(INSTALLER), "--target", str(target), "--upgrade"], check=True, stdout=subprocess.PIPE, text=True)
@@ -68,7 +93,14 @@ class UpgradeTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
             ).stdout.splitlines()
             self.assertTrue(status)
-            self.assertTrue(all(".agents/skills/sloar-chat-coder/" in line for line in status), status)
+            allowed = (
+                "AGENTS.md",
+                ".agents/skills/sloar-chat-coder/",
+                ".agents/skills/web-design-guidance/",
+            )
+            unexpected = [line for line in status if not any(path in line for path in allowed)]
+            self.assertEqual(unexpected, [], status)
+            self.assertEqual((target / "product.txt").read_text(encoding="utf-8"), "product state\n")
 
     def test_same_version_different_install_requires_explicit_force(self):
         with tempfile.TemporaryDirectory() as tmp:
