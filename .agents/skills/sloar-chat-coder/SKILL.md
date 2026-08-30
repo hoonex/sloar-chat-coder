@@ -4,7 +4,7 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.8.0"
+  version: "0.8.1"
 ---
 
 # Sloar Chat Coder
@@ -15,13 +15,15 @@ Sloar is a repository-engineering continuity protocol for chat-based coding. It 
 
 When the user/session is new to Sloar or required capabilities are uncertain, run a compact **ONBOARD** check before repository modification. Inspect the capabilities actually exposed in the current session; do not assume a plugin, app, sandbox, GitHub write path, browser, or CI runner exists because another session had one.
 
+At the first Sloar repository turn in a chat, and again after an intentional fresh-chat resume or takeover, perform one **UPDATE_AWARENESS** check when the canonical stable Sloar source is reachable without disrupting the task. Resolve the installed Sloar version from the target repository and the current stable version from durable Sloar source state. If they match, stay silent. If a newer stable release exists, show one compact notice such as `Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?` and wait for the user's answer before any upgrade write. If stable-version resolution is unavailable or degraded, classify update status as unknown and continue normal repository work unless the task itself depends on that source. Read [references/upgrading.md](references/upgrading.md) for the complete contract.
+
 For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authenticated external data/actions), and **Skill** (reusable instructions). Installing Sloar does not itself authorize GitHub. Conversely, missing GitHub integration does not block local engineering when a lower capability path is sufficient.
 
 Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. If local execution is available, `scripts/wizard.py` can produce a machine-readable local readiness report. Hosted capabilities must still be resolved from the current agent/tool inventory.
 
 When the user explicitly asks to use Sloar for a repository, prefer chat-native bootstrap when the current session has an authorized durable path. A first-time user should not need to understand `git clone`, `install.py`, or the wizard merely to begin work when the agent can safely perform that setup itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) before claiming durable bootstrap or cross-chat rollover.
 
-When an already-running repository session uses an older Sloar release and the user asks to upgrade, preserve the current task and repository state instead of restarting the workflow. Re-resolve identity, upgrade only Sloar-owned files, verify the new release, bridge the active task into the newer checkpoint model, and continue the same task. Read [references/upgrading.md](references/upgrading.md) before an in-session upgrade write. Do not silently upgrade merely because a newer release exists.
+When an already-running repository session uses an older Sloar release and the user asks to upgrade, or approves an UPDATE_AWARENESS notice, preserve the current task and repository state instead of restarting the workflow. Re-resolve identity, upgrade only Sloar-owned files, verify the new release, bridge the active task into the newer checkpoint model, and continue the same task. Version discovery may be automatic when the stable source is available; installation is not. Do not write upgrade files solely because a newer release exists.
 
 For long, interruption-prone, remote-write, CI/deployment-heavy tasks—or when the host has previously left responses stuck in an unterminated "answering" state—use durable turn state when a suitable transport exists. Sloar cannot force the host UI/runtime to finish or cancel a stuck response; it can separate engineering terminality from response delivery, preserve bounded progress, and fence a stale prior session after explicit takeover. Read [references/operational-continuity.md](references/operational-continuity.md). Do not add this ceremony to trivial read-only answers.
 
@@ -37,10 +39,11 @@ Repository: ready | missing | unknown
 Execution: ready | missing | unknown
 GitHub read/write: ready | partial | missing | unknown
 CI/browser: ready | partial | missing | unknown
+Sloar update: current | <installed> -> <stable> available | unknown
 Next: one concrete action, or "ready to work"
 ```
 
-Do not turn a healthy first run into a long setup tutorial. Keep onboarding brief once the environment is established.
+Omit the update line when the current version was resolved and is already stable unless the user asked for version details. Do not turn a healthy first run into a long setup tutorial. Keep onboarding brief once the environment is established.
 
 ## Seven invariants
 
