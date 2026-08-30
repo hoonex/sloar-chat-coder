@@ -4,13 +4,49 @@ Use this procedure when a repository is already using an older Sloar release and
 
 ## User-facing intent
 
-Accept ordinary requests such as:
+Sloar separates **automatic update awareness** from **upgrade authorization**.
+
+When the canonical stable Sloar source is reachable, the agent should resolve installed vs current stable once at the first Sloar repository turn in a chat and once again after an intentional fresh-chat resume/takeover. If the installed version is already current, do not interrupt the user with a version-status message. If a newer stable exists, show one compact notice and ask whether to upgrade.
+
+Example:
+
+```text
+Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?
+```
+
+The version check itself is read-only. **No upgrade write is authorized merely because a newer stable exists.** A failed/unavailable stable-version check is non-blocking for ordinary repository work; mark update status unknown and continue unless the user's task specifically depends on the Sloar source.
+
+Users may also explicitly start the same upgrade flow at any time with ordinary requests such as:
 
 ```text
 이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해.
 ```
 
 The user should not need to start a fresh chat, restate the task, or manually reconstruct prior progress.
+
+## UPDATE_AWARENESS
+
+`UPDATE_AWARENESS` is a bounded read-only check, not a maintenance write.
+
+1. Read the installed version from the target repository's `.agents/skills/sloar-chat-coder/SKILL.md`; never infer it from conversation memory.
+2. Resolve the current stable version from durable Sloar source state. The canonical public source is `https://github.com/hoonex/sloar-chat-coder`; `main` counts as stable only when that repository's own VERSION/README/SKILL contract consistently identifies the same stable version.
+3. Run this check once at the first Sloar repository turn in the current chat and once after an intentional fresh-chat resume or takeover. Do not re-check on every ordinary user message.
+4. If installed == stable, remain silent unless the user explicitly asked for version information.
+5. If installed < stable, emit one compact update notice containing installed and stable versions and ask for approval. Do not block the user's unrelated task while waiting unless the newer Sloar release is required for that task.
+6. If installed > stable, do not downgrade. Report the mismatch only when it materially affects the task or the user asked for version status.
+7. If stable-version resolution is unavailable, degraded, rate-limited, or unauthorized, set update status to `unknown`, do not retry-loop, and continue ordinary repository work.
+8. A positive user response to the update notice is explicit authorization to enter `UPGRADE_SESSION` for that resolved stable release. A negative response leaves the installed release unchanged and should not be re-asked in the same chat unless the user later requests an upgrade.
+
+The intended UX is therefore:
+
+```text
+first Sloar repo turn / fresh-chat resume
+-> read-only stable check
+-> current: silent
+-> newer stable: one notice
+-> user approves
+-> fully automated safe upgrade
+```
 
 ## UPGRADE_SESSION
 
@@ -36,9 +72,9 @@ The user should not need to start a fresh chat, restate the task, or manually re
 Enter `UPGRADE_SESSION` only when:
 
 - an older installed Sloar release is durably observable; and
-- the user asks to upgrade, or the user explicitly authorizes repository maintenance that includes the upgrade.
+- the user explicitly asks to upgrade, explicitly approves a current `UPDATE_AWARENESS` notice, or has given other unambiguous authorization for repository maintenance that includes the upgrade.
 
-Do not silently upgrade merely because a newer release exists.
+Automatic version discovery does not imply automatic upgrade authorization. Do not silently upgrade merely because a newer release exists.
 
 ## Exit conditions
 
