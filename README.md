@@ -2,7 +2,7 @@
 
 Reliable repository engineering across disposable AI coding sessions.
 
-Sloar Chat Coder is an Agent Skill for coding from chat surfaces where the execution sandbox can disappear, repository state can move concurrently, and connected tools may fail in ways that tempt an agent into guessing or retry loops.
+Sloar Chat Coder is an Agent Skill for coding from chat surfaces where the execution sandbox can disappear, repository state can move concurrently, connected tools may fail, and the host itself may stall before a final response is delivered.
 
 Its goal is simple: **make repository work recoverable, exact, and evidence-bounded — even for a first-time user who has never configured an AI coding workspace before.**
 
@@ -46,7 +46,7 @@ You do not need to open a new chat or restate the current task. In the running s
 Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.
 ```
 
-A valid in-session upgrade must re-resolve repository identity first, replace only Sloar-owned files, verify the new release, convert the current task into the first 0.5+ rollover checkpoint, and continue the same task. It must not reset the product branch or ask the user to reconstruct prior progress.
+A valid in-session upgrade must re-resolve repository identity first, replace only Sloar-owned files, verify the new release, bridge the current task into the current continuity model, and continue the same task. It must not reset the product branch or ask the user to reconstruct prior progress.
 
 Local/manual fallback from a checkout of the newer Sloar release:
 
@@ -59,6 +59,20 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
 `--upgrade` backs up the previous installed Sloar under `.git/sloar-upgrade-backups/`, upgrades only `sloar-chat-coder`, preserves unrelated companion skills and product files, refuses downgrades, and will not silently overwrite a divergent same-version installation.
 
 See [`.agents/skills/sloar-chat-coder/references/upgrading.md`](.agents/skills/sloar-chat-coder/references/upgrading.md) for the exact upgrade contract.
+
+### If the previous response never finishes
+
+Sloar 0.6 does **not** claim to control the ChatGPT/app/server spinner or to cancel/restart a stuck host generation. For long or interruption-prone repository turns, it can instead persist engineering state so a fresh chat can recover without guessing or blindly repeating completed work.
+
+A useful fresh-chat request is:
+
+```text
+The previous Sloar task appears stuck while answering. Inspect the durable turn state and current repository, then recover or continue it safely.
+```
+
+A terminal prior turn is reported as `TERMINAL_REPLAY_AVAILABLE`. An unterminated turn is `ACTIVE_OR_INTERRUPTED`; elapsed time alone does not prove the old host is dead. Explicit takeover creates a new turn ID and increments a fencing epoch so a stale old session can be rejected on later guarded writes.
+
+See [docs/INTERRUPTED_TURNS.md](docs/INTERRUPTED_TURNS.md) and [`.agents/skills/sloar-chat-coder/references/operational-continuity.md`](.agents/skills/sloar-chat-coder/references/operational-continuity.md).
 
 ### Local/manual fallback
 
@@ -92,7 +106,44 @@ Use Sloar Chat Coder for this repository. Run the first-run capability check bef
 
 Read [docs/FIRST_RUN.md](docs/FIRST_RUN.md) for the full beginner path or [README.ko.md](README.ko.md) for Korean.
 
-## New in 0.5: Chat-native continuity
+## New in 0.6: Operational continuity
+
+Sloar 0.6 adds a durable turn layer for long repository work where response delivery itself may fail.
+
+```text
+BEGIN_TURN -> ACTIVE -> PROGRESS* -> TERMINALIZE -> visible completion report
+```
+
+Key rules:
+
+- engineering terminality and final-response delivery are separate facts;
+- terminal state should be persisted before the final visible completion report when a durable transport is available;
+- `TERMINAL_REPLAY_AVAILABLE` lets a fresh chat revalidate and report completed/partial/blocked work without redoing it;
+- `ACTIVE_OR_INTERRUPTED` does not assume an old host is dead merely because hours or days elapsed;
+- takeover requires explicit user intent and increments a monotonic fencing epoch;
+- later guarded durable writes check `turn_id + epoch`, reducing stale-session duplicate writes after takeover;
+- fencing cannot retroactively cancel a write already in flight before the epoch changed;
+- local turn state defaults to `.git/sloar-turn-state/`; authorized cross-chat transport can mirror needed state to `.sloar/turns/` on `sloar/rollover-state`.
+
+Local helper:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/turn-state.py begin . \
+  --goal "Finish settings" \
+  --response-language "ko-KR"
+```
+
+Operational continuity also generalizes several long-lived repository practices:
+
+- separate current repository identity from verification and serving-runtime anchors when evidence shows they differ;
+- keep a compact hot working set and colder decision/failure history instead of replaying all project history into every chat;
+- match evidence type/scope to the claim being made;
+- preserve a minimal failed-experiment record when it prevents repeating the same structural mistake;
+- use a compact `changed / preserved / deliberately_not_changed / limitations` boundary for substantial work.
+
+These rules do not override a target repository's engineering policy.
+
+## 0.5: Chat-native continuity
 
 Sloar 0.5 adds a durable old-chat → fresh-chat continuity path without making checkpoint metadata authoritative.
 
@@ -198,7 +249,8 @@ Chat-based coding has a different failure model from a normal workstation:
 - a token/App can have repository-write permission but still lack one narrower capability;
 - network access may exist in CI but not in the sandbox, or the reverse;
 - a failed test can be a product regression, an external dependency failure, a policy gate, or a transport problem;
-- long conversations can compress or lose working context.
+- long conversations can compress or lose working context;
+- a host can stall before a final visible response is delivered even after repository work changed durable state.
 
 Sloar treats those as engineering constraints rather than exceptions.
 
@@ -210,15 +262,17 @@ Every repository task moves through an explicit lifecycle:
 RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY -> PUBLISH -> REMOTE_VERIFY -> CLEANUP
 ```
 
-Before that lifecycle begins, a first-time environment may run a lightweight **ONBOARD** capability check. An explicit version change inside a running task may enter the bounded `UPGRADE_SESSION` transition without resetting the task lifecycle.
+Before that lifecycle begins, a first-time environment may run a lightweight **ONBOARD** capability check. An explicit version change inside a running task may enter the bounded `UPGRADE_SESSION` transition without resetting the task lifecycle. Long/interruption-prone work may additionally use the turn overlay without replacing the repository task lifecycle.
 
-Publication is guarded by five concepts:
+Publication/recovery is guarded by these concepts:
 
 - **Repository identity** — commit SHA + tree SHA + working-tree state.
+- **Verification/runtime anchors** — distinguish current source from exact verified/serving states when evidence shows they differ.
 - **Capability ladder** — use the lowest sufficient execution/transport level.
 - **Forge overlay** — distinguish `REMOTE_HEALTHY`, `REMOTE_PARTIAL`, and `REMOTE_DEGRADED`.
 - **Failure fingerprint** — same failure + same inputs means change strategy, not blind retry.
-- **Evidence ledger** — no verification evidence means no completion claim.
+- **Evidence ledger** — no verification evidence means no completion claim; evidence scope must match claim scope.
+- **Turn fence** — an ACTIVE durable turn must still own its `turn_id + epoch` before guarded durable writes.
 
 ## Core invariants
 
@@ -227,9 +281,9 @@ Publication is guarded by five concepts:
 3. Prefer the sandbox work container over remote execution.
 4. Use the lowest sufficient capability level.
 5. Diagnose a failure before retrying or changing source.
-6. Completion claims are bounded by collected evidence.
-7. Revalidate mutable remote state immediately before publication.
-8. Missing setup or one missing permission must not be confused with a platform outage.
+6. Completion claims are bounded by collected evidence and evidence scope.
+7. Revalidate mutable remote state immediately before publication; when turn fencing is active, validate the current epoch too.
+8. Missing setup, one missing permission, or a stuck host response must not be confused with a product/repository failure.
 
 ## Repository layout
 
@@ -248,10 +302,13 @@ Publication is guarded by five concepts:
 │   ├── CHATGPT_PLUGINS.md
 │   ├── CHATGPT_PLUGINS.ko.md
 │   ├── FORGE_RESILIENCE.md
-│   └── FORGE_RESILIENCE.ko.md
+│   ├── FORGE_RESILIENCE.ko.md
+│   ├── INTERRUPTED_TURNS.md
+│   └── INTERRUPTED_TURNS.ko.md
 ├── tests/
 │   ├── test_chat_native_contract.py
 │   ├── test_session_rollover.py
+│   ├── test_turn_state.py
 │   └── test_upgrade.py
 └── .agents/skills/sloar-chat-coder/
     ├── SKILL.md
@@ -261,6 +318,7 @@ Publication is guarded by five concepts:
     │   ├── concurrency.md
     │   ├── evidence-ledger.md
     │   ├── forge-resilience.md
+    │   ├── operational-continuity.md
     │   ├── recovery.md
     │   ├── state-machine.md
     │   ├── upgrading.md
@@ -270,6 +328,7 @@ Publication is guarded by five concepts:
         ├── forge-health.py
         ├── install.py
         ├── session-rollover.py
+        ├── turn-state.py
         ├── wizard.py
         ├── preflight.sh
         ├── verify-state.sh
@@ -291,13 +350,13 @@ python3 .agents/skills/sloar-chat-coder/scripts/write-checkpoint.py \
 
 ## What Sloar intentionally does not do
 
-Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar only controls continuity, exactness, escalation, publication safety, onboarding capability discovery, active-session upgrades, chat-session rollover, forge resilience, and evidence.
+Sloar does not choose your framework, package manager, database, browser, test stack, coding style, deployment platform, or branch policy. The target repository remains authoritative for engineering method. Sloar also does not control the host application's response spinner or server-side generation lifecycle. Sloar controls continuity, exactness, escalation, publication safety, onboarding capability discovery, active-session upgrades, planned chat rollover, interrupted-turn recovery, forge resilience, and evidence boundaries.
 
 ## Status
 
-Current version: **0.5.1**
+Current version: **0.6.0**
 
-0.5.1 adds a safe in-session upgrade path for older Sloar installations. It preserves current task state, backs up the previous local Sloar installation outside the worktree, upgrades only Sloar-owned files, verifies the new release, and bridges the running task into the 0.5+ rollover model.
+0.6.0 adds operational continuity for interrupted/stuck-response turns, durable terminal snapshots, explicit takeover fencing, repository/verification/runtime anchors, and stronger claim/evidence matching while keeping host-level response control outside Sloar's claimed capabilities.
 
 ## License
 
