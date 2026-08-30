@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T115100Z-147e41a-stable6",
+  "created_at": "2026-08-30T11:51:00Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "147e41aa5e6fd9f8c14b2b3b3d491aa0ef2c1ebc",
+    "tree": "cf82a1e29680543c62d30748769061fc21fe33b1",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Keep Sloar reliable for long chat-based repository work while making first-use, upgrade, fresh-chat rollover, and stuck-response recovery obvious to ordinary users.",
+    "completed": [
+      "Sloar remains stable version 0.8.0; no protocol or product-code behavior changed in this documentation pass.",
+      "Reworked README.md and README.ko.md into user-first entry pages with a copy-paste first-use prompt that includes the canonical Sloar repository URL.",
+      "Added docs/USER_GUIDE.md and docs/USER_GUIDE.ko.md covering first use, normal development, adaptive design requests, upgrades, fresh-chat handoff, stuck-response recovery, local fallback, and copy-paste cheat sheets.",
+      "Published docs-only PR #14 to main at 147e41aa5e6fd9f8c14b2b3b3d491aa0ef2c1ebc with tree cf82a1e29680543c62d30748769061fc21fe33b1.",
+      "PR Validate Sloar run #280 passed on the exact docs head and main push run #281 passed on the same exact head."
+    ],
+    "active": [],
+    "pending": [
+      "No publication work is pending for this documentation pass."
+    ],
+    "decisions": [
+      "A brand-new chat should receive the canonical Sloar repository URL in the first-use prompt instead of being expected to know what Sloar means from its name.",
+      "README is the short user entry point; detailed operational guidance lives in docs/USER_GUIDE* and specialized references.",
+      "Already-installed repositories may use the shorter 'Use Sloar for this repository' flow.",
+      "Sloar version remains 0.8.0 because this pass changes documentation only, not the public protocol behavior."
+    ],
+    "evidence": [
+      "main: 147e41aa5e6fd9f8c14b2b3b3d491aa0ef2c1ebc / tree cf82a1e29680543c62d30748769061fc21fe33b1",
+      "PR #14: merged/closed at exact head 147e41aa5e6fd9f8c14b2b3b3d491aa0ef2c1ebc",
+      "Validate Sloar PR run #280: success",
+      "Validate Sloar main push run #281: success"
+    ],
+    "blockers": [],
+    "next_action": "For first-use testing, open a genuinely fresh chat and paste the README first-use template with a separate target repository; observe whether the agent reads current Sloar guidance before acting.",
+    "response_language": "ko-KR"
+  }
+}
