@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T052007Z-968e997-live6",
+  "created_at": "2026-08-30T05:20:07Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "968e9974507b21df755bf85f44db4589439804ff",
+    "tree": "a70ffd78834d1345aef6289c9f293aca5285c697",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null
+  },
+  "context": {
+    "response_language": "ko-KR",
+    "goal": "Finish real cross-chat validation of Sloar's chat-native bootstrap and seamless rollover experiment, specifically proving language restoration before any visible fresh-chat output without relying on an explicit language instruction in the resume control sentence.",
+    "completed": [
+      "Loaded live5 rollover metadata and revalidated current repository state before continuing recorded work.",
+      "Confirmed main remains 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "Confirmed PR #7 remains open, draft, mergeable, and clean against main.",
+      "Confirmed experiment head/tree remain 968e9974507b21df755bf85f44db4589439804ff / a70ffd78834d1345aef6289c9f293aca5285c697.",
+      "Confirmed latest PR-triggered Validate Sloar run 146 completed successfully on the exact experiment head.",
+      "Observed no pre-checkpoint English user-visible message in this fresh chat; all visible responses were Korean.",
+      "Recorded the third fresh-chat validation result and its caveat in draft PR #7.",
+      "Kept stable Sloar 0.4.0 untouched and PR #7 in draft state."
+    ],
+    "active": [
+      "Run one final pure-control fresh-chat rollover test with no explicit response-language clause."
+    ],
+    "pending": [
+      "Open a new ChatGPT chat and send the canonical English resume sentence recorded below exactly, without adding a ko-KR instruction.",
+      "Before any user-visible acknowledgement/progress/status text, silently load sloar/rollover-state and restore response_language=ko-KR from durable rollover metadata.",
+      "Verify that the very first visible fresh-chat response is Korean even though the control sentence itself contains no language instruction.",
+      "Revalidate main, PR #7, experiment head/tree, latest CI, and observable capabilities before continuing recorded work.",
+      "If that pure-control test passes, record the result in PR #7 and move to stabilization planning only; do not merge or modify stable Sloar automatically."
+    ],
+    "decisions": [
+      "The third fresh-chat run is useful evidence for the pre-response timing repair but is not an independent proof of checkpoint-driven language restoration because the user's control message explicitly requested ko-KR.",
+      "Do not mark the experiment stabilization-ready until a canonical English resume control sentence with no language clause still produces Korean as the first visible response.",
+      "Stable Sloar 0.4.0 remains untouched; PR #7 stays an isolated draft experiment.",
+      "Repository reality always outranks rollover checkpoint metadata and chat memory.",
+      "Unknown local working-tree state remains explicit rather than being guessed clean."
+    ],
+    "evidence": [
+      "main is 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "PR #7 is open, draft, mergeable, and mergeable_state clean against main.",
+      "PR #7 experiment head is 968e9974507b21df755bf85f44db4589439804ff with tree a70ffd78834d1345aef6289c9f293aca5285c697.",
+      "Validate Sloar run 146 completed with conclusion success on the exact latest head.",
+      "This fresh-chat user message explicitly contained 'keep user-facing responses in ko-KR', so language output cannot be attributed solely to durable checkpoint restoration."
+    ],
+    "blockers": [
+      "No local product worktree is exposed in this chat, so local dirty/status state remains unobserved.",
+      "A pure-control fresh-chat run is still required to isolate and validate checkpoint-driven response_language restoration."
+    ],
+    "next_action": "Open a fresh ChatGPT chat and send exactly: Resume the latest Sloar session for hoonex/sloar-chat-coder from branch sloar/rollover-state; revalidate the current repository state first, then continue the recorded work. Do not add any response-language instruction. The fresh chat must not emit any user-visible acknowledgement, progress update, or status message until it has loaded the rollover metadata and restored response_language."
+  }
+}
