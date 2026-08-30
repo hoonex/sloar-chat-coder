@@ -42,6 +42,30 @@ not_exposed
 
 Do not infer `available` from product marketing, prior sessions, or a plugin name alone.
 
+## Version awareness during onboarding
+
+At the first Sloar repository turn in a chat, and after an intentional fresh-chat resume/takeover, resolve update status once when the canonical stable Sloar source is reachable.
+
+This is a **read-only awareness check**:
+
+```text
+installed version from target repository
++
+current stable version from canonical Sloar source
+-> current | update_available | ahead | unknown
+```
+
+Rules:
+
+1. If installed == stable, do not add update noise to the user-facing readiness capsule unless the user asked for version details.
+2. If installed < stable, include one compact notice such as `Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?`.
+3. Do not modify the repository until the user explicitly approves the upgrade notice or independently asks for an upgrade.
+4. If the stable source cannot be read, mark update status `unknown` and continue normal work. Update discovery is not a reason for repeated polling or a setup dead end.
+5. Do not repeat the same update prompt on every message in one chat. One resolved check per initial/resumed Sloar session is the default.
+6. After approval, use the full `UPGRADE_SESSION` contract in `upgrading.md`; the user should not have to manually run installer steps when the current agent can execute them safely.
+
+The local wizard remains network-free by default. It can compare a stable version supplied by the caller, but the hosted agent is responsible for resolving the remote stable source from its actual current capabilities.
+
 ## ChatGPT plugin/app/skill rule
 
 When the current product surface is ChatGPT or Codex and setup guidance is needed:
@@ -91,6 +115,7 @@ Repository: ready | missing | unknown
 Execution: ready | missing | unknown
 GitHub read/write: ready | partial | missing | unknown
 CI/browser: ready | partial | missing | unknown
+Sloar update: <installed> -> <stable> available | unknown   # omit when current
 Suggested connections: provider list from repository evidence
 Next: ready to work | one concrete setup action
 ```
@@ -111,6 +136,7 @@ Keep the user-facing onboarding compact. Report:
 
 - what is already usable;
 - what is genuinely missing for the requested task;
+- a new stable Sloar version only when one was actually resolved and is newer than the installed version;
 - which connections are baseline/recommended for this repository and why;
 - the lowest viable capability level;
 - one concrete next action only when user action is required.
@@ -127,6 +153,7 @@ Examples:
 - GitHub read unavailable + user supplied complete archive -> materialize archive and continue.
 - browser unavailable locally + CI browser job available -> L4 may be justified for that verification only.
 - no execution environment -> implementation/verification claims are blocked even if repository text can be read.
+- stable Sloar version lookup unavailable -> update status remains unknown; continue the repository task under the installed release.
 
 ## Exit condition
 
@@ -137,4 +164,4 @@ ONBOARD exits when:
 3. any user-owned setup blocker is stated concretely;
 4. normal Sloar state begins at RECOVER or IDENTIFY.
 
-ONBOARD does not itself authorize apps, grant repository permissions, or create remote state.
+ONBOARD does not itself authorize apps, grant repository permissions, create remote state, or authorize a Sloar upgrade write.
