@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T052957Z-2dd1135-live7",
+  "created_at": "2026-08-30T05:29:57Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "2dd11351325091a365a94707ea287e3be52efadd",
+    "tree": "aba5f74951eb232d7a398adf1928d25c874dffd6",
+    "branch": "experiment/seamless-rollover-demo",
+    "pull_request": 7,
+    "pull_request_state": "open",
+    "pull_request_draft": true,
+    "base_branch": "main",
+    "base_head": "024aa67efa14aad88e3ea39ea845ef19ee6a08b1",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null
+  },
+  "context": {
+    "response_language": "ko-KR",
+    "goal": "Finish real cross-chat validation of Sloar's chat-native rollover while making the strict first-response language gate capability-aware for hosts that may require visible output before durable recovery reads.",
+    "completed": [
+      "Loaded live6 rollover metadata and revalidated repository state before continuing the recorded experiment work.",
+      "Confirmed main remained 024aa67efa14aad88e3ea39ea845ef19ee6a08b1 and stable Sloar 0.4.0 remained untouched.",
+      "Confirmed PR #7 remained open, draft, mergeable, and clean against main before experiment follow-up changes.",
+      "Ran the canonical English pure-control resume message with no explicit response-language clause; the first visible response was Korean.",
+      "Observed that a host-required user-visible progress update occurred before latest.json and the pointed checkpoint were loaded, so the run cannot prove checkpoint-driven first-response language restoration and cannot satisfy the strict silent pre-response gate.",
+      "Classified the live-test limitation as a host capability/test-harness blocker rather than repository drift or a language-restoration success/failure claim.",
+      "Added the PRE_RESPONSE_READ_BLOCKED host capability boundary to experiments/seamless-rollover/PROTOCOL.md with explicit entry, no-same-evidence-retry, and exit conditions.",
+      "Added experiments/seamless-rollover/tests/test_host_capability.py to lock the capability-boundary contract into CI.",
+      "Advanced the experiment head/tree to 2dd11351325091a365a94707ea287e3be52efadd / aba5f74951eb232d7a398adf1928d25c874dffd6.",
+      "Confirmed PR-triggered Validate Sloar run 154 completed successfully on the exact latest experiment head, including the 12-test seamless-rollover suite and all stable Sloar validations.",
+      "Updated draft PR #7 to record the fourth pure-control result, the host capability blocker, and current verification."
+    ],
+    "active": [
+      "Keep stabilization gated while PRE_RESPONSE_READ_BLOCKED remains true in the current host execution mode."
+    ],
+    "pending": [
+      "Do not repeat the same fresh-chat language-gate validation under unchanged host conditions because it cannot produce different evidence.",
+      "Detect or use a host execution mode that permits silent durable reads before any mandatory visible output, or provides an authenticated early response_language hint before visible output.",
+      "After that exit condition is observed, run one differentiated canonical-English pure-control rollover and verify that the first visible response occurs only after authoritative response_language recovery.",
+      "If that differentiated test passes, begin stabilization planning only; do not merge PR #7 or modify stable Sloar automatically."
+    ],
+    "decisions": [
+      "The fourth pure-control run is inconclusive for checkpoint-driven first-response language restoration because host-required progress output preceded durable rollover metadata retrieval.",
+      "PRE_RESPONSE_READ_BLOCKED is a host capability blocker, not a repository identity mismatch and not evidence that language restoration itself failed.",
+      "No same-evidence retry is allowed while host conditions remain unchanged.",
+      "Stable Sloar 0.4.0 remains untouched and PR #7 stays an isolated draft experiment.",
+      "Repository reality always outranks rollover checkpoint metadata and chat memory.",
+      "Unknown local working-tree state remains explicit rather than being guessed clean."
+    ],
+    "evidence": [
+      "main is 024aa67efa14aad88e3ea39ea845ef19ee6a08b1.",
+      "PR #7 is open, draft, mergeable, and mergeable_state clean against main.",
+      "PR #7 experiment head is 2dd11351325091a365a94707ea287e3be52efadd with tree aba5f74951eb232d7a398adf1928d25c874dffd6.",
+      "Validate Sloar PR run 154 completed with conclusion success on the exact latest head.",
+      "The targeted seamless-rollover discovery suite contains 12 tests and passed in run 154.",
+      "The pure-control user message contained no explicit ko-KR clause and the first visible response was Korean, but that visible response preceded durable checkpoint retrieval because of host progress-output requirements.",
+      "PROTOCOL.md now defines PRE_RESPONSE_READ_BLOCKED and test_host_capability.py asserts its entry/exit/no-retry contract."
+    ],
+    "blockers": [
+      "No local product worktree is exposed in this chat, so local dirty/status state remains unobserved.",
+      "PRE_RESPONSE_READ_BLOCKED: the current host requires a visible progress update for this multi-step task before the durable reads needed to prove checkpoint-driven first-response language restoration."
+    ],
+    "next_action": "Do not retry the same fresh-chat language gate under unchanged host conditions. Resume this validation only when the host permits silent pre-response durable reads or supplies an authenticated early response_language hint; then run one differentiated canonical-English pure-control rollover and record the result. Keep PR #7 draft and stable Sloar untouched until that evidence exists."
+  }
+}
