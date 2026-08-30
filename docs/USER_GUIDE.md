@@ -2,7 +2,7 @@
 
 This guide is for users who want to go from **first use -> normal development -> upgrade -> fresh-chat handoff -> stuck-response recovery** without learning Sloar internals first.
 
-Current stable: **0.8.0**
+Current stable: **0.8.1**
 
 ## 1. First use
 
@@ -83,23 +83,45 @@ Design details:
 
 ## 4. Upgrade Sloar without restarting the task
 
-In the active chat:
+Since 0.8.1 the default UX is **automatic update awareness, followed by an upgrade only after user approval**.
+
+On the first Sloar repository turn in a chat, and after an intentional fresh-chat resume/takeover, Sloar compares the installed version with the canonical stable once when that stable source is reachable.
 
 ```text
-Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.
+installed == stable
+-> stay silent and continue work
+
+new stable discovered
+-> Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?
+-> user approves
+-> run the safe UPGRADE_SESSION automatically
+
+stable lookup fails/is unavailable
+-> update status = unknown
+-> continue normal repository work on the installed release
 ```
 
-The normal flow is:
+Discovering a newer stable does not itself authorize a repository write. Sloar must not modify its core or companions until the user approves the notice or explicitly requests an upgrade.
+
+After approval, the normal flow is:
 
 ```text
 re-resolve repository identity
--> inspect installed Sloar version
--> resolve current stable release
+-> re-read installed Sloar version
+-> confirm the approved stable identity
 -> back up the old Sloar core
 -> upgrade Sloar-owned files only
--> verify bundled companions
+-> migrate only known-official companion bundles safely
+-> preserve custom/unrecognized companions
 -> run available validation
+-> bridge the active checkpoint
 -> continue the same task
+```
+
+To start the same flow manually at any time, say:
+
+```text
+Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.
 ```
 
 Local fallback:
@@ -109,6 +131,15 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
   --target /path/to/project \
   --upgrade
 ```
+
+The local Wizard does not secretly fetch a stable version from the network. If a caller has already resolved stable, pass it explicitly:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
+  --stable-version 0.8.1 --json
+```
+
+`updates.status` is one of `current`, `update_available`, `ahead`, `unknown`, or `not_installed`.
 
 Contract: [upgrading.md](../.agents/skills/sloar-chat-coder/references/upgrading.md)
 
@@ -128,7 +159,7 @@ Paste the returned Resume sentence in the fresh chat. The default form is:
 Resume the latest Sloar session for OWNER/REPO.
 ```
 
-The new chat revalidates the current repository before trusting the checkpoint.
+The new chat revalidates the current repository before trusting the checkpoint. If the canonical stable source is available, the resumed session also performs one update-awareness check.
 
 Contract: [chat-native-continuity.md](../.agents/skills/sloar-chat-coder/references/chat-native-continuity.md)
 
@@ -217,7 +248,7 @@ Use Sloar for this repository.
 https://github.com/OWNER/REPO
 <task>
 
-# Upgrade
+# Start an upgrade manually
 Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.
 
 # Fresh chat
