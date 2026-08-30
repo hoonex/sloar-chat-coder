@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.6.1 - 2026-08-30
+
+Bounded turn terminalization patch.
+
+- Distinguished host/runtime stalls from agent self-extension where a RED or pending gate causes recursive `one more check` / `one more fix` work and the visible response never reaches a terminal report.
+- Added `references/turn-terminalization.md` with a default bounded corrective cycle for one unchanged failure fingerprint: diagnose from concrete evidence, make at most one corrective change for that diagnosis, then re-run the affected verification once.
+- Required `PARTIAL`, `BLOCKED`, or `FAILED` terminalization when a required gate remains RED, pending, or externally blocked after its allowed bounded cycle instead of leaving the turn indefinitely ACTIVE.
+- Added explicit anti-rabbit-hole rules for optional follow-up scope, long-running CI/external waits, recursive polling, and autonomous/ULW-style requests.
+- Clarified that `ULW`, `finish it`, and similar autonomous instructions permit deeper work but never authorize infinite retry, search, wait, or polling loops.
+- Added regression tests that lock the terminalization contract and installer/CI checks that ensure the new reference ships with Sloar.
+- Updated the First Run Wizard continuity report to expose bounded turn terminalization separately from host-level stuck-response recovery.
+
 ## 0.6.0 - 2026-08-30
 
 Operational continuity release.
