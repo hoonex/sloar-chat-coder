@@ -154,6 +154,7 @@ def write_checkpoint(repo: Path, checkpoint: dict[str, Any], state_dir: str) -> 
         "checkpoint_file": str(cp_path.relative_to(root)).replace(os.sep, "/"),
         "repository": checkpoint["repository"],
         "created_at": checkpoint["created_at"],
+        "response_language": checkpoint.get("context", {}).get("response_language", ""),
     }
     latest_text = json.dumps(latest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     _atomic_write(cp_path, cp_text)
