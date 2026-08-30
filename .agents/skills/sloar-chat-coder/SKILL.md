@@ -1,10 +1,10 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, fresh-chat rollover, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, or chat context can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, or chat context can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.5.0"
+  version: "0.5.1"
 ---
 
 # Sloar Chat Coder
@@ -20,6 +20,8 @@ For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authentic
 Read [references/environment-onboarding.md](references/environment-onboarding.md) when setup is unknown or the user asks how to start. If local execution is available, `scripts/wizard.py` can produce a machine-readable local readiness report. Hosted capabilities must still be resolved from the current agent/tool inventory.
 
 When the user explicitly asks to use Sloar for a repository, prefer chat-native bootstrap when the current session has an authorized durable path. A first-time user should not need to understand `git clone`, `install.py`, or the wizard merely to begin work when the agent can safely perform that setup itself. Read [references/chat-native-continuity.md](references/chat-native-continuity.md) before claiming durable bootstrap or cross-chat rollover.
+
+When an already-running repository session uses an older Sloar release and the user asks to upgrade, preserve the current task and repository state instead of restarting the workflow. Re-resolve identity, upgrade only Sloar-owned files, verify the new release, bridge the active task into the newer checkpoint model, and continue the same task. Read [references/upgrading.md](references/upgrading.md) before an in-session upgrade write. Do not silently upgrade merely because a newer release exists.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
@@ -41,7 +43,7 @@ Do not turn a healthy first run into a long setup tutorial. Keep onboarding brie
 3. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
 4. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
 5. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
-6. **Evidence bounds claims.** Never report a check, deployment, merge, or behavior as successful without relevant evidence.
+6. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, or behavior as successful without relevant evidence.
 7. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them.
 
 ## Task state machine
@@ -55,6 +57,8 @@ ONBOARD? -> RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY 
 Do not skip a state whose exit condition is required by the task. Read [references/state-machine.md](references/state-machine.md) for state contracts.
 
 Forge health/capability is a separate overlay on this lifecycle. A task may be `LOCAL_READY` while the hosted forge is `REMOTE_PARTIAL` or `REMOTE_DEGRADED`; in that case IMPLEMENT/VERIFY can continue locally while the blocked remote operation remains deferred. Read [references/forge-resilience.md](references/forge-resilience.md).
+
+An explicit Sloar version change inside an active task is a bounded maintenance transition, `UPGRADE_SESSION`, not a restart of the task state machine. Its entry/exit conditions are defined in [references/upgrading.md](references/upgrading.md).
 
 ## Repository identity contract
 
@@ -162,7 +166,7 @@ At completion, report only:
 - the exact durable state changed or published;
 - the checks that actually ran and their results;
 - any blocked check and its concrete blocker;
-- any reconciliation caused by concurrent remote movement, forge recovery, or capability change;
+- any reconciliation caused by concurrent remote movement, forge recovery, capability change, or in-session upgrade;
 - any temporary remote resource that could not be cleaned up.
 
 If remote publication is blocked, say so explicitly rather than presenting `LOCAL_READY` as task completion. Do not expose Sloar mechanics when the normal path is healthy unless they materially explain a limitation or result.
