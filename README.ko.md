@@ -4,9 +4,19 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 저장소 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-0.5.0은 기존 First Run/복구/Forge Resilience 위에 **Chat-native Continuity**를 추가한다. 처음 사용자가 저장소 URL만으로 Sloar를 시작할 수 있게 하고, 채팅이 길어졌을 때 durable checkpoint를 통해 새 채팅에서 바로 이어서 작업하게 한다.
+0.5.1은 0.5.0의 **Chat-native Continuity**에 기존 0.4.x 작업 세션을 끊지 않고 업그레이드하는 경로를 추가한다. 처음 사용자는 저장소 URL만으로 시작할 수 있고, 기존 사용자는 현재 작업 상태를 유지한 채 0.5.x로 승격한 뒤 새 채팅 rollover 기능을 바로 사용할 수 있다.
 
 > **저장소의 정확한 상태와 검증 증거가 채팅 기억보다 항상 우선한다.**
+
+## 10초 사용법
+
+```text
+처음 사용 → 저장소 URL + "이 저장소 Sloar로 개발해"
+평소 작업 → 그냥 개발 요청
+기존 0.4 세션 업그레이드 → "이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해"
+채팅 이동 → "새 채팅으로 넘겨줘"
+새 채팅 → Sloar가 준 Resume 문장 붙여넣기
+```
 
 ## 처음 쓰는 사람
 
@@ -40,6 +50,51 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 ```
 
 기존 `AGENTS.md` 내용을 지우지 않고 Sloar 진입 블록만 추가하며, 같은 설치를 다시 실행해도 블록이 중복되지 않는다.
+
+## 기존 0.4.x 작업 세션을 0.5.x로 업그레이드
+
+**새 채팅을 만들 필요 없다. 지금 하던 채팅에서 그대로 요청하면 된다.**
+
+```text
+이 세션 Sloar 최신 버전으로 업그레이드하고 현재 작업 상태는 유지한 채 계속해.
+```
+
+정상적인 agent upgrade는 다음 순서로 동작한다.
+
+```text
+현재 repository identity 재확인
+        ↓
+설치된 Sloar 버전 확인
+        ↓
+현재 stable Sloar 확인
+        ↓
+Sloar 소유 파일만 업그레이드
+        ↓
+검증
+        ↓
+현재 0.4 작업 내용을 첫 0.5+ rollover checkpoint로 변환
+        ↓
+원래 하던 작업 계속
+```
+
+중요한 점:
+
+- product source, 현재 task branch, PR, 기존 테스트를 초기화하지 않는다.
+- 사용자가 지금까지 한 작업을 다시 설명할 필요가 없다.
+- Sloar 외의 Skill이나 프로젝트 지침을 임의로 덮어쓰지 않는다.
+- local manual upgrade는 기존 Sloar 설치본을 `.git/sloar-upgrade-backups/`에 보존한 뒤 Sloar 폴더만 교체한다. 백업이 `.git` 아래에 있으므로 제품 working tree를 더럽히지 않는다.
+- 같은 버전인데 설치 내용이 다른 경우 자동으로 덮어쓰지 않는다. 커스텀/부분 수정 설치일 수 있으므로 명시적 replacement가 필요하다.
+- 업그레이드 후 현재 세션 상태를 새 checkpoint로 한 번 기록하면 그다음부터 `새 채팅으로 넘겨줘`를 사용할 수 있다.
+
+로컬/수동 fallback은 최신 Sloar checkout에서:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/install.py \
+  --target /path/to/your-project \
+  --upgrade
+```
+
+자세한 계약: [`.agents/skills/sloar-chat-coder/references/upgrading.md`](.agents/skills/sloar-chat-coder/references/upgrading.md)
 
 ## 0.5 핵심: 새 채팅으로 이어가기
 
@@ -275,6 +330,6 @@ No evidence -> no completion claim.
 
 ## 원칙
 
-Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 채팅 rollover, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
+Sloar는 프로젝트의 기술 선택을 대신하지 않는다. 프레임워크, 테스트 도구, 배포 방식, DB, 패키지 매니저 등은 항상 대상 저장소가 결정한다. Sloar는 **연속성, 정확성, 온보딩, 세션 업그레이드, 채팅 rollover, 실패 처리, 동시성, forge resilience, 게시 안전성, 증거**만 담당한다.
 
-버전: **0.5.0**
+버전: **0.5.1**
