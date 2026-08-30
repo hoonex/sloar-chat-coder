@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 0.8.0 - 2026-08-30
+
+Adaptive design discovery and Anti-AI-Slop release.
+
+- Reworked substantial web-design discovery around `KNOWN / INFERRED / UNKNOWN` facts instead of a fixed taste questionnaire.
+- Added an adaptive clarification budget: ask only questions whose answers have meaningful decision impact, uncertainty, rework cost, and low reversibility; well-specified work may ask zero questions while very vague work may ask a compact batch of several high-value questions.
+- Required design questions to use ordinary experiential language rather than expecting users to know terms such as neumorphism, glassmorphism, brutalism, direct manipulation, or spring motion. `You decide` / `알아서` stops optional questioning and delegates the choice to product/repository evidence.
+- Added 2-3 candidate-direction guidance when recognition is easier than description, while prohibiting superficial color-only A/B/C choices.
+- Added a multi-axis Design DNA taxonomy separating design philosophy/tone, material language, composition, interaction language, motion posture, density, typography, and color. The taxonomy covers functional/minimal/maximal/editorial/brutalist/refined/playful/technical/organic/retro/futuristic directions; flat/tactile/neumorphic/glass/clay/paper/hard-surface materials; grid/asymmetric/bento/spatial compositions; and microinteractive/direct-manipulation/context-aware/gesture/scroll interaction modes.
+- Added explicit style-soup prevention: a style label is not a feature checklist and multiple fashionable influences must not be combined without one coherent product reason.
+- Added `anti-ai-slop.md` as an evidence-aware design audit rather than an authorship detector. Findings are classified as `P0 / P1 / P2` and `CODE-CERTAIN / RENDER-CERTAIN / INFERRED` so source heuristics cannot masquerade as rendered visual evidence.
+- Cataloged common unchosen generated/default tells across palette/material, typography, layout/information architecture, component styling fingerprints, interaction/state, motion, copy/product evidence, imagery/fake data, and second-order defaults.
+- Added remedies for high-signal patterns such as generic purple/indigo AI palettes, gradient headlines, decorative glass/glow, default centered SaaS hero bundles, equal feature cards, unjustified bento, untouched component-library demos, pill/rounded-card repetition, fake social proof/charts/data, generic `Transform/Elevate/Unlock` copy, universal hover/scroll animation, and happy-path-only states.
+- Added a second-order-default check so de-slopping cannot simply become another universal rescue style such as always swapping Inter for the same trendy font or purple glass for the same warm-paper/brutalist aesthetic.
+- Strengthened rendered visual re-audit around five questions: are major choices justified, coherent, product-specific, state/responsive complete, and not merely another default? Lack of rendered capability remains an evidence limitation, not a reason to keep the turn open indefinitely.
+- Expanded source notes with public anti-slop/design-agent projects including `rwcod/anti-ai-slop-ui`, `funboy322/avoid-ai-design`, and `imMamdouhaboammar/unslop-preflight`, while preserving independent Sloar wording and no external runtime dependency.
+- Improved `--upgrade` safety for the bundled design companion. Sloar 0.8 records the exact official 0.7.0 file fingerprint, automatically migrates only an untouched known bundle after backing it up under Git metadata, and preserves modified/custom/unrecognized companion content. A lower version number alone never authorizes replacement.
+- Added regression coverage for exact official 0.7 -> 0.8 companion migration, modified-0.7 preservation, adaptive question budgeting, multi-axis taxonomy, Anti-AI-Slop severity/evidence contracts, installer/wizard readiness, and existing continuity/terminalization behavior.
+
 ## 0.7.0 - 2026-08-30
 
 Repository-aware web design guidance release.
