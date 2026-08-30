@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.8.0**
+Current stable: **0.8.1**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.0-2563eb?style=flat-square" alt="stable 0.8.0"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.1-2563eb?style=flat-square" alt="stable 0.8.1"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -61,7 +61,7 @@ Full user guide: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**
 | Normal development | Just describe the repository task |
 | Vague web UI request | No design vocabulary required; Sloar asks only high-value questions when needed |
 | Delegate design | `You decide what fits best.` |
-| Upgrade | `Upgrade this active Sloar session to the latest stable release, preserve the current task state, and continue the work.` |
+| Upgrade | On the first Sloar repository turn/fresh-chat recovery, Sloar checks stable once when possible. If a newer stable exists, it asks once; after approval, the safe upgrade process is automated |
 | Move chats | Ask for a fresh-chat handoff, then paste the returned Resume sentence |
 | Stuck response | In a fresh chat, ask Sloar to inspect saved turn state and current repository before continuing |
 
@@ -139,7 +139,27 @@ Details:
 
 ## Upgrade without restarting the task
 
-In the active chat:
+**Update awareness is automatic; installation starts only after user approval.**
+
+On the first Sloar repository turn in a chat, and after an intentional fresh-chat resume/takeover, Sloar checks the canonical stable source once when that source is reachable.
+
+```text
+installed == stable
+-> stay silent and continue work
+
+new stable exists
+-> Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?
+-> user approves
+-> automated safe upgrade while preserving current task state
+
+stable lookup unavailable
+-> update status = unknown
+-> continue ordinary repository work
+```
+
+Sloar does not silently rewrite the repository merely because a newer stable exists. After approval, it can automate backup, Sloar-owned file replacement, known-official companion migration, custom companion preservation, validation, and the active-session checkpoint bridge.
+
+To start the same flow manually at any time, say in the active chat:
 
 ```text
 Upgrade this active Sloar session to the latest stable release,
@@ -158,6 +178,13 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
   --upgrade
 ```
 
+The local Wizard never performs a hidden stable-version network lookup. A caller that already resolved stable may pass it explicitly:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
+  --stable-version 0.8.1 --json
+```
+
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
 
 ## Move to a fresh chat
@@ -172,7 +199,7 @@ Paste the returned Resume sentence in the fresh chat. The default form is:
 Resume the latest Sloar session for OWNER/REPO.
 ```
 
-The fresh chat revalidates the current repository before trusting the checkpoint.
+The fresh chat revalidates the current repository before trusting the checkpoint. When the canonical stable source is reachable, this resumed session also performs one bounded update-awareness check.
 
 Contract: [chat-native-continuity.md](.agents/skills/sloar-chat-coder/references/chat-native-continuity.md)
 
