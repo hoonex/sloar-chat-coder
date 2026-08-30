@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "kind": "sloar-seamless-rollover",
+  "checkpoint_id": "20260830T054328Z-3f167a8-stable1",
+  "created_at": "2026-08-30T05:43:28Z",
+  "repository": "hoonex/sloar-chat-coder",
+  "source_of_truth": "repository",
+  "recovery_note": "This checkpoint is recovery metadata, not the source of truth. Revalidate mutable repository state before continuing.",
+  "identity": {
+    "head": "3f167a8a3736b74316615353abb4469a9fd93107",
+    "tree": "f2a62ed0e87d195e186a1a0f1b06d7af7a788635",
+    "branch": "main",
+    "working_state_observed": false,
+    "dirty": null,
+    "status_sha256": null,
+    "working_state_note": "Publication and verification were performed through GitHub remote tools; no local product worktree was observed in this chat."
+  },
+  "context": {
+    "goal": "Make Sloar Chat Coder support chat-native first-use bootstrap and durable fresh-chat rollover without letting checkpoint metadata outrank repository truth.",
+    "completed": [
+      "Ran multiple real fresh-chat rollover validations in draft experiment PR #7 and captured remote-only identity, response-language, and host pre-response capability defects.",
+      "Extracted the reusable design into clean stabilization PR #8 rather than merging the experiment history.",
+      "Published Sloar 0.5.0 to main by non-force fast-forward after exact base/head revalidation.",
+      "Main now points to 3f167a8a3736b74316615353abb4469a9fd93107 with tree f2a62ed0e87d195e186a1a0f1b06d7af7a788635.",
+      "PR #8 is merged/closed and experiment PR #7 is closed without merge as the retained validation record.",
+      "Validate Sloar PR run 172 and main push run 173 both completed successfully on the exact 0.5.0 head.",
+      "The stable continuity suite contains 14 passing unit/contract tests plus all existing Sloar self-test, installer, wizard, forge resilience, and frontmatter checks."
+    ],
+    "active": [],
+    "pending": [
+      "No same-host language-gate retry is useful while PRE_RESPONSE_READ_BLOCKED remains unchanged.",
+      "A future differentiated validation may test Sloar 0.5.0 from first-use bootstrap through rollover on another real target repository when useful."
+    ],
+    "decisions": [
+      "Repository durable state always outranks chat memory and rollover checkpoints.",
+      "Use sloar/rollover-state as preferred durable rollover metadata transport when authorized, keeping runtime state off product branches.",
+      "Remote-only sessions must preserve unobserved working-tree state instead of assuming clean or dirty.",
+      "Control/protocol language and user-facing response language are separate.",
+      "PRE_RESPONSE_READ_BLOCKED is an explicit host capability boundary; do not claim checkpoint-driven first-visible-response language recovery while blocked and do not repeat unchanged tests.",
+      "Parallel-chat orchestration remains outside the 0.5.0 scope."
+    ],
+    "evidence": [
+      "main: 3f167a8a3736b74316615353abb4469a9fd93107 / tree f2a62ed0e87d195e186a1a0f1b06d7af7a788635",
+      "VERSION on main: 0.5.0",
+      "SKILL.md metadata on main: version 0.5.0",
+      "PR #8: closed and merged at exact head 3f167a8a3736b74316615353abb4469a9fd93107",
+      "Validate Sloar PR run 172: success",
+      "Validate Sloar main push run 173: success",
+      "14 chat-native continuity tests: pass on release head"
+    ],
+    "blockers": [
+      "PRE_RESPONSE_READ_BLOCKED may apply on hosts that force visible progress before durable checkpoint reads; this is a host capability boundary, not a repository failure."
+    ],
+    "next_action": "If continuing Sloar development, use stable 0.5.0 on a separate real target repository to validate the full first-use bootstrap -> normal work -> rollover -> resume lifecycle; otherwise this milestone is complete.",
+    "response_language": "ko-KR"
+  }
+}
