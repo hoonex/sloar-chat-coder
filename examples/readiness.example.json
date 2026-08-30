@@ -1,6 +1,6 @@
 {
-  "schema": 1,
-  "sloar_version": "0.3.0",
+  "schema": 2,
+  "sloar_version": "0.8.1",
   "repository": {
     "state": "ready",
     "installed": true,
@@ -9,6 +9,15 @@
     "tree": "fedcba9876543210",
     "branch": "feat/example",
     "origin": "https://github.com/owner/repo.git"
+  },
+  "updates": {
+    "installed_version": "0.8.1",
+    "stable_version": "0.8.1",
+    "status": "current",
+    "action": "none",
+    "check_policy": "hosted agent resolves stable once on first Sloar repository turn and fresh-chat resume/takeover when canonical source is reachable; local wizard is network-free",
+    "install_policy": "explicit user approval required before upgrade writes",
+    "silent_when_current": true
   },
   "execution": {
     "state": "ready",
@@ -21,7 +30,8 @@
     "ci": "unknown",
     "browser": "unknown",
     "plugin_or_app_state": "unknown",
-    "reason": "not-detectable-locally; agent must inspect its current tool inventory"
+    "forge_health": "unknown",
+    "reason": "not-detectable-locally; user connects external services explicitly and the agent must verify the capabilities exposed in the current session"
   },
-  "next": "Local side is ready. Ask the agent to resolve hosted GitHub/CI/browser capabilities from the current session and begin RECOVER."
+  "next": "Local side is ready. Let the agent resolve hosted capabilities and stable update status from the current session when available, then begin RECOVER."
 }
