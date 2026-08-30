@@ -1,10 +1,10 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware adaptive web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Sloar Chat Coder
@@ -27,7 +27,7 @@ For long, interruption-prone, remote-write, CI/deployment-heavy tasks—or when 
 
 Long autonomous work must also terminate. A required gate that stays RED, pending, or externally blocked is a reason to return `PARTIAL`, `BLOCKED`, or `FAILED` as appropriate—not a reason to keep the visible turn ACTIVE indefinitely. Use the bounded failure-cycle and anti-rabbit-hole rules in [references/turn-terminalization.md](references/turn-terminalization.md). `ULW`, "finish it", or similar requests permit deeper work but never authorize an infinite retry, wait, search, or polling loop.
 
-For substantial user-facing web UI/design work, if `.agents/skills/web-design-guidance/SKILL.md` exists, read it after the target repository's own product/design guidance unless the repository already defines a stronger design workflow or the user explicitly declines design intervention. The companion may guide discovery, hierarchy, responsive states, anti-generic generated-UI checks, and rendered visual acceptance, but it never outranks the user or repository. If Apple-style interaction/material behavior is explicitly requested, the specialized `apple-web-design` companion may refine that design work afterward.
+For substantial user-facing web UI/design work, if `.agents/skills/web-design-guidance/SKILL.md` exists, read it after the target repository's own product/design guidance unless the repository already defines a stronger design workflow or the user explicitly declines design intervention. The companion decides clarification depth from ambiguity rather than forcing a fixed questionnaire, translates ordinary user language into multi-axis Design DNA, preserves repository design systems, audits common AI/default visual tells with evidence-aware severity, and requires rendered evidence for visual-success claims when available. It never outranks the user or repository. If Apple-style interaction/material behavior is explicitly requested, the specialized `apple-web-design` companion may refine that design work afterward.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
@@ -153,7 +153,7 @@ Verification should be change-aware and repository-defined. Source changes are n
 
 Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), and [references/operational-continuity.md](references/operational-continuity.md).
 
-For web UI/design work using the bundled companion, rendered browser/screenshot evidence should support visual-success claims whenever that capability is available. Code, geometry, or build checks alone are not sufficient proof of balanced hierarchy, text resilience, visual continuity, or material legibility. If rendered evidence is unavailable, report the visual scope as unverified rather than waiting indefinitely for a provider.
+For web UI/design work using the bundled companion, rendered browser/screenshot evidence should support visual-success claims whenever that capability is available. Code, geometry, anti-slop heuristics, or build checks alone are not sufficient proof of balanced hierarchy, text resilience, visual continuity, product-specific character, or material legibility. If rendered evidence is unavailable, report the visual scope as unverified rather than waiting indefinitely for a provider.
 
 A required check that is still RED or running after the allowed bounded diagnosis/wait policy must be reported as RED/running. Do not keep the turn open merely to avoid returning a non-COMPLETED status. Long-running remote checks without new evidence must not be polled indefinitely; preserve their exact run/request identity and return a safe next action.
 
