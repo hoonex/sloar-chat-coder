@@ -18,7 +18,7 @@ jobs:
           bash -n .agents/skills/sloar-chat-coder/scripts/preflight.sh
           bash -n .agents/skills/sloar-chat-coder/scripts/verify-state.sh
           python3 -m py_compile .agents/skills/sloar-chat-coder/scripts/*.py
-      - name: Validate chat-native continuity
+      - name: Validate chat-native continuity and upgrades
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests -v
@@ -65,6 +65,7 @@ jobs:
           python3 .agents/skills/sloar-chat-coder/scripts/install.py --target "$target"
           test -s "$target/.agents/skills/sloar-chat-coder/SKILL.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/chat-native-continuity.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/upgrading.md"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/session-rollover.py"
           grep -q 'sloar-chat-coder:begin' "$target/AGENTS.md"
           test "$(grep -c 'sloar-chat-coder:begin' "$target/AGENTS.md")" -eq 1
@@ -90,7 +91,7 @@ jobs:
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert data['schema']==2
-          assert data['sloar_version']=='0.5.0'
+          assert data['sloar_version']=='0.5.1'
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
           assert data['execution']['state']=='ready'
@@ -157,10 +158,11 @@ jobs:
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
-          assert Path('VERSION').read_text().strip() == '0.5.0'
-          assert 'version: "0.5.0"' in text
+          assert Path('VERSION').read_text().strip() == '0.5.1'
+          assert 'version: "0.5.1"' in text
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/chat-native-continuity.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/references/upgrading.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/session-rollover.py').is_file()
           assert Path('docs/CONNECTIONS.md').is_file()
