@@ -6,13 +6,21 @@ filesystem/terminal. ChatGPT/Codex plugin/app/tool availability and hosted
 forge health must be resolved by the agent from its actual current tool
 inventory unless the user explicitly runs a bounded forge probe or classifies
 an already-observed remote failure.
+
+Update awareness follows the same boundary: the wizard never fetches a remote
+stable version by itself. A hosted agent or human caller may pass an already
+resolved stable version with --stable-version for a deterministic comparison.
 """
 import argparse
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
 from doctor import inspect as inspect_local
+
+CURRENT_SLOAR_VERSION = "0.8.1"
+VERSION_RE = re.compile(r'^\s*version:\s*["\']?([0-9]+\.[0-9]+\.[0-9]+)["\']?\s*$')
 
 
 def state(value: bool, *, missing="missing"):
@@ -37,6 +45,48 @@ def origin_host(origin: str | None):
     if "://" in text:
         return (urlparse(text).hostname or "").lower()
     return ""
+
+
+def version_tuple(value: str) -> tuple[int, int, int]:
+    parts = value.strip().split(".")
+    if len(parts) != 3 or any(not part.isdigit() for part in parts):
+        raise ValueError(f"unsupported Sloar version: {value}")
+    return tuple(int(part) for part in parts)  # type: ignore[return-value]
+
+
+def installed_sloar_version(repo: Path) -> str | None:
+    skill = repo / ".agents/skills/sloar-chat-coder/SKILL.md"
+    if not skill.is_file():
+        return None
+    try:
+        for line in skill.read_text(encoding="utf-8", errors="replace").splitlines():
+            match = VERSION_RE.match(line)
+            if match:
+                return match.group(1)
+    except OSError:
+        return None
+    return None
+
+
+def build_update_status(installed: str | None, stable: str | None):
+    base = {
+        "installed_version": installed,
+        "stable_version": stable,
+        "check_policy": "hosted agent resolves stable once on first Sloar repository turn and fresh-chat resume/takeover when canonical source is reachable; local wizard is network-free",
+        "install_policy": "explicit user approval required before upgrade writes",
+        "silent_when_current": True,
+    }
+    if not installed:
+        return {**base, "status": "not_installed", "action": "install_sloar"}
+    if not stable:
+        return {**base, "status": "unknown", "action": "resolve_stable_in_hosted_agent_when_available"}
+    installed_v = version_tuple(installed)
+    stable_v = version_tuple(stable)
+    if installed_v < stable_v:
+        return {**base, "status": "update_available", "action": "ask_user_before_upgrade"}
+    if installed_v == stable_v:
+        return {**base, "status": "current", "action": "none"}
+    return {**base, "status": "ahead", "action": "do_not_downgrade"}
 
 
 def detect_connections(repo: Path, origin: str | None):
@@ -101,14 +151,16 @@ def detect_connections(repo: Path, origin: str | None):
     return rows
 
 
-def build(repo: Path):
+def build(repo: Path, stable_version: str | None = None):
     local = inspect_local(repo)
     git_ok = bool(local["git"].get("is_worktree"))
     installed = bool(local.get("sloar_installed"))
+    installed_version = installed_sloar_version(repo) if installed else None
     execution = bool(local["tools"]["python3"]["available"])
     dirty = bool(local["git"].get("dirty")) if git_ok else None
     origin = local["git"].get("origin")
     connections = detect_connections(repo, origin)
+    updates = build_update_status(installed_version, stable_version)
     web_design = repo / ".agents/skills/web-design-guidance/SKILL.md"
     adaptive_design = repo / ".agents/skills/web-design-guidance/references/adaptive-design-discovery.md"
     design_taxonomy = repo / ".agents/skills/web-design-guidance/references/design-taxonomy.md"
@@ -127,7 +179,7 @@ def build(repo: Path):
 
     return {
         "schema": 2,
-        "sloar_version": "0.8.0",
+        "sloar_version": CURRENT_SLOAR_VERSION,
         "repository": {
             "state": state(git_ok),
             "installed": installed,
@@ -137,6 +189,7 @@ def build(repo: Path):
             "branch": local["git"].get("branch"),
             "origin": origin,
         },
+        "updates": updates,
         "execution": {"state": state(execution), "python3": local["tools"]["python3"]["available"]},
         "hosted": {
             "state": "unknown",
@@ -184,6 +237,7 @@ def render(data):
     connections = data.get("connections", {}).get("items", [])
     connection_text = ", ".join(f"{item['name']} ({item['level']})" for item in connections) or "none detected from repository signals"
     design = data.get("design", {})
+    updates = data.get("updates", {})
     lines = [
         "Sloar readiness",
         f"Repository: {repo['state']}" + (f" ({repo['branch']})" if repo.get("branch") else ""),
@@ -195,6 +249,16 @@ def render(data):
         "Forge health/capability: unknown (probe or classify observed failure only when needed)",
         f"Next: {data['next']}",
     ]
+    if updates.get("status") == "update_available":
+        lines.insert(
+            3,
+            f"Sloar update: {updates.get('installed_version')} -> {updates.get('stable_version')} available (approval required)",
+        )
+    elif updates.get("status") == "ahead":
+        lines.insert(
+            3,
+            f"Sloar update: installed {updates.get('installed_version')} is ahead of resolved stable {updates.get('stable_version')} (no downgrade)",
+        )
     if repo.get("dirty"):
         lines.insert(2, "Working tree: dirty (preserve/identify changes before modification)")
     return "\n".join(lines)
@@ -203,14 +267,21 @@ def render(data):
 def main():
     parser = argparse.ArgumentParser(description="Show beginner-friendly Sloar local readiness and next action.")
     parser.add_argument("repo", nargs="?", default=".")
+    parser.add_argument("--stable-version", help="Optional stable Sloar version already resolved by the caller; this wizard never fetches it from the network")
     parser.add_argument("--json", action="store_true", help="Emit the full machine-readable readiness report")
     parser.add_argument("--output", help="Also write the JSON readiness report to this path")
     args = parser.parse_args()
 
+    if args.stable_version:
+        try:
+            version_tuple(args.stable_version)
+        except ValueError as exc:
+            raise SystemExit(str(exc))
+
     repo = Path(args.repo).expanduser().resolve()
     if not repo.is_dir():
         raise SystemExit(f"directory does not exist: {repo}")
-    data = build(repo)
+    data = build(repo, stable_version=args.stable_version)
     if args.output:
         out = Path(args.output).expanduser().resolve()
         out.parent.mkdir(parents=True, exist_ok=True)
