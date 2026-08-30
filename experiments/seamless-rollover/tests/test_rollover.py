@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
@@ -7,6 +8,7 @@ from argparse import Namespace
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "rollover.py"
+PROTOCOL_PATH = Path(__file__).resolve().parents[1] / "PROTOCOL.md"
 spec = importlib.util.spec_from_file_location("rollover", MODULE_PATH)
 rollover = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = rollover
@@ -61,6 +63,14 @@ class RolloverTests(unittest.TestCase):
         self.assertEqual(comparison["state"], "EXACT")
         self.assertEqual(comparison["unobserved"], [])
         self.assertEqual(loaded["context"]["response_language"], "ko-KR")
+
+    def test_rollover_pointer_copies_response_language_hint(self):
+        identity = rollover.capture_identity(self.repo)
+        checkpoint = rollover.build_checkpoint(identity, self._args())
+        _, latest_path = rollover.write_checkpoint(self.repo, checkpoint, rollover.DEFAULT_STATE_DIR)
+        pointer = json.loads(latest_path.read_text(encoding="utf-8"))
+        self.assertEqual(pointer["response_language"], "ko-KR")
+        self.assertEqual(pointer["checkpoint_id"], checkpoint["checkpoint_id"])
 
     def test_custom_worktree_state_dir_is_detected(self):
         identity = rollover.capture_identity(self.repo)
@@ -145,6 +155,15 @@ class RolloverTests(unittest.TestCase):
         delattr(args, "response_language")
         checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), args)
         self.assertEqual(checkpoint["context"]["response_language"], "")
+
+    def test_protocol_requires_silent_pre_response_recovery(self):
+        protocol = PROTOCOL_PATH.read_text(encoding="utf-8")
+        self.assertIn("### Pre-response recovery gate", protocol)
+        self.assertIn(
+            "Do not emit any user-visible acknowledgement, progress update, or status message until `response_language` is restored",
+            protocol,
+        )
+        self.assertIn("silent control-plane preflight", protocol)
 
     def test_resume_instruction_is_one_line_and_repository_specific(self):
         instruction = rollover.resume_instruction("example/demo")
