@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.5.1 - 2026-08-30
+
+Active-session upgrade release.
+
+- Added `UPGRADE_SESSION` so a repository already using an older Sloar release can upgrade without starting a fresh chat or reconstructing the current task.
+- Added `references/upgrading.md` with explicit upgrade entry/exit conditions, publication/revalidation requirements, and the bridge from an older active session into the 0.5+ rollover checkpoint model.
+- Added `install.py --upgrade` as the recommended local upgrade fallback. It upgrades only `sloar-chat-coder`, leaves unrelated companion skills alone, refuses downgrades and ambiguous same-version replacements, and preserves the previous installed skill under `.git/sloar-upgrade-backups/` before replacement.
+- Added regression tests proving product files and companion skills are preserved, old Sloar files are recoverable from the Git metadata backup, same-version divergence is not silently overwritten, and downgrades are rejected.
+- Added a beginner-facing Korean quick path for upgrading an active 0.4.x session with one natural-language request and continuing the same task.
+
 ## 0.5.0 - 2026-08-30
 
 Chat-native continuity release.
