@@ -91,11 +91,6 @@ jobs:
           text = text.replace(old, new)
           update_test.write_text(text, encoding="utf-8")
 
-          validate = Path(".github/workflows/validate.yml")
-          text = validate.read_text(encoding="utf-8")
-          text = text.replace(old, new)
-          validate.write_text(text, encoding="utf-8")
-
           android_test = Path("tests/test_android_skill_contract.py")
           text = android_test.read_text(encoding="utf-8")
           if "core_text = (SKILL / \"SKILL.md\")" not in text:
@@ -169,8 +164,7 @@ jobs:
             .agents/skills/sloar-chat-coder/scripts/wizard.py \
             .agents/skills/sloar-chat-coder/scripts/preflight.sh \
             tests/test_update_awareness_contract.py \
-            tests/test_android_skill_contract.py \
-            .github/workflows/validate.yml
+            tests/test_android_skill_contract.py
 
           if git diff --cached --quiet; then
             echo "Release source already prepared."
