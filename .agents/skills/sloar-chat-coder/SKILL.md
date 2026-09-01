@@ -4,7 +4,7 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.8.1"
+  version: "0.8.2"
 ---
 
 # Sloar Chat Coder
@@ -30,6 +30,8 @@ For long, interruption-prone, remote-write, CI/deployment-heavy tasks—or when 
 Long autonomous work must also terminate. A required gate that stays RED, pending, or externally blocked is a reason to return `PARTIAL`, `BLOCKED`, or `FAILED` as appropriate—not a reason to keep the visible turn ACTIVE indefinitely. Use the bounded failure-cycle and anti-rabbit-hole rules in [references/turn-terminalization.md](references/turn-terminalization.md). `ULW`, "finish it", or similar requests permit deeper work but never authorize an infinite retry, wait, search, or polling loop.
 
 For substantial user-facing web UI/design work, if `.agents/skills/web-design-guidance/SKILL.md` exists, read it after the target repository's own product/design guidance unless the repository already defines a stronger design workflow or the user explicitly declines design intervention. The companion decides clarification depth from ambiguity rather than forcing a fixed questionnaire, translates ordinary user language into multi-axis Design DNA, preserves repository design systems, audits common AI/default visual tells with evidence-aware severity, and requires rendered evidence for visual-success claims when available. It never outranks the user or repository. If Apple-style interaction/material behavior is explicitly requested, the specialized `apple-web-design` companion may refine that design work afterward.
+
+For Android application/module creation, modification, build, signing, packaging, or distribution, read [references/android-engineering.md](references/android-engineering.md) before implementation. When local execution is available, run `scripts/android-preflight.py <repo> --json` first. Existing Android source is authoritative; an empty/non-Android repository enters the documented bootstrap path instead of guessing project structure. Compile/test/artifact success must remain separate from real-device UI, runtime, performance, thermal, and power evidence.
 
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 

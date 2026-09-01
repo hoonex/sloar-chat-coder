@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+
+## 0.8.2 - 2026-09-02
+
+Android engineering and distribution release.
+
+- Added `references/android-engineering.md` as a durable Android production playbook covering existing-project discovery, empty-repository bootstrap, Gradle/build commands, Compose/UI resilience, permissions/security, signing identity, update compatibility, APK/AAB distribution, and CI/CD evidence.
+- Added `scripts/android-preflight.py` to classify repositories as `EXISTING_ANDROID`, `PARTIAL_ANDROID`, or `EMPTY_OR_NON_ANDROID`, discover package/SDK/build facts, and surface static review hints for high-rate sensors, tight timers, unbounded loops, wake locks, listener lifecycle, continuous networking, and hot-path logging.
+- Separated Android compile/test/artifact success from `UI`, `DEVICE_RUNTIME`, `PERF`, `THERMAL`, and `POWER` evidence so a green CI build cannot be reported as proof of real-device heat, battery, touch, sensor, or OEM behavior.
+- Added real-device performance/thermal/power verification guidance, including bounded soak-test expectations for continuous sensor, game, navigation, camera, Bluetooth, media, and network workloads.
+- Wired Android activation into the Sloar engineering lifecycle and core Skill so installed repositories use their local bundled Android guidance instead of depending on the canonical Sloar repository for ordinary Android work.
+- Added regression coverage proving Android guidance and preflight tooling ship in fresh Sloar installations and remain connected to the core workflow.
+- Added validated release automation: release commits publish only after `Validate Sloar` succeeds, with an annotated version tag and GitHub Release tied to the exact source commit.
+
 ## 0.8.1 - 2026-08-30
 
 Automatic update-awareness patch.
