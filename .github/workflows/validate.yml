@@ -70,6 +70,8 @@ jobs:
           test -s "$target/.agents/skills/sloar-chat-coder/references/upgrading.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/operational-continuity.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/turn-terminalization.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/android-engineering.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/scripts/android-preflight.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/session-rollover.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/turn-state.py"
           test -s "$target/.agents/skills/web-design-guidance/SKILL.md"
@@ -100,16 +102,16 @@ jobs:
           print('first-run: ok')
           PY
 
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.1 --json > "$RUNNER_TEMP/wizard.json"
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.2 --json > "$RUNNER_TEMP/wizard.json"
           python3 - "$RUNNER_TEMP/wizard.json" <<'PY'
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert data['schema']==2
-          assert data['sloar_version']=='0.8.1'
+          assert data['sloar_version']=='0.8.2'
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
-          assert data['updates']['installed_version']=='0.8.1'
-          assert data['updates']['stable_version']=='0.8.1'
+          assert data['updates']['installed_version']=='0.8.2'
+          assert data['updates']['stable_version']=='0.8.2'
           assert data['updates']['status']=='current'
           assert data['updates']['action']=='none'
           assert data['updates']['silent_when_current'] is True
@@ -141,17 +143,17 @@ jobs:
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert data['updates']['status']=='update_available'
           assert data['updates']['action']=='ask_user_before_upgrade'
-          assert data['updates']['installed_version']=='0.8.1'
+          assert data['updates']['installed_version']=='0.8.2'
           assert data['updates']['stable_version']=='0.9.0'
           print('wizard update notice: ok')
           PY
 
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.1 | grep -q '^Sloar readiness$'
-          if python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.1 | grep -q '^Sloar update:'; then
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.2 | grep -q '^Sloar readiness$'
+          if python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.2 | grep -q '^Sloar update:'; then
             echo 'current stable must stay silent in human readiness output' >&2
             exit 1
           fi
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.9.0 | grep -q 'Sloar update: 0.8.1 -> 0.9.0 available (approval required)'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.9.0 | grep -q 'Sloar update: 0.8.2 -> 0.9.0 available (approval required)'
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Web design companion: ready (adaptive=ready, anti-slop=ready)'
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Suggested connections: GitHub'
 
@@ -227,13 +229,15 @@ jobs:
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
-          assert Path('VERSION').read_text().strip() == '0.8.1'
-          assert 'version: "0.8.1"' in text
+          assert Path('VERSION').read_text().strip() == '0.8.2'
+          assert 'version: "0.8.2"' in text
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/chat-native-continuity.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/upgrading.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/operational-continuity.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/turn-terminalization.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/references/android-engineering.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/scripts/android-preflight.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/session-rollover.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/turn-state.py').is_file()
