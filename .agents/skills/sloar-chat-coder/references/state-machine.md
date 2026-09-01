@@ -49,11 +49,15 @@ Exit when the write target and base identity are known.
 
 Make the smallest coherent change that satisfies the task. Preserve unrelated work. Use repository-native formatting, architecture, and dependency rules.
 
+When the task creates, modifies, builds, signs, packages, or distributes an Android app/module, read [android-engineering.md](android-engineering.md) before Android implementation. If local execution exists, run `scripts/android-preflight.py <repo> --json` first. An empty/non-Android repository is a bootstrap state, not permission to guess package identity, toolchain compatibility, permissions, or release policy.
+
 A hosted forge outage or one missing remote permission does not by itself prevent IMPLEMENT when exact source is already materialized and local execution remains valid.
 
 ## VERIFY
 
 Choose checks based on change risk and repository declarations. Verification failures must be classified before source is changed.
+
+For Android work, keep compile/test/artifact evidence separate from UI, device runtime, performance, thermal, and power evidence. CI-green APK generation does not prove real-device heat, battery, sensor, touch, OEM, or rendering behavior. Use [android-engineering.md](android-engineering.md) for the Android evidence contract and report unavailable physical-device scopes as unverified rather than inferred.
 
 Local checks may continue during `REMOTE_PARTIAL` or `REMOTE_DEGRADED`, but record which required checks are still remote-only. Local green evidence supports `LOCAL_READY`; it does not imply REMOTE_VERIFY success.
 
