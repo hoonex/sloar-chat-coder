@@ -1,0 +1,99 @@
+name: Release Sloar
+
+on:
+  workflow_run:
+    workflows:
+      - Validate Sloar
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Publish release commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          subject="$(git log -1 --pretty=%s)"
+          case "$subject" in
+            release:*) ;;
+            *)
+              echo "Not a release commit: $subject"
+              exit 0
+              ;;
+          esac
+
+          version="$(tr -d '[:space:]' < VERSION)"
+          test -n "$version"
+          tag="v$version"
+
+          skill_version="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('.agents/skills/sloar-chat-coder/SKILL.md').read_text(encoding='utf-8')
+          match = re.search(r'^\s*version:\s*["\x27]?([0-9]+\.[0-9]+\.[0-9]+)', text, re.M)
+          if not match:
+              raise SystemExit('SKILL.md version not found')
+          print(match.group(1))
+          PY
+          )"
+
+          wizard_version="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('.agents/skills/sloar-chat-coder/scripts/wizard.py').read_text(encoding='utf-8')
+          match = re.search(r'^CURRENT_SLOAR_VERSION\s*=\s*["\x27]([^"\x27]+)', text, re.M)
+          if not match:
+              raise SystemExit('wizard version not found')
+          print(match.group(1))
+          PY
+          )"
+
+          test "$skill_version" = "$version"
+          test "$wizard_version" = "$version"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "$tag already exists; nothing to publish."
+            exit 0
+          fi
+
+          python3 - "$version" > "$RUNNER_TEMP/release-notes.md" <<'PY'
+          from pathlib import Path
+          import re, sys
+          version = sys.argv[1]
+          text = Path('CHANGELOG.md').read_text(encoding='utf-8')
+          pattern = rf'^## {re.escape(version)}(?:\s+-[^\n]*)?\n(?P<body>.*?)(?=^## |\Z)'
+          match = re.search(pattern, text, re.M | re.S)
+          if not match:
+              raise SystemExit(f'CHANGELOG section missing for {version}')
+          body = match.group('body').strip()
+          print(body)
+          print()
+          print(f'Source commit: `{sys.argv[1]}`' if False else '')
+          PY
+          printf '\nSource commit: `%s`\n' "$RELEASE_SHA" >> "$RUNNER_TEMP/release-notes.md"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" "$RELEASE_SHA" -m "Sloar Chat Coder $version"
+          git push origin "$tag"
+
+          gh release create "$tag" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_SHA" \
+            --title "Sloar Chat Coder $version" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
