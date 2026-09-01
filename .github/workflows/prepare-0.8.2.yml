@@ -76,6 +76,16 @@ jobs:
               raise SystemExit("wizard version marker not found")
           wizard.write_text(text, encoding="utf-8")
 
+          preflight = Path(".agents/skills/sloar-chat-coder/scripts/preflight.sh")
+          text = preflight.read_text(encoding="utf-8")
+          marker_old = '[[ "$(cat "$root/VERSION")" == "0.8.1" ]]'
+          marker_new = '[[ "$(cat "$root/VERSION")" == "0.8.2" ]]'
+          if marker_old in text:
+              text = text.replace(marker_old, marker_new, 1)
+          elif marker_new not in text:
+              raise SystemExit("preflight VERSION marker not found")
+          preflight.write_text(text, encoding="utf-8")
+
           update_test = Path("tests/test_update_awareness_contract.py")
           text = update_test.read_text(encoding="utf-8")
           text = text.replace(old, new)
@@ -139,6 +149,7 @@ jobs:
           test "$(tr -d '[:space:]' < VERSION)" = "0.8.2"
           grep -q 'version: "0.8.2"' .agents/skills/sloar-chat-coder/SKILL.md
           grep -q 'CURRENT_SLOAR_VERSION = "0.8.2"' .agents/skills/sloar-chat-coder/scripts/wizard.py
+          grep -q 'VERSION.*0.8.2' .agents/skills/sloar-chat-coder/scripts/preflight.sh
           grep -q '^## 0.8.2 - 2026-09-02$' CHANGELOG.md
           grep -q 'android-engineering.md' .agents/skills/sloar-chat-coder/SKILL.md
           grep -q 'android-preflight.py' .agents/skills/sloar-chat-coder/SKILL.md
@@ -156,6 +167,7 @@ jobs:
           git add VERSION CHANGELOG.md \
             .agents/skills/sloar-chat-coder/SKILL.md \
             .agents/skills/sloar-chat-coder/scripts/wizard.py \
+            .agents/skills/sloar-chat-coder/scripts/preflight.sh \
             tests/test_update_awareness_contract.py \
             tests/test_android_skill_contract.py \
             .github/workflows/validate.yml
