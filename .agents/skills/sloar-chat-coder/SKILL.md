@@ -1,10 +1,10 @@
 ---
 name: sloar-chat-coder
-description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware adaptive web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
+description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, ownership/evidence closure, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware adaptive web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.8.2"
+  version: "0.8.3"
 ---
 
 # Sloar Chat Coder
@@ -33,6 +33,8 @@ For substantial user-facing web UI/design work, if `.agents/skills/web-design-gu
 
 For Android application/module creation, modification, build, signing, packaging, or distribution, read [references/android-engineering.md](references/android-engineering.md) before implementation. When local execution is available, run `scripts/android-preflight.py <repo> --json` first. Existing Android source is authoritative; an empty/non-Android repository enters the documented bootstrap path instead of guessing project structure. Compile/test/artifact success must remain separate from real-device UI, runtime, performance, thermal, and power evidence.
 
+For consequential work where the same behavior can be owned by multiple CSS/JS/data/config layers, where a real-device/production report escaped existing green CI, where feature/gate lifecycle may have drifted, or where source can diverge from package/deploy/cache/first-frame state, use [references/ownership-evidence-closure.md](references/ownership-evidence-closure.md). Identify the semantic decision and authoritative owner before stacking a workaround, then derive required verification from the acceptance claim rather than merely reusing whatever tests already exist. Input modality, interaction phase, temporal phase, responsive/device class, persistence state, and production convergence are distinct evidence dimensions when they can change the result. `scripts/engineering-closure.py` can validate a caller-provided closure record; it never guesses source ownership or replaces repository-defined tests.
+
 When ONBOARD is shown to the user, prefer a compact readiness capsule:
 
 ```text
@@ -47,15 +49,16 @@ Next: one concrete action, or "ready to work"
 
 Omit the update line when the current version was resolved and is already stable unless the user asked for version details. Do not turn a healthy first run into a long setup tutorial. Keep onboarding brief once the environment is established.
 
-## Seven invariants
+## Eight invariants
 
 1. **Durable truth beats reconstructed chat memory.** Resolve repository facts from durable state whenever it exists.
 2. **Identity before modification.** Establish the intended commit SHA, tree SHA, and working-tree state before editing.
-3. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
-4. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
-5. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
-6. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, turn terminality, or behavior as successful without relevant evidence.
-7. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them; when an ACTIVE durable turn is in use, also verify its current fencing epoch before guarded durable writes.
+3. **Ownership before workaround.** Identify the authoritative semantic owner before adding specificity, duplicate state, another renderer, or a downstream synchronizer to hide a consequential symptom.
+4. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
+5. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
+6. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
+7. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, turn terminality, or behavior as successful without relevant evidence whose modality/phase/target actually supports that claim.
+8. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them; when an ACTIVE durable turn is in use, also verify its current fencing epoch before guarded durable writes.
 
 ## Task state machine
 
@@ -140,7 +143,7 @@ same fingerprint + changed evidence/input = possible bounded retry
 
 Do not create autonomous retry loops. Repeated platform-layer failures should transition to `REMOTE_DEGRADED` / `PUBLICATION_BLOCKED`; permission/policy/gate failures should transition to `REMOTE_PARTIAL` / `PUBLICATION_BLOCKED`. Neither state is a reason to rewrite correct product code. Read [references/recovery.md](references/recovery.md) when execution, transport, chat state, or turn delivery is lost or ambiguous.
 
-For one unchanged failure fingerprint, default to one bounded corrective cycle: diagnose from concrete evidence, make at most one corrective change for that diagnosis, and re-run the affected verification once. If the same fingerprint remains, terminalize and report rather than recursively starting "one more check." A materially different fingerprint may begin a new bounded cycle. Read [references/turn-terminalization.md](references/turn-terminalization.md).
+For one unchanged failure fingerprint, default to one bounded corrective cycle: diagnose from concrete evidence, make at most one corrective change for that diagnosis, and re-run the affected verification once. If the same fingerprint remains, do not stack another symptom patch. Rediscover the authoritative owner/boundary first; if differentiated evidence does not justify a structurally different approach, terminalize and report rather than recursively starting "one more check." A materially different fingerprint may begin a new bounded cycle. Read [references/turn-terminalization.md](references/turn-terminalization.md) and [references/ownership-evidence-closure.md](references/ownership-evidence-closure.md).
 
 A host that remains visibly "answering" is not by itself evidence that product code, GitHub, CI, or the repository failed. Recover from durable repository/turn state rather than rewriting correct work to make the chat UI stop spinning.
 
@@ -156,7 +159,13 @@ If a durable ACTIVE turn is in use, guard later durable writes with its `turn_id
 
 Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
 
-Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), and [references/operational-continuity.md](references/operational-continuity.md).
+Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), [references/ownership-evidence-closure.md](references/ownership-evidence-closure.md), and [references/operational-continuity.md](references/operational-continuity.md).
+
+For consequential acceptance claims, derive verification from the claim. When material, distinguish mouse from real touch/pen/keyboard, direct tracking from release/settle/final state, first frame from enhanced/settled state, fresh state from reload/migration, and desktop/tablet/phone classes. A passing check on another modality, phase, viewport, or older target state is not interchangeable evidence.
+
+When production identity can diverge, require only the relevant stages but keep them explicit: `SOURCE -> VERIFIED -> PACKAGED -> DEPLOYED -> SERVED -> CACHED -> FIRST_FRAME`. Deployment success does not prove critical served bytes, service-worker/cache compatibility, or legacy-free first paint when those are separately observable requirements.
+
+Before changing active product source because a gate is RED, verify the gate still protects an active contract. A failing gate attached to a `dormant` or `retired` feature outside the current change boundary is `STALE_GATE_SUSPECTED`; inspect whether the gate should be retained, scoped, fixtured, quarantined, or retired instead of automatically rewriting product source.
 
 For web UI/design work using the bundled companion, rendered browser/screenshot evidence should support visual-success claims whenever that capability is available. Code, geometry, anti-slop heuristics, or build checks alone are not sufficient proof of balanced hierarchy, text resilience, visual continuity, product-specific character, or material legibility. If rendered evidence is unavailable, report the visual scope as unverified rather than waiting indefinitely for a provider.
 
@@ -239,6 +248,7 @@ At completion, report only:
 - the checks that actually ran and their results, with important evidence-scope limitations;
 - any blocked check and its concrete blocker;
 - any relevant verification/runtime anchor that differs from current repository HEAD;
+- any unresolved ownership/evidence/convergence limitation that prevents a stronger claim;
 - any reconciliation caused by concurrent remote movement, forge recovery, capability change, in-session upgrade, or explicit turn takeover;
 - any temporary remote resource that could not be cleaned up.
 
