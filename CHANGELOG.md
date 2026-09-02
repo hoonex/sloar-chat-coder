@@ -3,6 +3,22 @@
 ## Unreleased
 
 
+## 0.8.3 - 2026-09-02
+
+Ownership and evidence intelligence release.
+
+- Added `references/ownership-evidence-closure.md` so consequential fixes begin from the semantic decision and authoritative owner rather than the visible file/selector alone. It distinguishes `OWNER_CONFIRMED`, `OWNER_UNKNOWN`, and `OWNERSHIP_SPLIT` and requires ownership rediscovery when the same failure fingerprint survives the normal bounded corrective cycle.
+- Added claim-to-evidence closure across target identity, input modality, interaction phase, temporal phase, responsive/device class, persistence state, and production/runtime phase. A mouse test no longer stands in for real-touch behavior when gesture arbitration can differ, and a final screenshot no longer stands in for direct tracking, release inertia, first-frame behavior, or reload state.
+- Added explicit production convergence modeling: `SOURCE -> VERIFIED -> PACKAGED -> DEPLOYED -> SERVED -> CACHED -> FIRST_FRAME`. Only stages that can materially diverge are required, but independently observable deployment, served-byte, cache/service-worker, and bootstrap states are no longer collapsed into one generic green deployment claim.
+- Added feature lifecycle guidance with `active / experimental / dormant / retired` and `STALE_GATE_SUSPECTED`. A RED gate for a dormant/retired feature outside the current change boundary must be inspected for lifecycle relevance before active product source is rewritten.
+- Added canonical-model and provenance guidance for raw/effective/persisted/cached state, semantic absence before coercion, and distinct provider/fetch/cache/check timestamps. This prevents patterns such as `null -> 0`, stale cached data being relabeled freshly checked, or summaries bypassing the product's effective model.
+- Added bounded external-dependency de-duplication guidance: use dedicated live integration evidence plus deterministic fixtures for UI/state tests when those UI tests are not intended to re-prove upstream availability.
+- Added `scripts/engineering-closure.py`, a repository-agnostic validator for caller-provided closure records. It reports `READY`, `REVIEW`, or `BLOCKED` and detects ownership, evidence, lifecycle, stale-target, and convergence gaps without pretending to infer authoritative ownership from source automatically.
+- Expanded the evidence ledger and verification reference with ownership maps, claim requirements, evidence coverage/target identity, feature/gate lifecycle, and runtime convergence records.
+- Wired ownership/evidence closure into the core Skill, bounded failure handling, completion reporting, First Run Wizard readiness, installer/self-test smoke, and `Validate Sloar` CI.
+- Added regression coverage for successful closure, ownership split, stale evidence, stale retired-feature gates, convergence gaps, and the core/reference contract.
+- Refreshed English/Korean README stable metadata from the stale 0.8.1 display to 0.8.3 and documented the green-CI-but-real-device/production recovery path.
+
 ## 0.8.2 - 2026-09-02
 
 Android engineering and distribution release.
