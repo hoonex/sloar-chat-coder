@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 from doctor import inspect as inspect_local
 
-CURRENT_SLOAR_VERSION = "0.8.2"
+CURRENT_SLOAR_VERSION = "0.8.3"
 VERSION_RE = re.compile(r'^\s*version:\s*["\']?([0-9]+\.[0-9]+\.[0-9]+)["\']?\s*$')
 
 
@@ -166,6 +166,8 @@ def build(repo: Path, stable_version: str | None = None):
     design_taxonomy = repo / ".agents/skills/web-design-guidance/references/design-taxonomy.md"
     anti_slop = repo / ".agents/skills/web-design-guidance/references/anti-ai-slop.md"
     apple_design = repo / ".agents/skills/apple-web-design/SKILL.md"
+    closure_reference = repo / ".agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md"
+    closure_helper = repo / ".agents/skills/sloar-chat-coder/scripts/engineering-closure.py"
 
     recommendations = []
     if not git_ok:
@@ -218,6 +220,12 @@ def build(repo: Path, stable_version: str | None = None):
             "stuck_response_recovery": "host-dependent; Sloar preserves terminal/interrupted engineering state but cannot control the chat host spinner",
             "turn_terminalization": "bounded; a RED/pending required gate changes terminal status instead of allowing indefinite self-extension",
         },
+        "engineering_closure": {
+            "reference": "ready" if closure_reference.is_file() else "missing",
+            "helper": "ready" if closure_helper.is_file() else "missing",
+            "helper_path": ".agents/skills/sloar-chat-coder/scripts/engineering-closure.py",
+            "policy": "ownership before workaround; acceptance claims require matching modality/phase/anchor evidence; production convergence stays explicit when stages can diverge",
+        },
         "design": {
             "web_design_companion": "ready" if web_design.is_file() else "missing",
             "web_design_path": ".agents/skills/web-design-guidance/SKILL.md",
@@ -237,12 +245,14 @@ def render(data):
     connections = data.get("connections", {}).get("items", [])
     connection_text = ", ".join(f"{item['name']} ({item['level']})" for item in connections) or "none detected from repository signals"
     design = data.get("design", {})
+    closure = data.get("engineering_closure", {})
     updates = data.get("updates", {})
     lines = [
         "Sloar readiness",
         f"Repository: {repo['state']}" + (f" ({repo['branch']})" if repo.get("branch") else ""),
         f"Sloar skill: {'ready' if repo['installed'] else 'missing'}",
         f"Execution: {data['execution']['state']}",
+        f"Engineering closure: reference={closure.get('reference', 'unknown')}, helper={closure.get('helper', 'unknown')}",
         f"Web design companion: {design.get('web_design_companion', 'unknown')} (adaptive={design.get('adaptive_discovery', 'unknown')}, anti-slop={design.get('anti_ai_slop_audit', 'unknown')})",
         "Hosted connections: unknown until the user connects them and the agent verifies actual tools",
         f"Suggested connections: {connection_text}",
