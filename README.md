@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.8.1**
+Current stable: **0.8.3**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.1-2563eb?style=flat-square" alt="stable 0.8.1"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.3-2563eb?style=flat-square" alt="stable 0.8.3"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -59,6 +59,7 @@ Full user guide: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**
 | --- | --- |
 | First use | Paste the `Sloar:` source URL + target repository + task into a fresh chat |
 | Normal development | Just describe the repository task |
+| Green CI missed the real bug | Report the real-device/production symptom; Sloar re-checks semantic ownership and whether the existing evidence actually covers the acceptance claim |
 | Vague web UI request | No design vocabulary required; Sloar asks only high-value questions when needed |
 | Delegate design | `You decide what fits best.` |
 | Upgrade | On the first Sloar repository turn/fresh-chat recovery, Sloar checks stable once when possible. If a newer stable exists, it asks once; after approval, the safe upgrade process is automated |
@@ -87,10 +88,13 @@ Core rules:
 ```text
 current durable repository truth > reconstructed chat memory
 resolve exact source identity before modification
+identify the authoritative semantic owner before stacking a workaround
 same failure + same inputs != useful retry
 no relevant verification evidence -> no success claim
 revalidate mutable remote state immediately before publication
 ```
+
+Since 0.8.3, consequential repeated-regression and production-sensitive work also distinguishes **what owns the behavior** from **what merely renders or tests it**. Existing green tests are not automatically accepted as proof of a different modality, interaction phase, viewport, persisted state, or production stage.
 
 The central idea is to re-resolve Git/repository/checkpoint/CI truth instead of reconstructing a long development session from memory alone.
 
@@ -148,7 +152,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?
+-> Sloar update available: 0.8.2 -> 0.8.3. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -182,7 +186,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.8.1 --json
+  --stable-version 0.8.3 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -217,7 +221,7 @@ diagnose
 -> rerun affected verification
 ```
 
-If the same failure remains, the turn should finish as `PARTIAL`, `BLOCKED`, or `FAILED` with the exact remaining gate. Autonomous instructions such as `finish it` do not authorize infinite retry/search/wait/poll loops.
+If the same failure remains, Sloar does not stack another symptom patch. It re-checks the authoritative ownership boundary; without differentiated evidence for a structurally different fix, the turn finishes as `PARTIAL`, `BLOCKED`, or `FAILED` with the exact remaining gate. Autonomous instructions such as `finish it` do not authorize infinite retry/search/wait/poll loops.
 
 ### The ChatGPT/app/server host itself stalls
 
@@ -258,7 +262,9 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 - [Interrupted turns](docs/INTERRUPTED_TURNS.md)
 - [Forge/CI resilience](docs/FORGE_RESILIENCE.md)
 
-**Design/protocol**
+**Engineering/design protocol**
+- [Ownership and evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
+- [Evidence ledger](.agents/skills/sloar-chat-coder/references/evidence-ledger.md)
 - [General web-design companion](.agents/skills/web-design-guidance/SKILL.md)
 - [Adaptive discovery](.agents/skills/web-design-guidance/references/adaptive-design-discovery.md)
 - [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
