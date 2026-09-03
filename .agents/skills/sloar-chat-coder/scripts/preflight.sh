@@ -10,7 +10,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   grep -q '^name: sloar-chat-coder$' "$skill" || { echo "invalid skill name" >&2; exit 1; }
   grep -q '^description:' "$skill" || { echo "missing description" >&2; exit 1; }
   stable_version="$(tr -d '[:space:]' < "$version_file")"
-  skill_version="$(sed -n 's/^[[:space:]]*version:[[:space:]]*["'"']\{0,1\}\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)["'"']\{0,1\}[[:space:]]*$/\1/p' "$skill" | head -n1)"
+  skill_version="$(awk '$1 == "version:" { gsub(/\"/, "", $2); print $2; exit }' "$skill")"
   [[ -n "$stable_version" && "$skill_version" == "$stable_version" ]] || { echo "VERSION mismatch" >&2; exit 1; }
   for f in "$root"/.agents/skills/sloar-chat-coder/scripts/*.sh; do bash -n "$f"; done
   python3 -m py_compile "$root"/.agents/skills/sloar-chat-coder/scripts/*.py
