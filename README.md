@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.8.3**
+Current stable: **0.9.0**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.3-2563eb?style=flat-square" alt="stable 0.8.3"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.0-2563eb?style=flat-square" alt="stable 0.9.0"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -68,35 +68,40 @@ Full user guide: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**
 
 ## How Sloar works
 
-Users do not need to memorize the state machine, but repository work roughly follows:
+0.9 moves Sloar away from state-machine-first choreography and toward a compact reasoning kernel:
 
 ```text
-ONBOARD?
--> RECOVER
--> IDENTIFY
--> MATERIALIZE
--> BRANCH
--> IMPLEMENT
--> VERIFY
--> PUBLISH
--> REMOTE_VERIFY
--> CLEANUP
+OBSERVE
+-> MODEL
+-> ACT
+-> PROVE
+-> RECONCILE
 ```
 
-Core rules:
+The detailed repository lifecycle still exists, but it expands only when continuity, publication, remote capability, or recovery risk makes those distinctions useful.
+
+Core safeguards:
 
 ```text
 current durable repository truth > reconstructed chat memory
-resolve exact source identity before modification
+resolve exact source identity before identity-dependent modification
 identify the authoritative semantic owner before stacking a workaround
 same failure + same inputs != useful retry
 no relevant verification evidence -> no success claim
-revalidate mutable remote state immediately before publication
+revalidate mutable remote state immediately before publication-dependent writes
 ```
 
-Since 0.8.3, consequential repeated-regression and production-sensitive work also distinguishes **what owns the behavior** from **what merely renders or tests it**. Existing green tests are not automatically accepted as proof of a different modality, interaction phase, viewport, persisted state, or production stage.
+The MODEL/PROVE steps treat user-visible semantics as stronger than convenient implementation labels. For example, `queued` does not automatically prove a requirement phrased as `before callback starts`; Sloar 0.9 tests the latest valid observable boundary when that edge can change correctness.
 
-The central idea is to re-resolve Git/repository/checkpoint/CI truth instead of reconstructing a long development session from memory alone.
+For asynchronous/stateful work, Sloar also checks Promise/callback/event results, resource ownership, late finalizers, cancellation ownership, retry safety/liveness, and transition-adjacent races instead of validating only final store state.
+
+Details:
+- [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
+- [State machine](.agents/skills/sloar-chat-coder/references/state-machine.md)
+- [Verification](.agents/skills/sloar-chat-coder/references/verification.md)
+
+The central continuity idea remains the same: re-resolve Git/repository/checkpoint/CI truth instead of reconstructing a long development session from memory alone.
 
 ## Web development includes design reasoning
 
@@ -152,7 +157,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.8.2 -> 0.8.3. Upgrade now?
+-> Sloar update available: 0.8.3 -> 0.9.0. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -186,7 +191,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.8.3 --json
+  --stable-version 0.9.0 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -263,6 +268,8 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 - [Forge/CI resilience](docs/FORGE_RESILIENCE.md)
 
 **Engineering/design protocol**
+- [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership and evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
 - [Evidence ledger](.agents/skills/sloar-chat-coder/references/evidence-ledger.md)
 - [General web-design companion](.agents/skills/web-design-guidance/SKILL.md)
