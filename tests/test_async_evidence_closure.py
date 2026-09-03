@@ -47,6 +47,14 @@ class AsyncEvidenceClosureTests(unittest.TestCase):
         self.assertIn("final-state test -> Promise/callback observable", self.async_ref)
         self.assertIn("PARTIAL or EVIDENCE_GAP", self.async_ref)
 
+    def test_caller_visible_cancellation_is_separate_from_underlying_lifetime(self):
+        self.assertIn("Caller-visible cancellation must not inherit unrelated operation latency", self.async_ref)
+        self.assertIn("caller settlement", self.async_ref)
+        self.assertIn("underlying operation termination", self.async_ref)
+        self.assertIn("caller-visible latency/settlement", self.async_ref)
+        self.assertIn("underlying closure", self.async_ref)
+        self.assertIn("not a requirement to use `Promise.race`", self.async_ref)
+
     def test_evidence_economy_prefers_boundary_coverage_over_volume(self):
         self.assertIn("Evidence economy", self.async_ref)
         self.assertIn("not inflate test count", self.async_ref)
