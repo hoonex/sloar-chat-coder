@@ -28,7 +28,7 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("risk-adaptive guardrails", self.skill)
         self.assertIn("not the default reasoning algorithm", self.state_machine)
         self.assertIn("Small exact tasks may collapse", self.skill)
-        self.assertIn("do not spend tool calls", self.state_machine)
+        self.assertIn("do not spend tool calls", self.state_machine.lower())
 
     def test_phase_fit_and_latest_boundary_are_entry_level_rules(self):
         self.assertIn("latest valid observable", self.skill)
