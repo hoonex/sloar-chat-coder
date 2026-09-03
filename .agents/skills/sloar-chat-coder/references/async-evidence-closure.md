@@ -187,6 +187,32 @@ underlying lifecycle: shared work may continue, or may abort only when ownership
 
 Do not collapse them into one boolean.
 
+### Caller-visible cancellation must not inherit unrelated operation latency
+
+When the API promises caller cancellation, model **caller settlement** and **underlying operation termination** as separate timelines unless the public contract explicitly couples them.
+
+A caller may be entitled to observe cancellation immediately even while an external side effect, publisher, worker, transport, or shared computation continues toward its own fenced terminal state. Conversely, underlying work may need to continue for other owners even though one caller has already settled as cancelled.
+
+Ask:
+
+```text
+cancel requested
+-> when must this caller's Promise/return handle become terminal?
+-> what underlying work still owns resources or side effects?
+-> what fence prevents late work from becoming caller-visible or authoritative?
+```
+
+Do not require a cancelled caller to wait for cooperative cancellation, a delayed publisher, a slow transport, or a worker that ignores abort **unless that delay is part of the documented caller contract**. Do not solve this by abandoning the underlying operation without ownership/finalizer fencing.
+
+When relevant, verify both:
+
+```text
+caller-visible latency/settlement: cancellation becomes observable at the promised boundary
+underlying closure: continued/late work cannot publish, overwrite, leak ownership, or damage newer work
+```
+
+This is an observable contract, not a requirement to use `Promise.race`, detach a task, or any specific implementation pattern.
+
 ## Claim discipline
 
 Before reporting PASS for an async requirement, bind it to evidence exercising the same semantic path, relevant boundary, identity, and observable surface.
