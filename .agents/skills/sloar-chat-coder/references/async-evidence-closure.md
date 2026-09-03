@@ -1,57 +1,211 @@
 # Async evidence closure
 
-Use this contract for consequential asynchronous/stateful work where correctness can change across an await, callback, retry, cancellation, session switch, invalidation, reconnect, subscription event, or queued operation.
+Use this contract for consequential asynchronous/stateful work where correctness can change across an await, callback, retry, cancellation, session switch, invalidation, reconnect, subscription event, queued operation, scheduled callback, or resource handoff.
+
+Read [reasoning-kernel.md](reasoning-kernel.md) first. This reference expands the kernel's MODEL and PROVE moves for asynchronous behavior.
 
 The goal is not to enumerate every possible race. The goal is to derive the relevant race surface from the requested behavior and prove the observable contract rather than only internal state.
 
 ## Split compound requirements before claiming PASS
 
-Do not let one passing proxy close several independently observable requirements. If different code paths can satisfy or violate parts of one sentence independently, track those parts independently in the claim-to-evidence map.
+Do not let one passing proxy close several independently observable requirements. If different code paths, phases, identities, or observables can satisfy or violate parts of one sentence independently, track those parts independently in the claim-to-evidence map.
 
-Example: logout fencing and explicit invalidation fencing require separate evidence when they use different paths.
+Examples:
 
-## Await-boundary state-transition analysis
+```text
+logout fencing != explicit invalidation fencing
+queued cancellation != invocation-boundary cancellation
+final store state != Promise resolution value
+retry safety != retry liveness
+```
 
-For each consequential async operation, model:
+## Semantic phase before implementation state
 
-START -> SUSPEND / external work -> INTERVENING TRANSITION* -> RESUME -> OBSERVABLE RESULT
+User requirements describe semantic phases. Implementations expose internal states. They are not automatically equivalent.
 
-Derive relevant transitions from the feature. Common classes include identity/session switch, invalidate/delete/replace, newer local mutation, newer remote event/version, online/offline, cancel/dispose, retry/reconnect, new queue work, and ownership/epoch/generation change.
+A scheduler may internally use:
 
-For each transition that can change correctness, ask both:
-1. Can the resumed operation mutate internal, cached, or visible state incorrectly?
-2. Can it return, resolve, reject, emit, or report an obsolete observable result even if internal state is protected?
+```text
+queued -> reserved -> scheduled -> running -> settling -> terminal
+```
 
-A stale result that is prevented from writing state can still violate the public contract if the caller observes that stale value.
+while the public requirement says only:
+
+```text
+before runner starts
+```
+
+`queued` is therefore not sufficient evidence. `reserved` or `scheduled` may still be semantically "before runner starts" if user code has not been invoked yet.
+
+Before designing a race test, write the semantic phase in observable terms, then map implementation states onto it. Never define the claim by whichever state is easiest to test.
+
+## Latest-valid-boundary rule
+
+For claims using words such as `before`, `until`, `after`, `during`, `once`, `while pending`, or `before completion`, identify the **latest observable point at which the claim must still hold**.
+
+Place at least one adversarial transition at that point when the edge can change correctness.
+
+Example:
+
+```text
+claim: all callers cancel before runner starts -> runner must not execute
+
+weak evidence:
+work remains queued -> cancel -> no execution
+
+strong evidence:
+slot/resource reserved
+callback/microtask already scheduled
+user runner not invoked yet
+-> cancel all
+-> invocation count remains zero
+-> reserved resources are released
+```
+
+This is transition-adjacent testing: test the edge immediately before the forbidden or observable transition, not only a comfortable earlier state.
+
+## Suspension and callback boundary analysis
+
+For each consequential async operation, model the smallest relevant sequence:
+
+```text
+START
+-> OWNERSHIP / RESOURCE RESERVATION?
+-> CALLBACK / MICROTASK / TIMER SCHEDULED?
+-> SUSPEND / external work
+-> INTERVENING TRANSITION*
+-> RESUME / CALLBACK INVOCATION
+-> SETTLE / FINALIZER
+-> OBSERVABLE RESULT
+```
+
+Not every operation has every phase. Include only phases whose ordering can change correctness.
+
+Derive relevant transitions from the feature. Common classes include identity/session switch, invalidate/delete/replace, newer local mutation, newer remote event/version, online/offline, cancel/dispose, retry/reconnect, new queue work, ownership/epoch/generation change, dedupe detach, resource release, and replacement execution creation.
+
+For each relevant transition ask:
+
+1. Can the old operation still invoke user code when it should have become invalid?
+2. Can it mutate internal, cached, remote, or visible state incorrectly?
+3. Can it retain or release a resource incorrectly?
+4. Can it return, resolve, reject, emit, or report an obsolete observable result even if state is protected?
+5. Can its late finalizer damage a newer replacement lifecycle?
 
 ## Observable-result invariant
 
-Verification must cover the externally observable surface promised by the API, not only final store contents. Depending on the API this may include return values, Promise resolution values, rejection/error class, callback payload, emitted event, visible state, cache state, remote side effects, queue state, and request count/deduplication.
+Verification must cover the externally observable surface promised by the API, not only final store contents.
 
-Do not mark an async race fixed merely because get() or final UI is correct when await operation() can still return stale data.
+Depending on the API this may include:
+
+```text
+return value
+Promise resolution/rejection
+error class
+callback invocation count
+callback payload
+AbortSignal state
+emitted event
+visible/local/cache state
+remote side effect
+queue/dedupe ownership
+resource/running count
+start order
+artifact/runtime identity
+```
+
+Do not mark an async race fixed merely because final state is correct when user code was still invoked incorrectly, a Promise returned stale data, or a resource was stranded.
 
 ## Lifecycle-pair derivation
 
-When two lifecycle actions can overlap, derive pairwise race candidates from actual ownership boundaries. Examples include load x invalidate, load x edit, load x push, flush x enqueue, flush x offline, mutation x logout, retry x invalidation, and cancel x shared in-flight work.
+When two lifecycle actions can overlap, derive pairwise race candidates from actual ownership boundaries.
 
-Do not blindly test a Cartesian product. Select pairs where both actions touch the same semantic owner, generation, queue, cache key, visible projection, or remote side effect. At least one test should force the transition to occur during the suspended phase when ordering matters. Sequential tests are not evidence for an interleaving race.
+Examples include:
+
+```text
+load x invalidate
+load x edit
+load x push
+flush x enqueue
+flush x offline
+mutation x logout
+retry x invalidation
+cancel x shared in-flight work
+cancel x invocation scheduling
+old finalizer x replacement execution
+retry x concurrency slot
+```
+
+Do not blindly test a Cartesian product. Select pairs where both actions touch the same semantic owner, generation, queue, resource, cache key, visible projection, public result, or remote side effect.
+
+At least one test should force the transition during the phase where ordering matters. Sequential tests are not evidence for an interleaving race.
+
+## Transition-adjacent adversarial basis
+
+For each high-risk lifecycle claim, prefer a compact adversarial basis rather than a large repetitive test suite.
+
+Useful edges to consider when relevant:
+
+```text
+immediately before user callback invocation
+immediately after resource reservation
+immediately before dedupe detach
+immediately after dedupe detach but before old resource release
+immediately before retry requeue
+immediately after retry requeue but before next attempt
+immediately before finalizer cleanup
+immediately after replacement state becomes authoritative
+immediately before drain/quiescence resolution
+```
+
+The requirement decides which edge matters. These are prompts for reasoning, not mandatory tests.
 
 ## Fencing must be end-to-end
 
-A generation, token, or epoch is useful only if every consequential consumer checks the appropriate fence. Trace the path from request start through cache/in-flight layer, coordinator/service layer, visible/local state, and returned/emitted result.
+A generation, token, epoch, ownership check, or identity guard is useful only if every consequential consumer checks the appropriate fence.
 
-A lower layer preventing cache repopulation does not prove an upper layer cannot write the stale response elsewhere or return it to the caller.
+Trace the path from request/execution start through any cache/in-flight layer, coordinator/service layer, resource accounting, visible/local state, dedupe/ownership state, returned/emitted result, and finalizer cleanup.
 
-## Retry, queue, and liveness closure
+A lower layer preventing cache repopulation does not prove an upper layer cannot write the stale response elsewhere or return it to the caller. Likewise deleting a dedupe entry does not prove an old finalizer cannot delete a newer replacement entry unless cleanup verifies ownership identity.
 
-For retryable or queued work, prove both safety and liveness: no duplicate/obsolete effect, and valid pending work can still make progress later.
+## Retry, queue, cancellation, and liveness closure
 
-Relevant checks may include rejected in-flight cleanup, stable idempotency identity after ambiguous remote apply, releasing drain state after completion/failure, avoiding stranded work near drain completion, stopping later sends after an offline/cancel transition when required, and allowing a later reconnect/retry to resume retained work.
+For retryable or queued work, prove both safety and liveness:
+
+```text
+safety: no duplicate, obsolete, over-limit, post-cancel, or wrong-owner effect
+liveness: valid retained/new work can still progress and quiescence can eventually be observed
+```
+
+Relevant checks may include rejected in-flight cleanup, stable idempotency identity after ambiguous remote apply, slot/resource release on all terminal paths, no retry after terminal cancellation, retry reacquiring concurrency limits, avoiding stranded work near drain completion, and allowing later reconnect/resubmit/retry to resume valid work.
+
+Cancellation has at least two independently meaningful observables when relevant:
+
+```text
+caller lifecycle: this caller must settle as cancelled exactly once
+underlying lifecycle: shared work may continue, or may abort only when ownership rules require it
+```
+
+Do not collapse them into one boolean.
 
 ## Claim discipline
 
-Before reporting PASS for an async requirement, bind it to evidence exercising the same operation path and relevant interleaving. Use PARTIAL or EVIDENCE_GAP when the implementation appears structurally correct but the required interleaving or observable surface was not executed.
+Before reporting PASS for an async requirement, bind it to evidence exercising the same semantic path, relevant boundary, identity, and observable surface.
 
-Do not generalize from logout test to all invalidation paths, final-state test to Promise return value, sequential test to concurrent interleaving, cache fence to coordinator fence, or one successful flush to future drain liveness.
+Use PARTIAL or EVIDENCE_GAP when the implementation appears structurally correct but the required interleaving or boundary was not executed.
 
-The purpose is to improve reasoning coverage, not inflate test count. Prefer a small adversarial set that directly attacks identified state transitions.
+Do not generalize from:
+
+```text
+logout test -> all invalidation paths
+queued cancellation -> all pre-invocation cancellation
+final-state test -> Promise/callback observable
+sequential test -> concurrent interleaving
+cache fence -> coordinator/result/finalizer fence
+one successful flush -> future drain liveness
+```
+
+## Evidence economy
+
+The purpose is to improve reasoning coverage, not inflate test count.
+
+A smaller suite that attacks distinct semantic boundaries is stronger than a larger suite that repeats the same comfortable phase. When several tests cover one phase but an adjacent high-risk phase has none, add or replace evidence rather than simply adding more volume.
