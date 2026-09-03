@@ -4,6 +4,8 @@ The target repository defines actual commands. Sloar defines how to select and i
 
 For consequential, repeated-regression, real-device, responsive, persistence, caching, deployment, or first-frame work, read [ownership-evidence-closure.md](ownership-evidence-closure.md) before treating existing green checks as sufficient. Verification begins from the acceptance claim and authoritative semantic owner, not from the list of tests that happen to exist.
 
+For consequential asynchronous/stateful work where correctness can change across an `await`, callback, retry, cancellation, session switch, invalidation, reconnect, subscription event, or queued operation, also read [async-evidence-closure.md](async-evidence-closure.md). Split compound requirements into independently observable claims, derive relevant lifecycle interleavings, and verify returned/emitted values as well as final internal state.
+
 ## Ownership preflight
 
 Before changing source after a non-trivial failure, identify the semantic decision being changed and its authoritative owner. Inspect producers, writers/overrides, derived consumers, renderer/presentation owner, tests/gates, and package/deploy/cache layers to the depth relevant to the task.
@@ -30,6 +32,8 @@ Test fresh state, write, same-session read, reload/restart, compatibility/migrat
 
 ### Network/data flow
 Inspect request count, duplicate requests, cancellation/error paths, loading/fallback behavior, cache freshness/provenance, and real integration contracts when required. Do not make unrelated UI tests repeatedly depend on the same unstable live upstream when a dedicated live integration gate plus deterministic fixture gives stronger separation of evidence.
+
+For async network/data flows, distinguish sequential correctness from interleaving correctness. A lower-layer cache fence does not prove an upper coordinator, visible projection, callback, or Promise result is fenced. When lifecycle transitions can overlap, exercise the relevant suspended-phase ordering rather than inferring it from a sequential test.
 
 ### Performance-sensitive code
 Inspect newly introduced polling, observers, mutation churn, animation loops, timers, repeated layout reads/writes, or request amplification. Measure repository-specific budgets when they exist.
@@ -58,6 +62,8 @@ production/runtime phase
 ```
 
 Then bind each claim only to checks that actually cover those dimensions. Evidence from an older commit/runtime anchor is stale unless equivalence is explicitly established.
+
+For compound async requirements, one evidence item must not silently close another independently observable operation path. If `logout` and explicit `invalidate` use different paths, evidence for one does not close the other. If final state and Promise return value can diverge, they are separate observable surfaces.
 
 ## Feature lifecycle and gate relevance
 
