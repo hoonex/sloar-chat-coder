@@ -7,12 +7,14 @@ SKILL = ROOT / ".agents/skills/sloar-chat-coder/SKILL.md"
 REFERENCE = ROOT / ".agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md"
 VERIFICATION = ROOT / ".agents/skills/sloar-chat-coder/references/verification.md"
 LEDGER = ROOT / ".agents/skills/sloar-chat-coder/references/evidence-ledger.md"
+VERSION = ROOT / "VERSION"
 
 
 class OwnershipEvidenceContractTests(unittest.TestCase):
     def test_core_wires_ownership_before_workaround_and_claim_closure(self):
         text = SKILL.read_text(encoding="utf-8")
-        self.assertIn('version: "0.8.3"', text)
+        version = VERSION.read_text(encoding="utf-8").strip()
+        self.assertIn(f'version: "{version}"', text)
         self.assertIn("Ownership before workaround", text)
         self.assertIn("ownership-evidence-closure.md", text)
         self.assertIn("engineering-closure.py", text)

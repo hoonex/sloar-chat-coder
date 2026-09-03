@@ -4,18 +4,38 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.8.3"
+  version: "0.9.0"
 ---
 
 # Sloar Chat Coder
 
 Sloar is a repository-engineering continuity protocol for chat-based coding. It does not choose the target repository's engineering method. It makes the work exact, recoverable, escalation-aware, concurrency-safe, evidence-bounded, outage-tolerant, and understandable on first use.
 
+## Core reasoning kernel
+
+For non-trivial repository work, reason with the compact loop:
+
+```text
+OBSERVE -> MODEL -> ACT -> PROVE -> RECONCILE
+```
+
+This is the default reasoning algorithm. The detailed state machine and specialized references are conditional guardrail expansions, not a checklist that every task must mechanically traverse.
+
+- **OBSERVE:** resolve durable facts that can change the engineering decision.
+- **MODEL:** identify authoritative owners, invariants, independently observable claims, and relevant lifecycle transitions.
+- **ACT:** make the smallest coherent structural change that satisfies the model.
+- **PROVE:** attack the claim at the strongest relevant observable and semantic boundary, not merely a convenient implementation state.
+- **RECONCILE:** ensure evidence still matches the durable state being published/reported and preserve recovery state when needed.
+
+Read [references/reasoning-kernel.md](references/reasoning-kernel.md) for the full compact contract. For consequential async/stateful work, expand MODEL/PROVE with [references/async-evidence-closure.md](references/async-evidence-closure.md). In particular, `queued`, `reserved`, `scheduled`, `running`, and similar implementation states are not automatically equivalent to user-facing phases such as `before callback starts`; boundary claims should be tested at the latest valid observable point when that edge can change correctness.
+
+Do not turn the union of all Sloar references into ceremony. Use a specialized reference only when its trigger is present.
+
 ## First-run onboarding
 
 When the user/session is new to Sloar or required capabilities are uncertain, run a compact **ONBOARD** check before repository modification. Inspect the capabilities actually exposed in the current session; do not assume a plugin, app, sandbox, GitHub write path, browser, or CI runner exists because another session had one.
 
-At the first Sloar repository turn in a chat, and again after an intentional fresh-chat resume or takeover, perform one **UPDATE_AWARENESS** check when the canonical stable Sloar source is reachable without disrupting the task. Resolve the installed Sloar version from the target repository and the current stable version from durable Sloar source state. If they match, stay silent. If a newer stable release exists, show one compact notice such as `Sloar update available: 0.8.0 -> 0.8.1. Upgrade now?` and wait for the user's answer before any upgrade write. If stable-version resolution is unavailable or degraded, classify update status as unknown and continue normal repository work unless the task itself depends on that source. Read [references/upgrading.md](references/upgrading.md) for the complete contract.
+At the first Sloar repository turn in a chat, and again after an intentional fresh-chat resume or takeover, perform one **UPDATE_AWARENESS** check when the canonical stable Sloar source is reachable without disrupting the task. Resolve the installed Sloar version from the target repository and the current stable version from durable Sloar source state. If they match, stay silent. If a newer stable release exists, show one compact notice such as `Sloar update available: 0.8.0 -> 0.9.0. Upgrade now?` and wait for the user's answer before any upgrade write. If stable-version resolution is unavailable or degraded, classify update status as unknown and continue normal repository work unless the task itself depends on that source. Read [references/upgrading.md](references/upgrading.md) for the complete contract.
 
 For ChatGPT/Codex, distinguish **Plugin** (workflow package), **App** (authenticated external data/actions), and **Skill** (reusable instructions). Installing Sloar does not itself authorize GitHub. Conversely, missing GitHub integration does not block local engineering when a lower capability path is sufficient.
 
@@ -49,26 +69,28 @@ Next: one concrete action, or "ready to work"
 
 Omit the update line when the current version was resolved and is already stable unless the user asked for version details. Do not turn a healthy first run into a long setup tutorial. Keep onboarding brief once the environment is established.
 
-## Eight invariants
+## Eight safeguards
+
+These are invariants, not a mandatory execution order.
 
 1. **Durable truth beats reconstructed chat memory.** Resolve repository facts from durable state whenever it exists.
-2. **Identity before modification.** Establish the intended commit SHA, tree SHA, and working-tree state before editing.
+2. **Identity before identity-dependent modification.** Establish the intended immutable source when the write's correctness depends on it; do not add identity ceremony to unrelated read-only work.
 3. **Ownership before workaround.** Identify the authoritative semantic owner before adding specificity, duplicate state, another renderer, or a downstream synchronizer to hide a consequential symptom.
-4. **Sandbox before remote execution.** Use the sandbox work container as the default workstation once exact source is materialized.
+4. **Sandbox before remote execution when local execution is actually needed.** Use the sandbox work container as the default workstation once exact source is materialized, but connector-native repository work is valid when a local worktree is unnecessary.
 5. **Lowest sufficient capability wins.** Escalate only when the current level cannot faithfully complete the required operation.
 6. **Diagnose before retry.** A retry must be justified by new evidence or changed inputs.
-7. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, turn terminality, or behavior as successful without relevant evidence whose modality/phase/target actually supports that claim.
+7. **Evidence bounds claims.** Never report a check, deployment, merge, upgrade, turn terminality, or behavior as successful without relevant evidence whose modality/semantic phase/target/observable actually supports that claim.
 8. **Revalidate before publication.** Resolve mutable remote refs again immediately before a write that depends on them; when an ACTIVE durable turn is in use, also verify its current fencing epoch before guarded durable writes.
 
 ## Task state machine
 
-Repository work follows this lifecycle:
+For continuity-, publication-, or recovery-sensitive work, Sloar can expand the kernel into:
 
 ```text
 ONBOARD? -> RECOVER -> IDENTIFY -> MATERIALIZE -> BRANCH -> IMPLEMENT -> VERIFY -> PUBLISH -> REMOTE_VERIFY -> CLEANUP
 ```
 
-Do not skip a state whose exit condition is required by the task. Read [references/state-machine.md](references/state-machine.md) for state contracts.
+The states are risk-adaptive guardrails. Small exact tasks may collapse several states; do not spend tool calls proving distinctions that cannot change the engineering decision, evidence quality, recoverability, or publication safety. Read [references/state-machine.md](references/state-machine.md) for state contracts.
 
 Forge health/capability is a separate overlay on this lifecycle. A task may be `LOCAL_READY` while the hosted forge is `REMOTE_PARTIAL` or `REMOTE_DEGRADED`; in that case IMPLEMENT/VERIFY can continue locally while the blocked remote operation remains deferred. Read [references/forge-resilience.md](references/forge-resilience.md).
 
@@ -159,9 +181,11 @@ If a durable ACTIVE turn is in use, guard later durable writes with its `turn_id
 
 Verification should be change-aware and repository-defined. Source changes are not complete merely because the files were written.
 
-Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), [references/ownership-evidence-closure.md](references/ownership-evidence-closure.md), and [references/operational-continuity.md](references/operational-continuity.md).
+Maintain an evidence ledger containing the checks that actually ran, their target state, result, blocker when applicable, and enough evidence type/scope to know which claims they support. No evidence means no success claim. A compile check does not prove visual quality; a merge/deploy transition does not automatically prove production health when runtime health is separately observable. During a remote outage or capability block, local green checks can support `LOCAL_READY` but cannot substitute for required REMOTE_VERIFY evidence. Read [references/verification.md](references/verification.md), [references/evidence-ledger.md](references/evidence-ledger.md), [references/ownership-evidence-closure.md](references/ownership-evidence-closure.md), [references/async-evidence-closure.md](references/async-evidence-closure.md), and [references/operational-continuity.md](references/operational-continuity.md).
 
-For consequential acceptance claims, derive verification from the claim. When material, distinguish mouse from real touch/pen/keyboard, direct tracking from release/settle/final state, first frame from enhanced/settled state, fresh state from reload/migration, and desktop/tablet/phone classes. A passing check on another modality, phase, viewport, or older target state is not interchangeable evidence.
+For consequential acceptance claims, derive verification from the claim. When material, distinguish mouse from real touch/pen/keyboard, direct tracking from release/settle/final state, first frame from enhanced/settled state, fresh state from reload/migration, desktop/tablet/phone classes, and semantic lifecycle boundaries from convenient implementation states. A passing check on another modality, phase, viewport, observable, or older target state is not interchangeable evidence.
+
+For boundary language such as `before`, `until`, `after`, `during`, or `while pending`, test the latest valid observable boundary when that edge can change correctness. More tests do not compensate for missing the critical phase.
 
 When production identity can diverge, require only the relevant stages but keep them explicit: `SOURCE -> VERIFIED -> PACKAGED -> DEPLOYED -> SERVED -> CACHED -> FIRST_FRAME`. Deployment success does not prove critical served bytes, service-worker/cache compatibility, or legacy-free first paint when those are separately observable requirements.
 

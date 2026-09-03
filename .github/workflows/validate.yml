@@ -49,6 +49,14 @@ jobs:
       - name: Validate first-run installer, doctor, engineering closure, design companions, connections and forge resilience
         run: |
           set -euo pipefail
+          stable="$(tr -d '[:space:]' < VERSION)"
+          future="$(python3 - "$stable" <<'PY'
+          import sys
+          major, minor, patch = map(int, sys.argv[1].split('.'))
+          print(f'{major}.{minor}.{patch + 1}')
+          PY
+          )"
+
           target="$RUNNER_TEMP/first-run-target"
           mkdir -p "$target"
           git -C "$target" init -q
@@ -66,6 +74,8 @@ jobs:
 
           python3 .agents/skills/sloar-chat-coder/scripts/install.py --target "$target"
           test -s "$target/.agents/skills/sloar-chat-coder/SKILL.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/reasoning-kernel.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/async-evidence-closure.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/chat-native-continuity.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/upgrading.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/operational-continuity.md"
@@ -104,16 +114,17 @@ jobs:
           print('first-run: ok')
           PY
 
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.3 --json > "$RUNNER_TEMP/wizard.json"
-          python3 - "$RUNNER_TEMP/wizard.json" <<'PY'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version "$stable" --json > "$RUNNER_TEMP/wizard.json"
+          python3 - "$RUNNER_TEMP/wizard.json" "$stable" <<'PY'
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          stable=sys.argv[2]
           assert data['schema']==2
-          assert data['sloar_version']=='0.8.3'
+          assert data['sloar_version']==stable
           assert data['repository']['state']=='ready'
           assert data['repository']['installed'] is True
-          assert data['updates']['installed_version']=='0.8.3'
-          assert data['updates']['stable_version']=='0.8.3'
+          assert data['updates']['installed_version']==stable
+          assert data['updates']['stable_version']==stable
           assert data['updates']['status']=='current'
           assert data['updates']['action']=='none'
           assert data['updates']['silent_when_current'] is True
@@ -180,23 +191,25 @@ jobs:
           print('engineering closure: ok')
           PY
 
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.9.0 --json > "$RUNNER_TEMP/wizard-update.json"
-          python3 - "$RUNNER_TEMP/wizard-update.json" <<'PY'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version "$future" --json > "$RUNNER_TEMP/wizard-update.json"
+          python3 - "$RUNNER_TEMP/wizard-update.json" "$stable" "$future" <<'PY'
           import json, pathlib, sys
           data=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          stable=sys.argv[2]
+          future=sys.argv[3]
           assert data['updates']['status']=='update_available'
           assert data['updates']['action']=='ask_user_before_upgrade'
-          assert data['updates']['installed_version']=='0.8.3'
-          assert data['updates']['stable_version']=='0.9.0'
+          assert data['updates']['installed_version']==stable
+          assert data['updates']['stable_version']==future
           print('wizard update notice: ok')
           PY
 
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.3 | grep -q '^Sloar readiness$'
-          if python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.8.3 | grep -q '^Sloar update:'; then
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version "$stable" | grep -q '^Sloar readiness$'
+          if python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version "$stable" | grep -q '^Sloar update:'; then
             echo 'current stable must stay silent in human readiness output' >&2
             exit 1
           fi
-          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version 0.9.0 | grep -q 'Sloar update: 0.8.3 -> 0.9.0 available (approval required)'
+          python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" --stable-version "$future" | grep -Fq "Sloar update: $stable -> $future available (approval required)"
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Engineering closure: reference=ready, helper=ready'
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Web design companion: ready (adaptive=ready, anti-slop=ready)'
           python3 "$target/.agents/skills/sloar-chat-coder/scripts/wizard.py" "$target" | grep -q 'Suggested connections: GitHub'
@@ -268,13 +281,15 @@ jobs:
               if ':' in line and not line.startswith(' '):
                   k, v = line.split(':', 1)
                   fields[k.strip()] = v.strip()
+          stable = Path('VERSION').read_text().strip()
           assert fields.get('name') == 'sloar-chat-coder'
           assert fields.get('description'), 'description is required'
           assert len(fields['name']) <= 64
           assert len(fields['description']) <= 1024
           assert body.strip(), 'skill body is empty'
-          assert Path('VERSION').read_text().strip() == '0.8.3'
-          assert 'version: "0.8.3"' in text
+          assert f'version: "{stable}"' in text
+          assert Path('.agents/skills/sloar-chat-coder/references/reasoning-kernel.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/references/async-evidence-closure.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/forge-resilience.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/chat-native-continuity.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/upgrading.md').is_file()

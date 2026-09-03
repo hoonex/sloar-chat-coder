@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / ".agents/skills/sloar-chat-coder/SKILL.md"
+VERSION = ROOT / "VERSION"
 UPGRADING = ROOT / ".agents/skills/sloar-chat-coder/references/upgrading.md"
 ONBOARDING = ROOT / ".agents/skills/sloar-chat-coder/references/environment-onboarding.md"
 SCRIPTS = ROOT / ".agents/skills/sloar-chat-coder/scripts"
@@ -26,7 +27,8 @@ def load_wizard():
 class UpdateAwarenessContractTests(unittest.TestCase):
     def test_core_requires_bounded_read_only_awareness_before_upgrade_write(self):
         core = CORE.read_text(encoding="utf-8")
-        self.assertIn('version: "0.8.3"', core)
+        stable = VERSION.read_text(encoding="utf-8").strip()
+        self.assertIn(f'version: "{stable}"', core)
         self.assertIn("UPDATE_AWARENESS", core)
         self.assertIn("first Sloar repository turn", core)
         self.assertIn("If they match, stay silent", core)
@@ -52,23 +54,24 @@ class UpdateAwarenessContractTests(unittest.TestCase):
 
     def test_wizard_update_status_is_deterministic_and_never_implies_auto_write(self):
         wizard = load_wizard()
-        self.assertEqual(wizard.CURRENT_SLOAR_VERSION, "0.8.3")
+        stable = VERSION.read_text(encoding="utf-8").strip()
+        self.assertEqual(wizard.CURRENT_SLOAR_VERSION, stable)
 
-        current = wizard.build_update_status("0.8.3", "0.8.3")
+        current = wizard.build_update_status(stable, stable)
         self.assertEqual(current["status"], "current")
         self.assertEqual(current["action"], "none")
         self.assertTrue(current["silent_when_current"])
 
-        available = wizard.build_update_status("0.8.0", "0.8.3")
+        available = wizard.build_update_status("0.8.3", stable)
         self.assertEqual(available["status"], "update_available")
         self.assertEqual(available["action"], "ask_user_before_upgrade")
         self.assertIn("approval", available["install_policy"])
 
-        unknown = wizard.build_update_status("0.8.3", None)
+        unknown = wizard.build_update_status(stable, None)
         self.assertEqual(unknown["status"], "unknown")
         self.assertEqual(unknown["action"], "resolve_stable_in_hosted_agent_when_available")
 
-        ahead = wizard.build_update_status("0.9.0", "0.8.3")
+        ahead = wizard.build_update_status("1.0.0", stable)
         self.assertEqual(ahead["status"], "ahead")
         self.assertEqual(ahead["action"], "do_not_downgrade")
 
