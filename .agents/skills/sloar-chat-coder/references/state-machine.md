@@ -30,14 +30,32 @@ Exit when the exact source target is immutable.
 
 ## MATERIALIZE
 
-Create a complete working tree for the identified source.
+Establish an exact engineering view for the identified source. Two modes are valid:
+
+### `LOCAL_WORKTREE`
+
+Use when a complete local working tree exists or the task needs local execution against repository state.
 
 Must verify:
 - checked-out HEAD equals expected commit SHA;
 - tree identity equals expected tree when known;
 - unexpected dirty state is absent or explicitly preserved and understood.
 
-A collection of individually fetched source snippets is not a complete materialized working tree for repository-wide engineering.
+A collection of individually fetched source snippets is not a complete `LOCAL_WORKTREE` for repository-wide local execution.
+
+### `CONNECTOR_NATIVE`
+
+Use when ordinary Git transport or local clone is unavailable, but an authorized repository connector can resolve the exact immutable commit/tree and provide exact repository operations required by the current task boundary.
+
+`CONNECTOR_NATIVE` does not require a local clone. It must preserve:
+- immutable repository identity for all reads and writes;
+- exact file/object scope used for reasoning and modification;
+- no invented local working-tree cleanliness or execution evidence;
+- publication against the intended immutable base/ref with normal revalidation before write.
+
+A few unrelated snippets with unknown repository identity are not `CONNECTOR_NATIVE`. The mode requires coherent exact repository access anchored to the identified source.
+
+Promote to `LOCAL_WORKTREE` only when a concrete required operation needs local execution or complete-tree semantics that connector-native L2 cannot faithfully provide, such as a local build, repository-wide formatter, or test runner. A failed `git clone` by itself is not a reason to escalate to a supply mission or remote runner.
 
 ## BRANCH
 
