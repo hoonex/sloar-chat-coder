@@ -4,10 +4,10 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-현재 stable: **0.8.3**
+현재 stable: **0.9.0**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.8.3-2563eb?style=flat-square" alt="stable 0.8.3"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.0-2563eb?style=flat-square" alt="stable 0.9.0"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -40,7 +40,7 @@ https://github.com/OWNER/REPO
 먼저 Sloar 사용법과 현재 저장소 상태를 확인한 뒤 진행해.
 ```
 
-**Sloar를 처음 보는 새 채팅에는 위처럼 Sloar 원본 링크까지 같이 주는 것을 권장한다.** 이미 Sloar가 설치된 저장소라면 더 짧게 말해도 된다.
+Sloar를 처음 보는 새 채팅에는 원본 링크까지 같이 주는 것을 권장한다. 이미 설치된 저장소라면 더 짧게 말해도 된다.
 
 ```text
 이 저장소 Sloar로 개발해.
@@ -57,57 +57,69 @@ English: [README.md](README.md)
 
 | 상황 | 사용자에게 필요한 말 |
 | --- | --- |
-| 처음 사용 | 위의 `Sloar:` 링크 + 대상 저장소 + 작업 내용을 새 채팅에 붙여넣기 |
-| 평소 개발 | 그냥 원하는 코드 작업을 요청 |
-| CI는 GREEN인데 실기기/프로덕션이 이상함 | 실제 증상을 알려주면 Sloar가 semantic owner와 기존 evidence가 그 요구사항을 정말 검증했는지 다시 확인 |
-| 모호한 웹 UI | 디자인 용어를 몰라도 됨. 필요한 것만 Sloar가 질문 |
+| 처음 사용 | `Sloar:` 링크 + 대상 저장소 + 작업 내용 |
+| 평소 개발 | 그냥 원하는 코드 작업 요청 |
+| CI는 GREEN인데 실제 버그가 남음 | 실제 증상을 알려주면 owner와 evidence phase를 다시 확인 |
+| 모호한 웹 UI | 디자인 용어를 몰라도 됨. 필요한 질문만 함 |
 | 디자인을 맡기기 | `알아서 제일 어울리게 해` |
-| 업데이트 | 첫 Sloar 작업/새 채팅 복구 때 stable을 1회 확인. 새 버전이 있으면 Sloar가 알리고, 사용자가 승인하면 안전한 업그레이드 과정을 자동 실행 |
-| 새 채팅 이동 | 기존 채팅에서 `새 채팅으로 넘겨줘.` → 새 채팅에 받은 Resume 문장 붙여넣기 |
-| 답변이 멈춤 | 새 채팅에서 저장된 turn 상태와 현재 repository를 확인해 이어달라고 요청 |
+| 업데이트 | 첫 Sloar 작업/새 채팅 복구 때 stable 1회 확인 후 승인받아 업그레이드 |
+| 새 채팅 이동 | `새 채팅으로 넘겨줘.` |
+| 답변이 멈춤 | 새 채팅에서 saved turn state와 현재 repository 확인 요청 |
 
-## Sloar는 대충 어떻게 작동하나
+## Sloar 0.9 핵심 구조
 
-사용자가 상태 머신을 외울 필요는 없지만 내부 흐름은 다음과 같다.
-
-```text
-ONBOARD?
-→ RECOVER
-→ IDENTIFY
-→ MATERIALIZE
-→ BRANCH
-→ IMPLEMENT
-→ VERIFY
-→ PUBLISH
-→ REMOTE_VERIFY
-→ CLEANUP
-```
-
-핵심 원칙:
+0.9부터는 긴 state machine을 기본 사고법으로 쓰지 않는다. 기본 reasoning kernel은 다섯 단계다.
 
 ```text
-현재 저장소 실제 상태 > 채팅 기억
-수정 전에 exact source identity 확인
-증상에 workaround를 쌓기 전에 authoritative semantic owner 확인
-같은 실패 + 같은 입력이면 같은 retry를 반복하지 않음
-검증 증거가 없으면 성공했다고 보고하지 않음
-publication 직전 mutable remote state 재확인
+OBSERVE
+→ MODEL
+→ ACT
+→ PROVE
+→ RECONCILE
 ```
 
-0.8.3부터는 반복 regression이나 production-sensitive 작업에서 **무엇이 실제 behavior owner인지**와 **무엇이 단순 renderer/test인지**를 분리한다. 기존 CI가 GREEN이어도 다른 input modality, interaction phase, viewport, persisted state, production stage까지 자동으로 증명한 것으로 취급하지 않는다.
+- **OBSERVE**: 실제 repository/runtime/evidence에서 판단에 필요한 사실만 확인.
+- **MODEL**: authoritative owner, invariants, 독립적인 acceptance claim, lifecycle transition을 잡음.
+- **ACT**: 가장 작은 coherent structural fix를 적용.
+- **PROVE**: 구현이 아니라 claim을 공격. 가장 강한 observable과 boundary에서 검증.
+- **RECONCILE**: 실제 publish/report할 durable state와 evidence가 여전히 일치하는지 확인.
 
-즉 채팅이 길어지거나 새 채팅으로 넘어가도, 이전 대화를 감으로 복원하기보다 Git/repository/checkpoint/CI 같은 durable state를 다시 확인해서 이어가는 것이 중심이다.
+기존 `ONBOARD → RECOVER → IDENTIFY → ...` state machine은 없어지지 않았다. 다만 모든 작업을 기계적으로 통과하는 절차가 아니라 **continuity/publication/recovery 위험이 있을 때 펼쳐 쓰는 guardrail**이 됐다.
+
+### 0.9에서 강화된 async 검증
+
+사용자 요구의 semantic phase와 내부 상태를 동일시하지 않는다.
+
+예를 들어:
+
+```text
+"runner가 시작하기 전에 cancel하면 실행되면 안 됨"
+```
+
+을 검증할 때 단순히 `queued` 상태에서 cancel하는 것만으로 PASS하지 않는다. 필요한 경우:
+
+```text
+slot/resource는 이미 예약됨
+callback/microtask는 이미 scheduled
+하지만 user runner는 아직 invoke되지 않음
+→ cancel
+→ runner invocation count = 0
+→ 예약 resource 회수
+```
+
+처럼 **latest valid observable boundary**에서 테스트한다.
+
+또 final state만 보지 않고 Promise resolve/reject, callback 호출 여부, AbortSignal, dedupe ownership, running/resource count, late finalizer, retry liveness 같은 observable도 확인한다.
+
+자세히:
+- [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
+- [Verification](.agents/skills/sloar-chat-coder/references/verification.md)
+- [State machine](.agents/skills/sloar-chat-coder/references/state-machine.md)
 
 ## 웹개발에서는 디자인도 같이 판단
 
 0.8.0부터 bundled `web-design-guidance`는 사용자가 `glassmorphism`, `neumorphism`, `brutalism` 같은 용어를 몰라도 된다는 전제로 동작한다.
-
-예:
-
-```text
-친구들이 같이 여행 계획을 짜는 웹을 만들고 싶어.
-모바일에서 편하고 세련됐으면 좋겠는데 디자인은 잘 모르겠어.
-```
 
 요청이 충분히 명확하면 바로 진행하고, 큰 방향을 잘못 고르면 재작업 비용이 큰 경우에만 필요한 질문을 한다.
 
@@ -132,7 +144,7 @@ density
 typography / color stance
 ```
 
-그리고 흔한 generated/default UI가 제품 이유 없이 반복되는지도 **Anti-AI-Slop** 관점에서 재검토한다. 보라색, glass, bento, Inter 자체를 금지하는 방식이 아니라 **자동 기본값을 제품에 맞는 의도적인 결정으로 바꾸는 것**이 목적이다.
+그리고 흔한 generated/default UI가 제품 이유 없이 반복되는지도 **Anti-AI-Slop** 관점에서 재검토한다. 특정 색/스타일을 금지하는 것이 아니라 자동 기본값을 제품에 맞는 결정으로 바꾸는 것이 목적이다.
 
 자세히:
 - [web-design-guidance](.agents/skills/web-design-guidance/SKILL.md)
@@ -145,14 +157,14 @@ typography / color stance
 
 **업데이트 확인은 자동이고, 설치는 사용자 승인 후 자동이다.**
 
-Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업을 시작하거나, 새 채팅에서 Sloar 세션을 resume/takeover할 때 canonical stable을 확인할 수 있으면 **1회만** installed 버전과 비교한다.
+Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업을 시작하거나 새 채팅에서 resume/takeover할 때 canonical stable을 확인할 수 있으면 1회만 installed 버전과 비교한다.
 
 ```text
 설치 버전 == stable
 → 아무 알림 없이 작업 계속
 
 새 stable 있음
-→ Sloar update available: 0.8.2 -> 0.8.3. Upgrade now?
+→ Sloar update available: 0.8.3 -> 0.9.0. Upgrade now?
 → 사용자가 승인
 → 현재 작업 상태를 보존한 안전한 업그레이드 자동 실행
 
@@ -161,20 +173,14 @@ stable 확인 불가
 → 일반 repository 작업은 그대로 계속
 ```
 
-즉 새 버전이 있다는 이유만으로 사용자 모르게 repository를 덮어쓰지는 않는다. 반대로 사용자가 승인한 뒤에는 백업, Sloar-owned 파일 갱신, known-official companion migration, custom companion 보존, 검증, checkpoint bridge까지 Sloar가 처리한다.
+새 버전이 있다는 이유만으로 사용자 모르게 repository를 덮어쓰지는 않는다. 승인 후에는 백업, Sloar-owned 파일 갱신, known-official companion migration, custom companion 보존, 검증, checkpoint bridge를 수행한다.
 
-업데이트를 기다리지 않고 사용자가 직접 바로 시작하고 싶다면 현재 작업 중인 채팅에서:
+직접 시작하려면:
 
 ```text
 이 세션 Sloar 최신 stable 버전으로 업그레이드하고,
 현재 작업 상태는 유지한 채 계속해.
 ```
-
-라고 하면 같은 `UPGRADE_SESSION` 흐름으로 들어간다.
-
-정상적인 upgrade는 현재 repository identity를 다시 확인하고, 기존 Sloar를 백업한 뒤 Sloar-owned 파일만 갱신하고, bundled companion과 검증 상태를 확인한 뒤 원래 작업을 계속한다.
-
-사용자가 수정한 companion을 단순히 버전이 낮다는 이유로 덮어쓰지 않는다.
 
 로컬 fallback:
 
@@ -184,48 +190,34 @@ python3 .agents/skills/sloar-chat-coder/scripts/install.py \
   --upgrade
 ```
 
-로컬 Wizard는 몰래 네트워크를 조회하지 않는다. 호스트/에이전트가 확인한 stable을 비교하고 싶으면:
+Wizard에 stable을 명시하려면:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.8.3 --json
+  --stable-version 0.9.0 --json
 ```
-
-처럼 stable 버전을 명시적으로 넘길 수 있다.
 
 자세한 계약: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
 
 ## 새 채팅으로 넘어가기
 
-현재 채팅에서:
-
-```text
-새 채팅으로 넘겨줘.
-```
-
-라고 한다.
+현재 채팅에서 `새 채팅으로 넘겨줘.`라고 한다.
 
 가능한 환경이면 Sloar는 제품 branch와 분리된 durable checkpoint에 현재 목표, 완료/진행/대기 작업, 결정, 증거, repository identity와 다음 행동을 남긴다.
 
-새 채팅에는 Sloar가 준 Resume 문장을 붙여넣는다. 기본 형태는:
+기본 Resume 문장:
 
 ```text
 Resume the latest Sloar session for OWNER/REPO.
 ```
 
-이다.
-
-새 채팅은 checkpoint를 그대로 믿지 않고 **현재 repository를 다시 확인한 뒤** 이어간다. 이 fresh-chat resume 시점에도 stable source가 정상적으로 보이면 update-awareness 확인을 1회 수행한다.
+새 채팅은 checkpoint를 그대로 믿지 않고 현재 repository를 다시 확인한 뒤 이어간다.
 
 자세한 계약: [chat-native-continuity.md](.agents/skills/sloar-chat-coder/references/chat-native-continuity.md)
 
 ## 답변이 계속 끝나지 않을 때
 
-Sloar는 두 문제를 나눈다.
-
-### Agent가 `하나만 더`를 반복하는 경우
-
-같은 failure fingerprint에서 기본 corrective cycle은 bounded다.
+같은 failure fingerprint에 대해 무한히 `하나만 더`를 반복하지 않는다.
 
 ```text
 진단
@@ -233,28 +225,20 @@ Sloar는 두 문제를 나눈다.
 → 영향받은 검증 재실행
 ```
 
-같은 실패가 남으면 또 symptom patch를 쌓지 않는다. 먼저 authoritative ownership boundary를 다시 확인하고, 구조적으로 다른 수정이 맞다는 새로운 증거가 없다면 `PARTIAL`, `BLOCKED`, `FAILED` 중 맞는 상태로 턴을 끝낸다. `ULW`, `finish it`도 무한 retry/search/wait/polling 권한이 아니다.
+같은 실패가 남으면 authoritative ownership boundary를 다시 확인하고, 새로운 evidence가 없으면 `PARTIAL`, `BLOCKED`, `FAILED` 중 맞는 상태로 턴을 끝낸다.
 
-### ChatGPT/app/server 자체가 멈춘 경우
-
-Sloar가 host spinner를 강제로 종료할 수는 없다.
-
-새 채팅에서:
+ChatGPT/app/server 자체가 멈춘 경우 새 채팅에서:
 
 ```text
 이전 Sloar 작업이 답변 중에 멈춘 것 같아.
 저장된 turn 상태와 현재 저장소를 확인해서 이어서 진행해.
 ```
 
-라고 요청한다.
-
 자세한 설명: [docs/INTERRUPTED_TURNS.ko.md](docs/INTERRUPTED_TURNS.ko.md)
 
 ## 처음 설치가 자동으로 안 된다면
 
 현재 ChatGPT/Codex 세션에 GitHub write나 code execution capability가 없을 수 있다. 이때 Sloar는 설치됐다고 가장하면 안 된다.
-
-로컬 설치:
 
 ```bash
 git clone https://github.com/hoonex/sloar-chat-coder.git
@@ -271,7 +255,7 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 ## 문서
 
 **사용자용**
-- [사용자 가이드](docs/USER_GUIDE.ko.md) — 처음 시작, 평소 작업, 업데이트, 새 채팅, 멈춤 복구
+- [사용자 가이드](docs/USER_GUIDE.ko.md)
 - [처음 실행](docs/FIRST_RUN.ko.md)
 - [연결/권한](docs/CONNECTIONS.ko.md)
 - [ChatGPT Plugin/App/Skill](docs/CHATGPT_PLUGINS.ko.md)
@@ -279,12 +263,11 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 - [GitHub/CI 장애 대응](docs/FORGE_RESILIENCE.ko.md)
 
 **엔지니어링/디자인 프로토콜**
+- [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership / evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
 - [Evidence ledger](.agents/skills/sloar-chat-coder/references/evidence-ledger.md)
 - [일반 웹 디자인 companion](.agents/skills/web-design-guidance/SKILL.md)
-- [Adaptive discovery](.agents/skills/web-design-guidance/references/adaptive-design-discovery.md)
-- [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
-- [Anti-AI-Slop](.agents/skills/web-design-guidance/references/anti-ai-slop.md)
 - [Sloar core Skill](.agents/skills/sloar-chat-coder/SKILL.md)
 
 ## License
