@@ -3,6 +3,20 @@
 ## Unreleased
 
 
+## 0.9.0 - 2026-09-03
+
+Reasoning kernel and semantic-boundary verification release.
+
+- Replaced state-machine-first reasoning with a compact default kernel: `OBSERVE -> MODEL -> ACT -> PROVE -> RECONCILE`. Detailed lifecycle references remain available as conditional guardrails when continuity, publication, remote capability, or recovery risk actually requires them.
+- Added `references/reasoning-kernel.md` to keep strong models focused on authoritative facts, semantic ownership, invariants, independent acceptance claims, coherent structural fixes, relevant evidence, and final durable reconciliation without turning every task into repository archaeology.
+- Strengthened async/stateful verification around **semantic phases rather than convenient implementation labels**. Requirements such as `before callback starts` must be tested at the latest valid observable boundary when that edge can change correctness, including cases where resources are already reserved or callbacks/microtasks are scheduled but user code has not run yet.
+- Added transition-adjacent race derivation, end-to-end fencing checks, late-finalizer/replacement ownership checks, retry safety plus liveness, cancellation ownership separation, and public observables such as Promise results, callback invocation counts, `AbortSignal`, resource/running counts, ordering, dedupe state, events, and remote side effects.
+- Added evidence-economy rules: more tests are not automatically stronger evidence. A compact adversarial basis covering distinct semantic boundaries is preferred over many repetitions of the same comfortable phase, and compound requirements must be split when separate paths or observables can fail independently.
+- Reworked `verification.md`, `state-machine.md`, and the core `SKILL.md` so phase-fit, latest-valid-boundary reasoning, and risk-adaptive process selection are entry-level behavior while connector-native access, continuity, forge resilience, publication fencing, Android engineering, and design guidance remain specialized expansions.
+- Preserved and integrated the earlier connector-native repository mode so blocked ordinary Git transport does not force pointless clone retries or remote-execution escalation when an exact repository connector can complete the task faithfully.
+- Added regression contracts for the reasoning kernel and semantic async boundary model, including guards against generalizing queued cancellation to all pre-invocation cancellation or final-state checks to Promise/callback correctness.
+- Published Sloar `0.9.0` metadata and English/Korean documentation, and removed release-version hardcoding from tests, self-test logic, wizard validation, and CI so `VERSION` is the durable release source of truth.
+
 ## 0.8.3 - 2026-09-02
 
 Ownership and evidence intelligence release.
