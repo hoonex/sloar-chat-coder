@@ -37,6 +37,16 @@ Identify:
 
 Prefer domain invariants over file-by-file choreography. Do not add process merely because a reference exists.
 
+### Representation choice
+
+When two or more plausible representations or ownership boundaries can satisfy a consequential requirement, do a bounded internal comparison before committing to one. Usually two or three candidates are enough.
+
+Prefer the representation that makes the required behavior structurally easiest to keep correct: fewer mutable authorities, fewer lifecycle transfers, less derived-state drift, lower hot-path cost, and fewer compensating guards or synchronizers.
+
+A good implementation does not merely recover from failure classes that its own representation created. When a different representation can remove that failure surface without violating repository constraints, prefer the structurally simpler one.
+
+Use `engineering-choice-priors.md` when representation choice can materially affect correctness, lifecycle complexity, performance, or product behavior. Skip this comparison when the repository already fixes the representation or the decision is trivial/reversible.
+
 ### Public contract preservation
 
 When replacing or deepening an existing implementation, preserve the established public contract unless the task explicitly changes it.
@@ -136,7 +146,22 @@ Before durable publication or completion claims:
 - ensure evidence still targets the bytes/state being published;
 - distinguish local verification from remote/runtime convergence;
 - preserve a durable checkpoint when work must survive the chat/session;
+- reconcile every material defect discovered during PROVE against the final durable state;
 - report remaining unverified scope instead of converting uncertainty into success.
+
+### Discovered-defect closure
+
+A material defect discovered during the turn must have an explicit final disposition:
+
+```text
+fixed in final durable bytes + matching evidence
+or
+still open and reported as a limitation/blocker
+or
+shown by new evidence to be non-defect / out of scope
+```
+
+Do not let a locally fixed regression, added boundary test, browser finding, or corrective candidate disappear when publishing the final tree. Before claiming completion, compare the material defects discovered during PROVE with the exact final bytes/tests being reported. A green checkpoint plus separate local fixes is not a green final result.
 
 For interruption-prone work, keep lineage roles separate:
 
@@ -156,6 +181,7 @@ Reconciliation is where Sloar's continuity and publication machinery expands whe
 
 Use a specialized reference only when its trigger is present:
 
+- consequential representation / ownership choice -> `engineering-choice-priors.md`;
 - async/stateful interleavings -> `async-evidence-closure.md`;
 - ownership split / production convergence -> `ownership-evidence-closure.md`;
 - substantial visible UI/product design -> `design-taste-priors.md`;
