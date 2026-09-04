@@ -56,7 +56,7 @@ class ReasoningKernelContractTests(unittest.TestCase):
     def test_visible_ui_routes_to_soft_design_taste_prior(self):
         self.assertIn("substantial visible UI/product design -> `design-taste-priors.md`", self.kernel)
         self.assertIn("soft priors, not a style preset and not a ban list", self.design_taste)
-        self.assertIn("defaults are hypotheses, not answers", self.design_taste)
+        self.assertIn("Treat defaults as hypotheses, not answers", self.design_taste)
         self.assertIn("Identity test", self.design_taste)
         self.assertIn("Grounding test", self.design_taste)
         self.assertIn("product-specific decisions beat generic polish", self.design_taste)
