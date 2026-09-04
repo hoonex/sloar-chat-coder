@@ -75,6 +75,12 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("final durable bytes", self.kernel)
         self.assertIn("green checkpoint plus separate local fixes is not a green final result", self.kernel.lower())
 
+    def test_checkpoint_economy_is_milestone_based_not_chatty(self):
+        self.assertIn("Checkpoint economy", self.kernel)
+        self.assertIn("Do **not** publish after every edit", self.kernel)
+        self.assertIn("one meaningful working checkpoint plus the final publication", self.kernel)
+        self.assertIn("recovery anchor, not a substitute for final reconciliation", self.kernel)
+
     def test_stable_version_contract_is_consistent(self):
         self.assertEqual(self.version, "0.9.0")
         self.assertRegex(self.skill, r'version:\s*"0\.9\.0"')
