@@ -12,6 +12,7 @@ class ReasoningKernelContractTests(unittest.TestCase):
         refs = skill_root / "references"
         cls.skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
         cls.kernel = (refs / "reasoning-kernel.md").read_text(encoding="utf-8")
+        cls.design_taste = (refs / "design-taste-priors.md").read_text(encoding="utf-8")
         cls.state_machine = (refs / "state-machine.md").read_text(encoding="utf-8")
         cls.verification = (refs / "verification.md").read_text(encoding="utf-8")
         cls.readme = (root / "README.md").read_text(encoding="utf-8")
@@ -51,6 +52,14 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("origin anchor != checkpoint anchor != final anchor", self.kernel)
         self.assertIn("Do not redefine the origin from a later checkpoint", self.kernel)
         self.assertIn("branch ref that has not advanced", self.kernel)
+
+    def test_visible_ui_routes_to_soft_design_taste_prior(self):
+        self.assertIn("substantial visible UI/product design -> `design-taste-priors.md`", self.kernel)
+        self.assertIn("soft priors, not a style preset and not a ban list", self.design_taste)
+        self.assertIn("defaults are hypotheses, not answers", self.design_taste)
+        self.assertIn("Identity test", self.design_taste)
+        self.assertIn("Grounding test", self.design_taste)
+        self.assertIn("product-specific decisions beat generic polish", self.design_taste)
 
     def test_stable_version_contract_is_consistent(self):
         self.assertEqual(self.version, "0.9.0")
