@@ -13,6 +13,7 @@ class ReasoningKernelContractTests(unittest.TestCase):
         cls.skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
         cls.kernel = (refs / "reasoning-kernel.md").read_text(encoding="utf-8")
         cls.design_taste = (refs / "design-taste-priors.md").read_text(encoding="utf-8")
+        cls.engineering_choice = (refs / "engineering-choice-priors.md").read_text(encoding="utf-8")
         cls.state_machine = (refs / "state-machine.md").read_text(encoding="utf-8")
         cls.verification = (refs / "verification.md").read_text(encoding="utf-8")
         cls.readme = (root / "README.md").read_text(encoding="utf-8")
@@ -60,6 +61,19 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("Identity test", self.design_taste)
         self.assertIn("Grounding test", self.design_taste)
         self.assertIn("product-specific decisions beat generic polish", self.design_taste)
+
+    def test_representation_choice_prefers_structural_correctness(self):
+        self.assertIn("Representation choice", self.kernel)
+        self.assertIn("engineering-choice-priors.md", self.kernel)
+        self.assertIn("Representation before machinery", self.engineering_choice)
+        self.assertIn("fewest lifecycle edges", self.engineering_choice)
+        self.assertIn("removes failure classes", self.engineering_choice)
+        self.assertIn("internal decision aid, not a user-facing questionnaire", self.engineering_choice)
+
+    def test_discovered_material_defects_must_close_against_final_bytes(self):
+        self.assertIn("Discovered-defect closure", self.kernel)
+        self.assertIn("final durable bytes", self.kernel)
+        self.assertIn("green checkpoint plus separate local fixes is not a green final result", self.kernel.lower())
 
     def test_stable_version_contract_is_consistent(self):
         self.assertEqual(self.version, "0.9.0")
