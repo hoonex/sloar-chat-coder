@@ -163,6 +163,16 @@ shown by new evidence to be non-defect / out of scope
 
 Do not let a locally fixed regression, added boundary test, browser finding, or corrective candidate disappear when publishing the final tree. Before claiming completion, compare the material defects discovered during PROVE with the exact final bytes/tests being reported. A green checkpoint plus separate local fixes is not a green final result.
 
+### Checkpoint economy
+
+Durability should not distort the engineering loop.
+
+Create a durable checkpoint when losing the current coherent working state would be materially expensive and a risky/long phase is about to begin, such as extended browser verification, external execution, deployment, large refactoring after a stable milestone, or an interruption-prone session boundary.
+
+Do **not** publish after every edit, test, or small substep merely because durable transport exists. Prefer one meaningful working checkpoint plus the final publication for an ordinary long task; add another checkpoint only when a later milestone materially increases recoverable value.
+
+A checkpoint is a recovery anchor, not a substitute for final reconciliation or a progress heartbeat.
+
 For interruption-prone work, keep lineage roles separate:
 
 ```text
