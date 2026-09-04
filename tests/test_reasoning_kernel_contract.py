@@ -41,6 +41,17 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("More tests are not automatically stronger evidence", self.kernel)
         self.assertIn("Evidence quality is not test count", self.verification)
 
+    def test_public_contract_preservation_is_entry_level_rule(self):
+        self.assertIn("Public contract preservation", self.kernel)
+        self.assertIn("simplest pre-existing behavior", self.kernel)
+        self.assertIn("control/sentinel values", self.kernel)
+        self.assertIn("compatibility probe", self.kernel)
+
+    def test_origin_checkpoint_and_final_anchors_are_distinct(self):
+        self.assertIn("origin anchor != checkpoint anchor != final anchor", self.kernel)
+        self.assertIn("Do not redefine the origin from a later checkpoint", self.kernel)
+        self.assertIn("branch ref that has not advanced", self.kernel)
+
     def test_stable_version_contract_is_consistent(self):
         self.assertEqual(self.version, "0.9.0")
         self.assertRegex(self.skill, r'version:\s*"0\.9\.0"')

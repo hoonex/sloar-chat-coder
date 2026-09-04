@@ -37,6 +37,14 @@ Identify:
 
 Prefer domain invariants over file-by-file choreography. Do not add process merely because a reference exists.
 
+### Public contract preservation
+
+When replacing or deepening an existing implementation, preserve the established public contract unless the task explicitly changes it.
+
+Before a structural rewrite, identify the simplest observable meanings already exposed by public functions, commands, events, files, or UI actions. New machinery must not accidentally narrow those meanings. In particular, do not route internal control/sentinel values through generic user-input sanitizers when that changes semantics.
+
+A sophisticated new model does not compensate for a basic compatibility regression. Keep at least one minimal regression probe for each consequential existing public operation that the rewrite touches.
+
 ### Requirement decomposition
 
 Split a requirement when separate code paths or observables can fail independently. A sentence containing `and`, `or`, multiple lifecycle operations, multiple modalities, or multiple stages is not automatically one evidence claim.
@@ -72,6 +80,8 @@ For every consequential claim, ask:
 1. What is the strongest observable form of this claim?
 2. What transition or boundary is most likely to falsify it?
 3. Does the evidence exercise that exact path, phase, identity, and observable?
+
+For a rewritten public operation, also exercise its simplest pre-existing behavior directly. Feature-rich stress coverage is not a substitute for a one-line compatibility probe when both can fail independently.
 
 ### Latest-valid-boundary rule
 
@@ -125,6 +135,18 @@ Before durable publication or completion claims:
 - distinguish local verification from remote/runtime convergence;
 - preserve a durable checkpoint when work must survive the chat/session;
 - report remaining unverified scope instead of converting uncertainty into success.
+
+For interruption-prone work, keep lineage roles separate:
+
+```text
+origin anchor != checkpoint anchor != final anchor
+```
+
+- **origin anchor**: immutable task-start baseline used to measure the whole change;
+- **checkpoint anchor**: latest durable partial progress that a resumed session may continue from;
+- **final anchor**: terminal result being reported/published.
+
+Do not redefine the origin from a later checkpoint after resume. A branch ref that has not advanced is not, by itself, proof that no durable work exists: revalidate any exact checkpoint/turn-state identities already recorded before restarting or declaring the task untouched.
 
 Reconciliation is where Sloar's continuity and publication machinery expands when needed. It should remain lightweight for local or read-only work.
 
