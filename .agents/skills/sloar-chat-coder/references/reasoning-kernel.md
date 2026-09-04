@@ -71,6 +71,8 @@ Prefer:
 
 Do not optimize for minimal line count when a slightly larger coherent change removes a whole class of failure. Do not optimize for maximal defensiveness when the extra machinery does not close a real claim.
 
+For substantial visible UI/product work, product-specific intent should outrank generic polish. Common patterns are allowed, but unexamined framework/model defaults are not automatically the right design decisions. Use `design-taste-priors.md` when this can materially affect the result.
+
 ## 4. PROVE
 
 Verification attacks the model, not the implementation narrative.
@@ -156,6 +158,7 @@ Use a specialized reference only when its trigger is present:
 
 - async/stateful interleavings -> `async-evidence-closure.md`;
 - ownership split / production convergence -> `ownership-evidence-closure.md`;
+- substantial visible UI/product design -> `design-taste-priors.md`;
 - connector/clone/remote capability mismatch -> `capability-ladder.md`;
 - long-turn/stuck-response continuity -> `operational-continuity.md`;
 - forge outage/permission/policy -> `forge-resilience.md`;
