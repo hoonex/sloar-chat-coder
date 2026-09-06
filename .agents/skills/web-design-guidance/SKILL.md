@@ -36,7 +36,9 @@ Before a substantial UI change, inspect the repository for durable design eviden
 
 Read [references/design-discovery.md](references/design-discovery.md) for repository discovery.
 
-Do not create a new persistent design-system document by default. If the repository already owns one, update it only when the task legitimately changes the system. If no design memory exists, keep a compact in-turn design direction; create durable design documentation only when the user asks or the repository's workflow calls for it.
+Do not create a new persistent design-system document by default. If the repository already owns one, update it only when the task legitimately changes the system. If no design memory exists, keep a compact in-turn design direction for one-off or narrow work. However, when repeated agent work, multi-screen redesign, or visible design drift makes the lack of durable authority itself a material risk, establish the smallest appropriate durable design authority instead of repeatedly re-inventing the system.
+
+Read [references/design-system-authority.md](references/design-system-authority.md) when durable design authority is justified. Prefer existing tokens/theme/components or an existing design document; create a compact repository-owned design-system document only when cross-screen design memory cannot be expressed clearly in existing durable sources.
 
 ## 2. Adapt clarification depth to ambiguity
 
@@ -116,7 +118,9 @@ Establish or preserve the visual hierarchy in this order:
 
 Do not use effects to compensate for weak hierarchy. A blur, gradient, large radius, shadow, or animation is not a design system.
 
-Read [references/surface-recipes.md](references/surface-recipes.md) for surface-specific defaults and anti-patterns.
+For sustained product work, treat every material UI change as a **delta against the authoritative system**, not as permission to invent a fresh local style. Before introducing a new card type, surface material, radius tier, shadow level, color role, spacing scale, icon container, or prominent section, first check whether an existing primitive or hierarchy can express the requirement. A new visible element should earn its place through user action, state feedback, comprehension, semantic grouping, accessibility/responsive need, or product identity—not merely because the layout feels empty.
+
+Read [references/design-system-authority.md](references/design-system-authority.md) for the subtractive-first gate, component/token discipline, hierarchy budget, theme coherence, reference locking, and deviation contract. Read [references/surface-recipes.md](references/surface-recipes.md) for surface-specific defaults and anti-patterns.
 
 ## 5. Anti-AI-slop means replacing defaults with decisions
 
@@ -226,6 +230,8 @@ state/responsive complete
 not merely a second-order default
 ```
 
+Also apply the subtractive deletion test to newly introduced visible structure: if removing an element would not materially hurt the user's task, understanding, state awareness, accessibility, or product identity, strongly prefer removing it rather than preserving generated decoration.
+
 Read [references/visual-verification.md](references/visual-verification.md) for the acceptance contract.
 
 If rendered evidence is unavailable, say that visual correctness remains unverified rather than upgrading code-level evidence into a visual success claim. Do not keep the turn open indefinitely waiting for unavailable visual tooling; Sloar's bounded terminalization still applies.
@@ -241,6 +247,10 @@ When a project already has durable design memory, reuse it. Useful forms include
 - current-status/product-history records that explain visual decisions.
 
 Do not create parallel Sloar-owned design history merely to impose a convention. Sloar can checkpoint the committed Design DNA and unresolved high-impact design decisions as hot state when continuity matters, while the repository remains the durable source of product design truth.
+
+If the project repeatedly receives UI changes and lacks a durable source of design truth, the absence of design memory is itself a drift risk. In that case, establish the smallest repository-owned authority justified by the work—prefer code-level tokens/primitives and existing docs; use a compact design-system document only when cross-screen rules would otherwise remain implicit. Once established, later UI work should preserve it or record a deliberate scoped/system-level deviation rather than silently creating a parallel convention.
+
+Read [references/design-system-authority.md](references/design-system-authority.md) for authority precedence and the deviation contract.
 
 ## 12. Completion report
 
