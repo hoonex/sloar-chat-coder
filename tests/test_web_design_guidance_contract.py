@@ -10,6 +10,8 @@ ANTI_SLOP = ROOT / ".agents/skills/web-design-guidance/references/anti-ai-slop.m
 RECIPES = ROOT / ".agents/skills/web-design-guidance/references/surface-recipes.md"
 VISUAL = ROOT / ".agents/skills/web-design-guidance/references/visual-verification.md"
 DESIGN_SYSTEM = ROOT / ".agents/skills/web-design-guidance/references/design-system-authority.md"
+REFERENCE_RESEARCH = ROOT / ".agents/skills/web-design-guidance/references/reference-research-and-critique.md"
+IDENTITY = ROOT / ".agents/skills/web-design-guidance/references/identity-and-logo.md"
 NOTICE = ROOT / ".agents/skills/web-design-guidance/NOTICE.md"
 INSTALLER = ROOT / ".agents/skills/sloar-chat-coder/scripts/install.py"
 
@@ -54,6 +56,39 @@ class WebDesignGuidanceContractTests(unittest.TestCase):
         self.assertIn("If this element vanished", authority)
         self.assertIn("do not add it merely because the layout looks empty", authority)
         self.assertIn("dark mode", authority.lower())
+
+    def test_uncertain_high_impact_design_routes_to_bounded_reference_research(self):
+        discovery = self.text(DISCOVERY)
+        research = self.text(REFERENCE_RESEARCH)
+        visual = self.text(VISUAL)
+        self.assertIn("agent's first visual idea is not evidence", discovery)
+        self.assertIn("reference-research-and-critique.md", discovery)
+        self.assertIn("the agent's first design idea is a hypothesis, not an authority", research)
+        for token in (
+            "When reference research is warranted",
+            "Reference hierarchy",
+            "Research budget",
+            "Extract rules, not trade dress",
+            "Epistemic humility gate",
+            "Render -> critique -> one corrective pass",
+        ):
+            self.assertIn(token, research)
+        self.assertIn("first plausible render != strong design", visual)
+        self.assertIn("Which part of this result am I calling `good`", visual)
+
+    def test_identity_guidance_rejects_fake_boxed_initial_branding(self):
+        discovery = self.text(DISCOVERY)
+        identity = self.text(IDENTITY)
+        visual = self.text(VISUAL)
+        self.assertIn("identity-and-logo.md", discovery)
+        self.assertIn("no verified logo + task is not branding", identity)
+        self.assertIn("Generic identity-tile tell", identity)
+        self.assertIn("first letter / initials", identity)
+        self.assertIn("ordinary system/default font", identity)
+        self.assertIn("colored or gradient rounded square/circle", identity)
+        self.assertIn("Wordmarks before fake marks", identity)
+        self.assertIn("App icons are a separate problem", identity)
+        self.assertIn("default-font initial inside a rounded colored tile", visual)
 
     def test_adaptive_discovery_controls_question_budget(self):
         skill = self.text(SKILL)
@@ -137,6 +172,7 @@ class WebDesignGuidanceContractTests(unittest.TestCase):
             "educlopez/ui-craft",
             "rwcod/anti-ai-slop-ui",
             "funboy322/avoid-ai-design",
+            "ajjucoder/logo-maker",
         ):
             self.assertIn(repo, text)
         self.assertIn("does not vendor or require", text)
