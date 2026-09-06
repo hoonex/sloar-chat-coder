@@ -28,8 +28,14 @@ Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 
 새 ChatGPT/Codex 채팅을 열고 `OWNER/REPO`와 작업 내용만 바꿔서 보낸다.
 
 ```text
-다음 Sloar Chat Coder를 사용해서 이 저장소를 개발해.
-Sloar: https://github.com/hoonex/sloar-chat-coder
+다음 canonical Sloar Chat Coder를 사용해서 작업해.
+https://github.com/hoonex/sloar-chat-coder
+
+대상 저장소를 수정하기 전에 이 세션에서 Sloar를 실제로 로드해:
+- 현재 canonical Sloar source를 exact commit SHA로 확인하고;
+- 그 exact SHA의 .agents/skills/sloar-chat-coder/SKILL.md를 실제로 읽고;
+- 필요한 Sloar reference만 같은 SHA에서 읽어.
+canonical Sloar를 실제로 읽을 수 없으면 SLOAR_UNAVAILABLE이라고 보고하고, Sloar 없이 일반/Bare 방식으로 몰래 계속하지 마.
 
 대상 저장소:
 https://github.com/OWNER/REPO
@@ -37,10 +43,10 @@ https://github.com/OWNER/REPO
 원하는 작업:
 <여기에 만들거나 수정하고 싶은 내용을 적기>
 
-먼저 Sloar 사용법과 현재 저장소 상태를 확인한 뒤 진행해.
+현재 저장소 상태를 확인한 뒤 진행해.
 ```
 
-Sloar를 처음 보는 새 채팅에는 원본 링크까지 같이 주는 것을 권장한다. 이미 설치된 저장소라면 더 짧게 말해도 된다.
+Sloar를 처음 보는 새 채팅에는 **원본 링크와 실제 activation 요구를 같이 넣는 것을 권장한다.** `Use Sloar Chat Coder`라는 이름만 적는 것은 activation 증거가 아니다. 이미 target repository에 Sloar가 설치되어 있다면 세션이 설치된 contract를 직접 읽을 수 있으므로 더 짧게 말해도 된다.
 
 ```text
 이 저장소 Sloar로 개발해.
