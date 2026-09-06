@@ -9,9 +9,12 @@ build/compile green != visually correct
 DOM geometry green != balanced composition
 CSS property present != legible rendered material
 merge/deploy green != production UI healthy
+first plausible render != strong design
 ```
 
 Use repository-defined visual acceptance rules when they exist. This reference supplies fallback coverage.
+
+Treat the agent's own design as a candidate to critique, not a result to defend. The burden is on the rendered outcome to show coherent hierarchy, necessity, product specificity, and state/theme/responsive completeness.
 
 ## Minimal rendered pass
 
@@ -75,9 +78,12 @@ Prefer, in order:
 2. repository visual baseline or existing coherent screen;
 3. repository design-system docs/tokens/components;
 4. current Design Read;
-5. generic design principles.
+5. relevant external references when a consequential direction remains underdetermined;
+6. generic design principles.
 
 Do not grade a product against an unrelated Dribbble-style aesthetic.
+
+When the first four sources are weak and the choice is expensive to reverse, use [reference-research-and-critique.md](reference-research-and-critique.md). A bounded external reference pass is stronger evidence than assuming the agent's familiar-looking default is tasteful.
 
 ## Anti-generic self-check
 
@@ -87,6 +93,11 @@ For a newly designed surface, ask:
 - Is the hierarchy driven by the product's actual task, or by the easiest component template?
 - Did one fashionable visual pattern become the answer to every grouping problem?
 - Is the distinctive element useful, or just decorative noise?
+- Did I add content, cards, chips, metrics, or decoration mainly because empty space made me uncomfortable?
+- Did I invent a product identity mark—especially a default-font initial inside a rounded colored tile—because a header/sidebar had an icon slot rather than because the brand needs it?
+- Which part of this result am I calling `good` only because it resembles interfaces I have generated before?
+
+If the strongest critique exposes a material weakness, make one coherent corrective pass and re-render the affected boundaries. Use [reference-research-and-critique.md](reference-research-and-critique.md) for the bounded self-critique loop and [identity-and-logo.md](identity-and-logo.md) when identity is involved.
 
 If the surface is generic because product evidence was genuinely sparse, report the chosen fallback direction rather than inventing pseudo-brand specificity.
 
