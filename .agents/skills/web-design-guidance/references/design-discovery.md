@@ -123,4 +123,6 @@ product current-status/history docs
 
 Respect the existing convention. Do not add another competing design-memory file.
 
-If no durable design memory exists, an in-turn Design DNA is enough for ordinary work. Create a new persistent design-system document only when the user requests it or when a substantial new product explicitly needs one and repository guidance allows it.
+If no durable design memory exists, an in-turn Design DNA is enough for ordinary one-off or narrow work. When substantial multi-screen work, repeated agent changes, or visible design drift make missing design authority a material risk, establish the smallest repository-owned durable source that fits the existing architecture. Prefer tokens/theme/component primitives and existing docs; create a compact persistent design-system document only when cross-screen rules cannot be expressed clearly elsewhere and repository guidance allows it.
+
+Read [design-system-authority.md](design-system-authority.md) for the durable-authority trigger, subtractive-first gate, token/component discipline, reference locking, theme coherence, and deviation contract.
