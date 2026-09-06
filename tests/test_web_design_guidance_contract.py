@@ -9,6 +9,7 @@ TAXONOMY = ROOT / ".agents/skills/web-design-guidance/references/design-taxonomy
 ANTI_SLOP = ROOT / ".agents/skills/web-design-guidance/references/anti-ai-slop.md"
 RECIPES = ROOT / ".agents/skills/web-design-guidance/references/surface-recipes.md"
 VISUAL = ROOT / ".agents/skills/web-design-guidance/references/visual-verification.md"
+DESIGN_SYSTEM = ROOT / ".agents/skills/web-design-guidance/references/design-system-authority.md"
 NOTICE = ROOT / ".agents/skills/web-design-guidance/NOTICE.md"
 INSTALLER = ROOT / ".agents/skills/sloar-chat-coder/scripts/install.py"
 
@@ -33,6 +34,26 @@ class WebDesignGuidanceContractTests(unittest.TestCase):
         self.assertIn("Do not create a new persistent design-system document by default", skill)
         self.assertIn("Do not add another competing design-memory file", discovery)
         self.assertIn("Design DNA", discovery)
+
+    def test_durable_design_authority_prevents_turn_by_turn_visual_drift(self):
+        skill = self.text(SKILL)
+        authority = self.text(DESIGN_SYSTEM)
+        self.assertIn("repeated agent work", skill)
+        self.assertIn("design-system-authority.md", skill)
+        for token in (
+            "Treat every material UI change as a delta against an authoritative design system",
+            "Subtractive-first gate",
+            "Component introduction gate",
+            "Token discipline",
+            "Hierarchy budget",
+            "Deviation contract",
+            "Reference locking",
+            "Theme coherence",
+        ):
+            self.assertIn(token, authority)
+        self.assertIn("If this element vanished", authority)
+        self.assertIn("do not add it merely because the layout looks empty", authority)
+        self.assertIn("dark mode", authority.lower())
 
     def test_adaptive_discovery_controls_question_budget(self):
         skill = self.text(SKILL)
