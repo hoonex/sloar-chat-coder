@@ -28,8 +28,14 @@ Current stable: **0.9.0**
 Open a fresh ChatGPT/Codex chat and replace only `OWNER/REPO` and the task.
 
 ```text
-Use the following Sloar Chat Coder to develop this repository.
-Sloar: https://github.com/hoonex/sloar-chat-coder
+Use the canonical Sloar Chat Coder from:
+https://github.com/hoonex/sloar-chat-coder
+
+Before modifying the target repository, actually load Sloar in this session:
+- resolve the current canonical Sloar source to an exact commit SHA;
+- read .agents/skills/sloar-chat-coder/SKILL.md from that exact SHA;
+- read only task-relevant Sloar references from the same SHA.
+If canonical Sloar cannot actually be read, report SLOAR_UNAVAILABLE and do not silently continue without Sloar.
 
 Target repository:
 https://github.com/OWNER/REPO
@@ -37,10 +43,10 @@ https://github.com/OWNER/REPO
 Task:
 <what you want to build or change>
 
-Read the current Sloar usage guidance and current repository state before proceeding.
+Read the current repository state before proceeding.
 ```
 
-**For a fresh chat that has never seen Sloar, include the Sloar source URL.** If Sloar is already installed in the target repository, a shorter request is enough:
+**For a fresh chat that has never seen Sloar, include the Sloar source URL and require real activation as above.** Merely writing `Use Sloar Chat Coder` is not activation evidence. If Sloar is already installed in the target repository, a shorter request is enough because the session can read the installed contract directly:
 
 ```text
 Use Sloar for this repository.
@@ -248,7 +254,7 @@ The current ChatGPT/Codex session may not expose repository write or code-execut
 ```bash
 git clone https://github.com/hoonex/sloar-chat-coder.git
 cd sloar-chat-coder
-python3 .agents/skills/sloar-chat-coder/scripts/install.py --target /path/to/your-project
+python3 .agents/skills/sloar-chat-coder/scripts/install.py --target /path/to/project
 ```
 
 Readiness wizard:

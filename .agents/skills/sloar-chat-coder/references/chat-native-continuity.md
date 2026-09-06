@@ -23,6 +23,28 @@ Enter `BOOTSTRAP_SESSION` only when the user explicitly asks to use Sloar for a 
 7. If no usable repository source or execution path exists, request only the smallest missing capability needed to proceed.
 8. Resolve exact repository identity and begin the requested engineering work. Do not turn a healthy first run into an onboarding ceremony.
 
+## Activation evidence
+
+A user saying `Use Sloar`, a prompt naming `Sloar Chat Coder`, prior familiarity with Sloar, or the presence of a repository URL is **not** by itself evidence that Sloar is active in the current session.
+
+Before claiming Sloar is active, establish at least one current-session activation source:
+
+1. a host-exposed Sloar Skill was actually loaded/read in this session;
+2. the target repository contains `.agents/skills/sloar-chat-coder/SKILL.md` and that installed contract was actually read; or
+3. an authorized repository-read path was used to load the canonical Sloar source ephemerally for this session.
+
+For **canonical remote activation**:
+
+1. Resolve the canonical Sloar repository to an exact immutable source commit SHA before task mutation.
+2. Read `.agents/skills/sloar-chat-coder/SKILL.md` from that exact SHA.
+3. Read only task-triggered references, and read them from the **same source SHA** so one session cannot accidentally mix contracts from different Sloar revisions.
+4. Retain the source SHA as activation evidence for the completion report or benchmark record when that provenance matters.
+5. Do not copy or vendor Sloar into the target repository merely to activate it. When the target is intentionally clean, immutable, or benchmark-isolated, prefer this read-only ephemeral path.
+
+Remote activation is not permission to recursively load every Sloar reference. Follow the core trigger rules and fetch only references that can materially affect the current task. This keeps activation bounded and avoids unrelated capability, policy, or domain guidance from entering the working context without a task reason.
+
+If the user explicitly requires Sloar and none of the activation sources above can actually be established, classify the treatment as `SLOAR_UNAVAILABLE`. Do **not** silently continue as an ordinary/Bare workflow while implying that Sloar was used.
+
 Installing Sloar does not authorize GitHub or any other forge. Repository read access alone is not proof of installation capability.
 
 ## Normal work
