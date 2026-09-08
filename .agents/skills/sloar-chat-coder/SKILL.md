@@ -4,7 +4,7 @@ description: Keep repository development exact and recoverable across disposable
 license: MIT
 compatibility: Requires a repository source of truth and a code-execution environment for full engineering workflows. Forge-specific fallback rules apply only when equivalent authorized remote capabilities exist.
 metadata:
-  version: "0.9.1"
+  version: "0.9.2"
 ---
 
 # Sloar Chat Coder
