@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "suite_id": "sloar-smoke",
+  "suite_version": "2026-09-08.1",
+  "split": "dev",
+  "tasks": [
+    {
+      "id": "python-clamp-boundary",
+      "category": "bugfix",
+      "prompt": "The clamp() helper is wrong at both boundaries: clamp(-5, 0, 10) should be 0 and clamp(15, 0, 10) should be 10. Fix the implementation without changing the public API or weakening tests.",
+      "repository": {
+        "fixture_path": "evals/fixtures/python-utils"
+      },
+      "seed_patch": "diff --git a/utils.py b/utils.py\n--- a/utils.py\n+++ b/utils.py\n@@ -1,7 +1,7 @@\n def clamp(value, low, high):\n     if low > high:\n         raise ValueError(\"low must not exceed high\")\n-    return min(max(value, low), high)\n+    return max(min(value, low), high)\n \n \n def parse_bool(value):\n",
+      "verification": {
+        "acceptance": {
+          "command": ["python3", "-m", "unittest", "tests.test_utils.UtilsTests.test_clamp_bounds", "-v"],
+          "timeout_s": 30
+        },
+        "regression": {
+          "command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+          "timeout_s": 30
+        }
+      }
+    },
+    {
+      "id": "python-parse-bool-zero",
+      "category": "bugfix",
+      "prompt": "parse_bool('0') is incorrectly treated as true. Restore the documented false-value behavior while preserving all existing true/false spellings and ValueError behavior for unknown inputs.",
+      "repository": {
+        "fixture_path": "evals/fixtures/python-utils"
+      },
+      "seed_patch": "diff --git a/utils.py b/utils.py\nindex 680932f..945ad54 100644\n--- a/utils.py\n+++ b/utils.py\n@@ -6,8 +6,8 @@ def clamp(value, low, high):\n \n def parse_bool(value):\n     normalized = str(value).strip().lower()\n-    if normalized in {\"1\", \"true\", \"yes\", \"on\"}:\n+    if normalized in {\"1\", \"true\", \"yes\", \"on\", \"0\"}:\n         return True\n-    if normalized in {\"0\", \"false\", \"no\", \"off\"}:\n+    if normalized in {\"false\", \"no\", \"off\"}:\n         return False\n     raise ValueError(f\"not a boolean: {value!r}\")\n",
+      "verification": {
+        "acceptance": {
+          "command": ["python3", "-m", "unittest", "tests.test_utils.UtilsTests.test_parse_bool_false_values", "-v"],
+          "timeout_s": 30
+        },
+        "regression": {
+          "command": ["python3", "-m", "unittest", "discover", "-s", "tests", "-v"],
+          "timeout_s": 30
+        }
+      }
+    }
+  ]
+}
