@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "min_tasks": 5,
+  "allowed_promotion_splits": ["holdout", "production"],
+  "min_success_gain": 0.02,
+  "max_success_drop": 0.0,
+  "max_regression_rate_delta": 0.0,
+  "max_false_completion_rate_delta": 0.0,
+  "max_secondary_worsening_ratio": 1.15,
+  "min_secondary_improvement_ratio": 0.05,
+  "min_secondary_improvements": 2,
+  "min_category_tasks": 2,
+  "max_category_success_drop": 0.05
+}
