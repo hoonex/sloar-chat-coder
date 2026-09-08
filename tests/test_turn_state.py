@@ -3,6 +3,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import json
+from unittest.mock import patch
 from argparse import Namespace
 from pathlib import Path
 
@@ -179,6 +181,85 @@ class TurnStateTests(unittest.TestCase):
     def test_anchor_syntax_rejects_ambiguous_values(self):
         with self.assertRaises(turn_state.TurnStateError):
             turn_state.begin_turn(self.repo, args(anchor=["broken-anchor"]))
+
+    def test_takeover_cannot_interleave_with_progress_commit(self):
+        old = turn_state.begin_turn(self.repo, args())
+        original = turn_state.capture_identity
+        observed = []
+
+        def during_capture(repo):
+            # A separate process tries takeover after progress has checked its
+            # fence but before it publishes. It must fail fast, not overwrite.
+            result = subprocess.run(
+                [sys.executable, str(MODULE_PATH), "takeover", str(repo),
+                 "--reason", "explicit test takeover", "--json"],
+                capture_output=True, text=True, timeout=10,
+            )
+            observed.append(result.returncode)
+            return original(repo)
+
+        with patch.object(turn_state, "capture_identity", side_effect=during_capture):
+            turn_state.progress_turn(self.repo, args(turn_id=old["turn_id"], epoch=old["epoch"]))
+        self.assertEqual(observed, [2])
+        new = turn_state.takeover_turn(self.repo, args(reason="explicit test takeover"))
+        self.assertEqual(new["epoch"], 2)
+        for operation in (turn_state.progress_turn, turn_state.complete_turn):
+            with self.assertRaises(turn_state.TurnStateError):
+                operation(self.repo, args(turn_id=old["turn_id"], epoch=old["epoch"]))
+        self.assertTrue(turn_state.check_fence(self.repo, new["turn_id"], new["epoch"])["ok"])
+
+    def test_failed_pointer_write_preserves_previous_snapshot(self):
+        old = turn_state.begin_turn(self.repo, args())
+        # Simulate a pre-0.9.1 pointer targeting mutable turn/latest.json.
+        base = self.repo / turn_state.DEFAULT_STATE_DIR
+        legacy = base / "turns" / old["turn_id"] / "latest.json"
+        legacy.write_text(json.dumps(old))
+        pointer = turn_state.load_pointer(self.repo)
+        pointer["turn_file"] = legacy.relative_to(self.repo).as_posix()
+        (base / "latest.json").write_text(json.dumps(pointer))
+        write = turn_state._atomic_write
+
+        def fail_pointer(path, text):
+            if path == self.repo / turn_state.DEFAULT_STATE_DIR / "latest.json":
+                raise OSError("simulated interruption before pointer publication")
+            write(path, text)
+
+        with patch.object(turn_state, "_atomic_write", side_effect=fail_pointer):
+            with self.assertRaises(OSError):
+                turn_state.complete_turn(self.repo, args(turn_id=old["turn_id"], epoch=old["epoch"]))
+        recovered = turn_state.load_latest_turn(self.repo)
+        self.assertEqual(recovered["status"], "ACTIVE")
+        self.assertEqual(recovered["event_seq"], 1)
+        # The failed attempt leaves immutable evidence, not a corrupt pointer.
+        completed = turn_state.complete_turn(self.repo, args(turn_id=old["turn_id"], epoch=old["epoch"]))
+        self.assertTrue(completed["terminal"])
+
+    def test_invalid_pointer_does_not_reset_fencing_epoch(self):
+        turn_state.begin_turn(self.repo, args())
+        pointer = self.repo / turn_state.DEFAULT_STATE_DIR / "latest.json"
+        pointer.write_text(json.dumps({"schema": 99, "epoch": 12}))
+        with self.assertRaises(turn_state.TurnStateError):
+            turn_state.begin_turn(self.repo, args())
+        self.assertEqual(json.loads(pointer.read_text())["epoch"], 12)
+
+    def test_detached_and_linked_worktree_turn_roundtrip(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            linked = Path(temporary) / "linked"
+            git(self.repo, "worktree", "add", "--detach", str(linked), "HEAD")
+            self.assertTrue((linked / ".git").is_file())
+            state = turn_state.begin_turn(linked, args())
+            self.assertEqual(state["identity"]["branch"], "DETACHED")
+            self.assertEqual(turn_state.recovery_view(linked)["comparison"]["state"], "EXACT")
+            self.assertEqual(git(linked, "status", "--porcelain"), "")
+
+    def test_dirty_content_change_requires_reconcile(self):
+        path = self.repo / "README.md"
+        path.write_text("first dirty edit")
+        turn_state.begin_turn(self.repo, args())
+        path.write_text("different dirty edit")
+        view = turn_state.recovery_view(self.repo)
+        self.assertEqual(view["comparison"]["state"], "RECONCILE_REQUIRED")
+        self.assertIn("working_content_sha256", view["comparison"]["changed"])
 
     def test_recovery_capsule_exposes_claim_relevant_anchors(self):
         state = turn_state.begin_turn(

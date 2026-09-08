@@ -172,6 +172,15 @@ def compare_runs(
             f"runs are not paired over identical task ids; missing={missing}, extra={extra}"
         )
 
+    for task_id, base_task in baseline_tasks.items():
+        if (base_task.get("category") or "uncategorized") != (candidate_tasks[task_id].get("category") or "uncategorized"):
+            raise EvalFormatError(f"{task_id}: category changed between paired runs")
+    for metric in SECONDARY_METRICS:
+        base_coverage = {key for key, task in baseline_tasks.items() if task["metrics"].get(metric) is not None}
+        cand_coverage = {key for key, task in candidate_tasks.items() if task["metrics"].get(metric) is not None}
+        if base_coverage != cand_coverage or (base_coverage and base_coverage != set(baseline_tasks)):
+            raise EvalFormatError(f"{metric}: incomplete or mismatched coverage cannot silently disable a regression gate")
+
     base = _summary(baseline_tasks)
     cand = _summary(candidate_tasks)
     success_delta = cand["success_rate"] - base["success_rate"]

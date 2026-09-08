@@ -109,6 +109,13 @@ class RunnerTests(unittest.TestCase):
         after = hash_policy_path(self.policy)
         self.assertNotEqual(before, after)
 
+    def test_policy_mutation_invalidates_run(self):
+        with self.adapter.open("a") as handle:
+            handle.write("\n(Path(os.environ['SLOAR_EVAL_POLICY_PATH']) / 'SKILL.md').write_text('changed')\n")
+        with self.assertRaisesRegex(RunnerError, "policy bytes changed"):
+            self._run()
+        self.assertFalse((self.root / "run.json").exists())
+
     def test_nonzero_adapter_is_infrastructure_failure_not_model_failure(self):
         bad = self.root / "bad.py"
         bad.write_text("raise SystemExit(7)\n", encoding="utf-8")

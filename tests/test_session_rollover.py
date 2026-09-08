@@ -148,6 +148,43 @@ class SessionRolloverTests(unittest.TestCase):
         self.assertEqual(instruction, "Resume the latest Sloar session for example/demo.")
         self.assertNotIn("\n", instruction)
 
+    def test_same_status_with_different_bytes_requires_reconcile(self):
+        for filename, staged in [("README.md", False), ("new file\nname.txt", False), ("README.md", True)]:
+            with self.subTest(filename=filename, staged=staged):
+                path = self.repo / filename
+                path.write_text("first content")
+                if staged:
+                    git(self.repo, "add", filename)
+                    path.write_text("worktree content")
+                checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+                path.write_text("second content")
+                if staged:
+                    git(self.repo, "add", filename)
+                    path.write_text("worktree content")
+                current = rollover.capture_identity(self.repo)
+                self.assertEqual(checkpoint["identity"]["status_sha256"], current.status_sha256)
+                comparison = rollover.compare_identity(checkpoint, current)
+                self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+
+    def test_legacy_dirty_checkpoint_requires_content_revalidation(self):
+        (self.repo / "README.md").write_text("dirty")
+        checkpoint = rollover.build_checkpoint(rollover.capture_identity(self.repo), self._args())
+        checkpoint["identity"].pop("working_content_sha256")
+        comparison = rollover.compare_identity(checkpoint, rollover.capture_identity(self.repo))
+        self.assertEqual(comparison["state"], "RECONCILE_REQUIRED")
+        self.assertIn("working_content", comparison["unobserved"])
+
+    def test_detached_linked_worktree_rollover_roundtrip(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            linked = Path(temporary) / "linked"
+            git(self.repo, "worktree", "add", "--detach", str(linked), "HEAD")
+            checkpoint = rollover.build_checkpoint(rollover.capture_identity(linked), self._args())
+            rollover.write_checkpoint(linked, checkpoint, rollover.DEFAULT_STATE_DIR)
+            loaded = rollover.load_checkpoint(linked, rollover.DEFAULT_STATE_DIR, None)
+            self.assertEqual(loaded["identity"]["branch"], "DETACHED")
+            self.assertEqual(rollover.compare_identity(loaded, rollover.capture_identity(linked))["state"], "EXACT")
+            self.assertEqual(git(linked, "status", "--porcelain"), "")
+
 
 if __name__ == "__main__":
     unittest.main()

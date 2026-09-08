@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+ChatGPT/GitHub workflow and integrity fixes.
+
+- Added an explicit connector-only workflow: current-session activation, capability selection, direct checkpoint JSON publication, exact CI evidence, and conflict-rejecting Git ref updates. Python and Codex CLI are optional, separate execution paths.
+- Distinguished local filesystem locks, sidecar ref guards, and product branch publication. Separate refs cannot be atomically fenced through ordinary API calls; overlapping sessions use isolated branches and exact integration checks.
+- Fixed local recovery identity to include index entries and changed/untracked file content. Legacy dirty checkpoints without content evidence require revalidation.
+- Fixed detached HEAD and linked-worktree metadata paths in both recovery helpers.
+- Serialized local turn mutations with fail-fast OS locks and made pointers reference immutable event snapshots. A partial write preserves the prior published state; malformed pointers cannot reset the fencing epoch.
+- Protected evaluator-owned tests/configuration against modification, included agent commits and new files in patch evidence, required full repository commit SHAs, and counted regression failures against completion claims.
+- Restricted the bundled local Codex adapter to development evaluation. It does not provide a private evaluator isolation boundary and must not be used as holdout/production promotion evidence.
+- Reject policy changes during a run, category relabeling, and incomplete cost-metric coverage rather than silently disabling comparison gates.
+- Added behavioral regression tests for these failure modes. These tests prove helper behavior, not model capability gains. Existing fast-path experiment PR #33 remains a separate experiment.
+
 
 ## 0.9.1 - 2026-09-08
 

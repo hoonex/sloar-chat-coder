@@ -2,7 +2,9 @@
 
 이 문서는 Sloar 내부 구조를 몰라도 **처음 시작 → 평소 개발 → 업데이트 → 새 채팅 이동 → 멈춘 응답 복구**까지 할 수 있도록 만든 사용자용 가이드다.
 
-현재 stable: **0.8.1**
+현재 버전은 저장소 루트의 [VERSION](../VERSION)에서 확인할 수 있다.
+
+ChatGPT 채팅과 GitHub 플러그인으로 사용한다면 [README의 사용 환경 설명](../README.ko.md)을 먼저 참고하면 된다. 로컬 도우미와 CLI는 필수 설치 항목이 아니다.
 
 ## 1. 처음 시작하기
 
@@ -18,7 +20,11 @@ https://github.com/OWNER/REPO
 원하는 작업:
 <여기에 만들거나 수정하고 싶은 내용을 적기>
 
-먼저 Sloar 사용법과 현재 저장소 상태를 확인한 뒤 진행해.
+먼저 Sloar 원본을 정확한 커밋 SHA로 확인하고, 그 SHA의
+.agents/skills/sloar-chat-coder/SKILL.md와 작업에 필요한 참조만 읽어.
+읽지 못하면 SLOAR_UNAVAILABLE로 알려줘. 읽은 척 진행하지 마.
+현재 GitHub 도구로 저장소 상태를 확인하고 작업해.
+로컬 실행 도구가 없다면 가능한 GitHub 작업은 계속하고, 미실행 검증은 구분해.
 ```
 
 Sloar를 처음 보는 채팅에서도 원본 저장소 링크를 같이 주므로, 이름만 보고 추측하지 않고 현재 문서를 읽고 시작할 수 있다.
@@ -275,7 +281,11 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 Sloar: https://github.com/hoonex/sloar-chat-coder
 대상 저장소: https://github.com/OWNER/REPO
 원하는 작업: <작업>
-먼저 Sloar 사용법과 현재 저장소 상태를 확인한 뒤 진행해.
+먼저 Sloar 원본을 정확한 커밋 SHA로 확인하고, 그 SHA의
+.agents/skills/sloar-chat-coder/SKILL.md와 작업에 필요한 참조만 읽어.
+읽지 못하면 SLOAR_UNAVAILABLE로 알려줘. 읽은 척 진행하지 마.
+현재 GitHub 도구로 저장소 상태를 확인하고 작업해.
+로컬 실행 도구가 없다면 가능한 GitHub 작업은 계속하고, 미실행 검증은 구분해.
 
 # 이미 설치된 저장소
 이 저장소 Sloar로 개발해.

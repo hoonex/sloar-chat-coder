@@ -108,7 +108,7 @@ def run_pair(
             policy_path=shared_policy,
             model_id=model_id,
             adapter_id="codex-cli",
-            adapter_version="1",
+            adapter_version="2",
             adapter_command=adapter_command,
             output_path=output_dir / "baseline.json",
             artifacts_dir=output_dir / "baseline-artifacts",
@@ -123,7 +123,7 @@ def run_pair(
             policy_path=shared_policy,
             model_id=model_id,
             adapter_id="codex-cli",
-            adapter_version="1",
+            adapter_version="2",
             adapter_command=adapter_command,
             output_path=output_dir / "candidate.json",
             artifacts_dir=output_dir / "candidate-artifacts",
@@ -158,7 +158,7 @@ def main() -> int:
         "--reasoning-effort",
         default="medium",
         choices=["low", "medium", "high", "xhigh", "max"],
-        help="reasoning used for both sides of the A/B run; medium is the fast dev default, use high for promotion evidence",
+        help="reasoning used for both sides of the A/B run; medium is the fast dev default; high probes reasoning sensitivity, while promotion requires a separate isolated evaluator",
     )
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--output-dir", type=Path, default=Path(".sloar-evals/latest"))
