@@ -3,6 +3,21 @@
 ## Unreleased
 
 
+## 0.9.1 - 2026-09-08
+
+Evaluation-driven development and publication-reliability patch.
+
+- Added the development-only `sloar-evals` substrate so Sloar policy changes can be compared as stable vs candidate under the same suite/model/harness identity instead of being promoted from prose intuition alone. The runner preserves trajectory/artifact evidence and the scorer gates success, regressions, false completion, category-level losses, and efficiency metrics.
+- Separated exposed `dev` iteration from promotion-quality evidence. Dev suites can guide experiments but cannot authorize promotion; holdout/production evidence remains the promotion boundary, with comparison fingerprints preventing silent model/harness/suite changes from masquerading as policy improvements.
+- Added a real Codex CLI evaluation adapter and one-command A/B runner. Repository tasks execute in isolated worktrees, success/regression are derived from objective repository checks, false completion is compared against verifier evidence, and adapter crashes/timeouts/malformed results remain evaluation-infrastructure failures rather than model failures.
+- Added deterministic public smoke cases whose seed patches are proven RED before agent execution, providing an end-to-end check of `policy -> agent -> repository mutation -> verifier -> result bundle` without pretending the exposed smoke suite is hidden capability evidence.
+- Changed the default dev A/B reasoning effort to `medium` for faster iteration while keeping both sides of every comparison on the same effort and reserving explicit `high` runs for promotion-quality validation.
+- Strengthened publication safety from a generic HEAD check into an explicit **publication mutation intent / mutation envelope**. Ref movement, file-content writes, PR metadata, workflow actions, and other remote mutation families are no longer interchangeable merely because similarly named connector recipients are available.
+- Added a bounded Git-object publication transaction: build against an expected head, re-resolve immediately before ref movement, stop/reconcile on movement, prefer compare-and-swap / expected-old-SHA / lease semantics when available, and verify the exact published ref/commit/tree as a postcondition. Read-then-write paths without CAS are explicitly described as retaining a residual race rather than being called atomic.
+- Added operational-incident handling for wrong tool/recipient or unintended remote mutations. Sloar must inspect the durable effect, repair current state with a bounded corrective change, and must not force-rewrite shared/public history merely to hide an accidental intermediate commit.
+- Distinguished GitHub Actions concurrency cancellation from code failure. A cancelled push run may be superseded by an authoritative PR run only when exact source SHA and required checks match; unexplained cancellations, different SHAs, or missing required checks cannot be coerced into GREEN evidence.
+- Added regression contracts covering publication mutation intent, operation-family fencing, ref postconditions, operational incidents, and concurrency-cancellation evidence.
+
 ## 0.9.0 - 2026-09-03
 
 Reasoning kernel and semantic-boundary verification release.
