@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   prepare:
-    if: github.event.head_commit.message == 'chore: dispatch 0.9.2 metadata prep'
+    if: github.event.head_commit.message == 'chore: prepare 0.9.2 metadata mission'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,17 +72,14 @@ jobs:
           marker = "## Unreleased\n"
           if marker not in text:
               raise SystemExit("CHANGELOG Unreleased marker missing")
-          section = """
-
-## 0.9.2 - 2026-09-08
-
-Runtime-cache isolation audit patch.
-
-- Prevented Sloar Evals fixture materialization from copying local Python `__pycache__`, `.pyc`, or `.pyo` artifacts into isolated worktrees. This closes a stale-bytecode false-GREEN path where a same-size seed patch could change source bytes while Python still executed copied cached bytecode.
-- Added a nested `.gitignore` to the installed `sloar-chat-coder` Skill so running bundled Python helpers such as `doctor.py` and `wizard.py` does not make an otherwise clean target repository appear dirty merely because Python created runtime bytecode caches.
-- Added focused regression tests proving eval worktrees exclude stale runtime caches and installed helper execution preserves clean Git state.
-- Completed a second full-system audit after the fixes: 122 deterministic tests passed, including install/readiness/checkpoint, rollover/takeover/fencing, forge/ref-cleanup classification, Android preflight, engineering closure, eval runner/comparison, upgrade preservation, and the existing protocol/design/publication contracts. Provider-authenticated model execution, real-device Android behavior, and rendered UI quality remain separate environment-specific evidence surfaces.
-"""
+          section = (
+              "\n\n## 0.9.2 - 2026-09-08\n\n"
+              "Runtime-cache isolation audit patch.\n\n"
+              "- Prevented Sloar Evals fixture materialization from copying local Python `__pycache__`, `.pyc`, or `.pyo` artifacts into isolated worktrees. This closes a stale-bytecode false-GREEN path where a same-size seed patch could change source bytes while Python still executed copied cached bytecode.\n"
+              "- Added a nested `.gitignore` to the installed `sloar-chat-coder` Skill so running bundled Python helpers such as `doctor.py` and `wizard.py` does not make an otherwise clean target repository appear dirty merely because Python created runtime bytecode caches.\n"
+              "- Added focused regression tests proving eval worktrees exclude stale runtime caches and installed helper execution preserves clean Git state.\n"
+              "- Completed a second full-system audit after the fixes: 122 deterministic tests passed, including install/readiness/checkpoint, rollover/takeover/fencing, forge/ref-cleanup classification, Android preflight, engineering closure, eval runner/comparison, upgrade preservation, and the existing protocol/design/publication contracts. Provider-authenticated model execution, real-device Android behavior, and rendered UI quality remain separate environment-specific evidence surfaces.\n"
+          )
           text = text.replace(marker, marker + section, 1)
           changelog.write_text(text, encoding="utf-8")
 
