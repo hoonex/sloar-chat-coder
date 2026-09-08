@@ -12,6 +12,9 @@ import tarfile
 import tempfile
 from pathlib import Path
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from evals.compare import EvalFormatError, compare_runs
 from evals.run import RunnerError, run_suite
 
