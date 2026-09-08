@@ -17,6 +17,7 @@ class ReasoningKernelContractTests(unittest.TestCase):
         cls.state_machine = (refs / "state-machine.md").read_text(encoding="utf-8")
         cls.verification = (refs / "verification.md").read_text(encoding="utf-8")
         cls.readme = (root / "README.md").read_text(encoding="utf-8")
+        cls.readme_ko = (root / "README.ko.md").read_text(encoding="utf-8")
         cls.version = (root / "VERSION").read_text(encoding="utf-8").strip()
 
     def test_five_move_kernel_is_primary_entry_point(self):
@@ -82,10 +83,13 @@ class ReasoningKernelContractTests(unittest.TestCase):
         self.assertIn("recovery anchor, not a substitute for final reconciliation", self.kernel)
 
     def test_stable_version_contract_is_consistent(self):
-        self.assertEqual(self.version, "0.9.0")
-        self.assertRegex(self.skill, r'version:\s*"0\.9\.0"')
-        self.assertIn("Current stable: **0.9.0**", self.readme)
-        self.assertIn("stable-0.9.0", self.readme)
+        self.assertRegex(self.version, r"^\d+\.\d+\.\d+$")
+        escaped = re.escape(self.version)
+        self.assertRegex(self.skill, rf'version:\s*"{escaped}"')
+        self.assertIn(f"Current stable: **{self.version}**", self.readme)
+        self.assertIn(f"stable-{self.version}", self.readme)
+        self.assertIn(f"현재 stable: **{self.version}**", self.readme_ko)
+        self.assertIn(f"stable-{self.version}", self.readme_ko)
 
 
 if __name__ == "__main__":
