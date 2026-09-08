@@ -66,7 +66,8 @@ def hash_policy_path(path: Path) -> str:
 
     hasher = hashlib.sha256()
     hasher.update(b"directory\0")
-    files = sorted(row for row in path.rglob("*") if row.is_file())
+    files = sorted(row for row in path.rglob("*") if row.is_file()
+                   and "__pycache__" not in row.parts and row.suffix != ".pyc")
     if not files:
         raise RunnerError(f"policy directory is empty: {path}")
     for file_path in files:
@@ -269,6 +270,9 @@ def run_suite(
         elapsed = time.perf_counter() - started
         _write_text(stdout_file, completed.stdout)
         _write_text(stderr_file, completed.stderr)
+
+        if hash_policy_path(policy_path) != policy_digest:
+            raise RunnerError(f"{task_id}: policy bytes changed during evaluation; run is invalid")
 
         if completed.returncode != 0:
             raise RunnerError(

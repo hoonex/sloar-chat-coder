@@ -23,6 +23,22 @@ Current stable: **0.9.1**
 
 > Durable repository truth over reconstructed conversation memory. Evidence before completion claims.
 
+## Using ChatGPT chat with a GitHub plugin/app
+
+Sloar is read and applied by the assistant in the current chat. The GitHub
+connector supplies the repository operations actually exposed to that session.
+Using Sloar this way does not require Codex CLI, an API key, or local Python.
+
+- Instructions and repository edits can operate through exact connector reads/writes.
+- Python helpers run only when a code runtime is available; they are optional.
+- Tests require an actual runtime or applicable repository CI. Saved code is not a test pass.
+- Codex CLI A/B evaluation is separate development tooling, not a measurement of this chat.
+- Cross-chat state must actually be saved remotely. Local locks do not lock GitHub.
+- Existing vendored copies need their own authorized upgrade; canonical changes do not update them automatically.
+
+See [the chat/GitHub workflow](.agents/skills/sloar-chat-coder/references/chat-github-workflow.md)
+for capability selection, conflict-rejecting publication, and runtime-free handoff.
+
 ## First time? Paste this first
 
 Open a fresh ChatGPT/Codex chat and replace only `OWNER/REPO` and the task.

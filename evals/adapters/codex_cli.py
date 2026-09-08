@@ -9,8 +9,10 @@ runs objective acceptance and regression checks and writes ``result.json``.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import re
 import shlex
 import shutil
 import signal
@@ -50,11 +52,12 @@ def _command(value: Any, *, name: str) -> list[str]:
     return list(value)
 
 
-def _run_checked(command: Sequence[str], *, cwd: Path | None = None, timeout_s: float = 120.0) -> subprocess.CompletedProcess[str]:
+def _run_checked(command: Sequence[str], *, cwd: Path | None = None, timeout_s: float = 120.0, env: dict | None = None) -> subprocess.CompletedProcess[str]:
     try:
         completed = subprocess.run(
             list(command),
             cwd=str(cwd) if cwd else None,
+            env=env,
             capture_output=True,
             text=True,
             timeout=timeout_s,
@@ -121,8 +124,8 @@ def _materialize_repository(task: dict[str, Any], *, output_dir: Path, adapter_c
     commit = str(repository.get("commit") or "").strip()
     if not source or not commit:
         raise AdapterError("repository requires fixture_path or source url/path plus exact commit")
-    if len(commit) < 7:
-        raise AdapterError("repository.commit must be an immutable commit id")
+    if not re.fullmatch(r"[0-9a-fA-F]{40}|[0-9a-fA-F]{64}", commit):
+        raise AdapterError("repository.commit must be a full immutable commit SHA, not a branch/tag/abbreviation")
     source_value = str(source)
     if repository.get("path"):
         local = Path(source_value)
@@ -133,7 +136,7 @@ def _materialize_repository(task: dict[str, Any], *, output_dir: Path, adapter_c
     _run_checked(["git", "clone", "-q", "--no-checkout", source_value, str(worktree)], timeout_s=300)
     _git(worktree, "checkout", "-q", "--detach", commit, timeout_s=120)
     observed = _git(worktree, "rev-parse", "HEAD")
-    expected = _run_checked(["git", "-C", str(worktree), "rev-parse", f"{commit}^{{commit}}"], timeout_s=120).stdout.strip()
+    expected = commit.lower()
     if observed != expected:
         raise AdapterError(f"repository identity mismatch: expected {expected}, got {observed}")
     return worktree
@@ -176,6 +179,8 @@ def _build_prompt(task: dict[str, Any], *, policy_entrypoint: Path) -> str:
         f"Before changing the repository, read and follow the supplied Sloar policy snapshot at {policy_entrypoint}.\n"
         "Treat that snapshot as the Sloar authority for this run. Do not search for or compare against other Sloar policy versions.\n"
         "Work only in the provided repository worktree. Use repository-defined validation where useful.\n"
+        "Do not change evaluator-owned tests or verification configuration; their integrity is checked after the run.\n"
+        f"Protected verification paths: {json.dumps(_protected_paths(task))}\n"
         "At the end, set status=completed only if you believe the requested task is actually complete; otherwise use blocked or failed.\n\n"
         "Task:\n"
         f"{prompt}\n"
@@ -202,8 +207,6 @@ def build_codex_command(
         "workspace-write",
         "--cd",
         str(worktree),
-        "--add-dir",
-        str(policy_path),
         "--output-schema",
         str(schema_file),
         "--output-last-message",
@@ -310,6 +313,53 @@ def _run_verifier(task: dict[str, Any], name: str, *, worktree: Path, output_dir
     return bool(completed is not None and completed.returncode == 0)
 
 
+def _protected_paths(task: dict[str, Any]) -> list[str]:
+    verification = task.get("verification", {})
+    values = verification.get("protected_paths", ["tests", "conftest.py", "pytest.ini", "pyproject.toml", "setup.cfg"])
+    if not isinstance(values, list) or not values or not all(isinstance(x, str) and x for x in values):
+        raise AdapterError("verification.protected_paths must be a non-empty array of repository-relative paths")
+    for value in values:
+        path = Path(value)
+        if path.is_absolute() or ".." in path.parts or ".git" in path.parts or value in {".", ""}:
+            raise AdapterError(f"unsafe protected verification path: {value}")
+    return values
+
+
+def _verification_snapshot(task: dict[str, Any], worktree: Path) -> dict[str, str]:
+    snapshot = {}
+    for relative in _protected_paths(task):
+        root = worktree / relative
+        # Detect symlinks in parent components too; evaluator files must live
+        # inside this worktree and must not be redirected to candidate code.
+        if any(parent.is_symlink() for parent in [root, *root.parents] if parent != worktree and worktree in parent.parents):
+            raise AdapterError(f"protected verification path is a symlink: {relative}")
+        if not root.exists():
+            snapshot[relative] = "absent"
+            continue
+        paths = [root, *sorted(root.rglob("*"))] if root.is_dir() else [root]
+        for path in paths:
+            if "__pycache__" in path.parts or path.suffix == ".pyc":
+                continue
+            name = path.relative_to(worktree).as_posix()
+            if path.is_symlink():
+                raise AdapterError(f"protected verification path is a symlink: {name}")
+            snapshot[name] = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else "directory"
+    return snapshot
+
+
+def _capture_patch(worktree: Path, base: str, output_dir: Path) -> str:
+    # A private index captures new files AND commits made by the agent, without
+    # changing its real index. `git diff HEAD` loses both kinds of work.
+    index = output_dir / "patch.index"
+    env = dict(os.environ, GIT_INDEX_FILE=str(index))
+    try:
+        _run_checked(["git", "read-tree", base], cwd=worktree, env=env)
+        _run_checked(["git", "add", "-A", "--", "."], cwd=worktree, env=env)
+        return _run_checked(["git", "diff", "--cached", "--binary", "--no-ext-diff", base], cwd=worktree, env=env).stdout
+    finally:
+        index.unlink(missing_ok=True)
+
+
 def evaluate_task(*, codex_bin: str, reasoning_effort: str, codex_timeout_s: float, adapter_cwd: Path | None = None) -> dict[str, Any]:
     task_id = _required_env("SLOAR_EVAL_TASK_ID")
     task_file = Path(_required_env("SLOAR_EVAL_TASK_FILE")).resolve()
@@ -322,12 +372,19 @@ def evaluate_task(*, codex_bin: str, reasoning_effort: str, codex_timeout_s: flo
     output_dir.mkdir(parents=True, exist_ok=True)
 
     task = _load_json(task_file)
+    if os.environ.get("SLOAR_EVAL_SPLIT", "dev") != "dev":
+        raise AdapterError("this local Codex adapter supports dev evaluation only; holdout/production requires an isolated evaluator")
     if str(task.get("id") or "") != task_id:
         raise AdapterError(f"task id mismatch: env={task_id!r} file={task.get('id')!r}")
     if codex_timeout_s <= 0:
         raise AdapterError("codex timeout must be > 0")
 
     worktree = _materialize_repository(task, output_dir=output_dir, adapter_cwd=adapter_cwd)
+    base_commit = _git(worktree, "rev-parse", "HEAD")
+    base_tree = _git(worktree, "rev-parse", "HEAD^{tree}")
+    verification_before = _verification_snapshot(task, worktree)
+    if not any(value not in {"absent", "directory"} for value in verification_before.values()):
+        raise AdapterError("no verifier files protected; declare verification.protected_paths for this task")
     policy_entrypoint = _resolve_policy_entrypoint(policy_path)
     schema_file = output_dir / "final.schema.json"
     last_message_file = output_dir / "final.json"
@@ -355,20 +412,33 @@ def evaluate_task(*, codex_bin: str, reasoning_effort: str, codex_timeout_s: flo
     if not isinstance(final.get("summary"), str):
         raise AdapterError("final summary must be a string")
 
-    acceptance_pass = _run_verifier(task, "acceptance", worktree=worktree, output_dir=output_dir)
-    regression_pass = _run_verifier(task, "regression", worktree=worktree, output_dir=output_dir)
-    patch = _run_checked(["git", "diff", "--binary", "HEAD"], cwd=worktree).stdout
+    integrity_error = None
+    try:
+        if _verification_snapshot(task, worktree) != verification_before:
+            integrity_error = "evaluator-owned verification files changed"
+    except AdapterError as exc:
+        integrity_error = str(exc)
+    if integrity_error:
+        acceptance_pass = regression_pass = False
+        for name in ("acceptance", "regression"):
+            (output_dir / f"verify-{name}.json").write_text(json.dumps({"executed": False, "reason": integrity_error}))
+    else:
+        acceptance_pass = _run_verifier(task, "acceptance", worktree=worktree, output_dir=output_dir)
+        regression_pass = _run_verifier(task, "regression", worktree=worktree, output_dir=output_dir)
+    patch = _capture_patch(worktree, base_commit, output_dir)
     (output_dir / "patch.diff").write_text(patch, encoding="utf-8")
 
     metrics = {
         "success": 1.0 if acceptance_pass else 0.0,
         "regression": 0.0 if regression_pass else 1.0,
-        "false_completion": 1.0 if status == "completed" and not acceptance_pass else 0.0,
+        "false_completion": 1.0 if status == "completed" and not (acceptance_pass and regression_pass) else 0.0,
     }
     result = {
         "schema": 1,
         "task_id": task_id,
         "metrics": metrics,
+        "verification_integrity_error": integrity_error,
+        "repository": {"base_commit": base_commit, "base_tree": base_tree, "final_commit": _git(worktree, "rev-parse", "HEAD")},
         "agent": {
             "status": status,
             "summary": final["summary"],

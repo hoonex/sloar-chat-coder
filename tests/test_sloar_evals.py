@@ -118,6 +118,20 @@ class SloarEvalTests(unittest.TestCase):
         with self.assertRaises(EvalFormatError):
             compare_runs(baseline, candidate)
 
+    def test_missing_secondary_metric_cannot_disable_cost_gate(self):
+        baseline = make_run()
+        candidate = copy.deepcopy(baseline)
+        candidate["tasks"][0]["metrics"].pop("tokens")
+        with self.assertRaisesRegex(EvalFormatError, "coverage"):
+            compare_runs(baseline, candidate)
+
+    def test_category_relabeling_is_not_comparable(self):
+        baseline = make_run()
+        candidate = copy.deepcopy(baseline)
+        candidate["tasks"][0]["category"] = "easier-category"
+        with self.assertRaisesRegex(EvalFormatError, "category changed"):
+            compare_runs(baseline, candidate)
+
 
 if __name__ == "__main__":
     unittest.main()

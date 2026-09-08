@@ -274,9 +274,8 @@ treat repeated optimization against one exposed suite as contamination risk.
 
 The execution and scoring substrate now exists. The next useful layers are:
 
-1. one real coding-agent adapter that can materialize immutable repository cases,
-   run Sloar stable/candidate under the same model harness, and derive objective
-   result metrics;
+1. an isolated evaluator for private holdout/production cases; the implemented
+   [Codex CLI adapter](CODEX.md) supports public development evaluation only;
 2. fresh/private suite generation and immutable case storage;
 3. production feedback ingestion (accepted patch, user correction, rollback,
    false completion);
@@ -284,3 +283,17 @@ The execution and scoring substrate now exists. The next useful layers are:
    holdout evidence;
 5. versioned promotion and rollback of strategy policy, never live mutation of
    the stable core.
+
+## Interpreting results for ChatGPT + GitHub use
+
+A CLI result measures that CLI harness. Test chat-native continuity separately
+with scenarios involving interrupted sessions, moving branch heads, ambiguous
+write receipts, and stale CI evidence. Preserve exact source and tool evidence;
+mock tool scenarios validate the protocol and helpers, not live ChatGPT behavior.
+A small public smoke suite and a single successful run cannot establish a general
+capability gain. Real promotion should use fresh task coverage and repeated paired
+runs with uncertainty reporting in an isolated evaluator.
+
+Category assignments must match per task. A secondary metric must cover every
+task on both sides or be absent on both sides; partial telemetry is invalid,
+rather than a reason to silently skip a cost-regression gate.

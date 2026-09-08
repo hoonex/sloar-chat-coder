@@ -2,7 +2,7 @@
 
 This guide is for users who want to go from **first use -> normal development -> upgrade -> fresh-chat handoff -> stuck-response recovery** without learning Sloar internals first.
 
-Current stable: **0.8.1**
+See [VERSION](../VERSION) for the current repository version.
 
 ## 1. First use
 

@@ -42,7 +42,7 @@ This is a **mutation envelope**, not a general ban on other tools. Reads and obj
 
 Immediately before the identity-changing publication write, resolve the relevant remote base/head again.
 
-If it matches the expected identity, continue.
+If it matches the expected identity, continue using a conflict-rejecting write primitive. A fresh read alone does not close the read/write race. For GitHub connector work, create the candidate commit with the observed head as its parent and update the ref without force; see [chat-github-workflow.md](chat-github-workflow.md).
 
 If it moved:
 1. stop publication;
@@ -87,7 +87,7 @@ A different run may serve as authoritative CI evidence only when all relevant id
 
 ## Force updates
 
-A force update is acceptable only when the task explicitly owns the branch, the expected current head is verified, and the operation preserves unrelated concurrent work. Prefer force-with-lease semantics when available. Never force-update a shared/default branch as a convenience.
+A force update is acceptable only when the task explicitly owns the branch, the expected current head is verified, and the operation preserves unrelated concurrent work. Require a compare-and-swap/force-with-lease primitive that checks the expected old head. An API exposing only a force boolean cannot safely implement this exception; use a fresh branch instead. Never force-update a shared/default branch as a convenience.
 
 ## Cleanup ownership
 
