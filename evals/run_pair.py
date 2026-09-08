@@ -154,7 +154,12 @@ def main() -> int:
     parser.add_argument("--stable-ref", default="main")
     parser.add_argument("--candidate-ref", default="HEAD")
     parser.add_argument("--model-id", default="gpt-5.6-sol")
-    parser.add_argument("--reasoning-effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
+    parser.add_argument(
+        "--reasoning-effort",
+        default="medium",
+        choices=["low", "medium", "high", "xhigh", "max"],
+        help="reasoning used for both sides of the A/B run; medium is the fast dev default, use high for promotion evidence",
+    )
     parser.add_argument("--codex-bin", default="codex")
     parser.add_argument("--output-dir", type=Path, default=Path(".sloar-evals/latest"))
     parser.add_argument("--task-timeout-s", type=float, default=1800.0)
