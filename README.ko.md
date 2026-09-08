@@ -4,10 +4,10 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-현재 stable: **0.9.0**
+현재 stable: **0.9.1**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.0-2563eb?style=flat-square" alt="stable 0.9.0"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.1-2563eb?style=flat-square" alt="stable 0.9.1"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -170,7 +170,7 @@ Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업�
 → 아무 알림 없이 작업 계속
 
 새 stable 있음
-→ Sloar update available: 0.8.3 -> 0.9.0. Upgrade now?
+→ Sloar update available: 0.9.0 -> 0.9.1. Upgrade now?
 → 사용자가 승인
 → 현재 작업 상태를 보존한 안전한 업그레이드 자동 실행
 
@@ -200,7 +200,7 @@ Wizard에 stable을 명시하려면:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.9.0 --json
+  --stable-version 0.9.1 --json
 ```
 
 자세한 계약: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
