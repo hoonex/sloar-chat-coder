@@ -97,7 +97,12 @@ def _materialize_repository(task: dict[str, Any], *, output_dir: Path, adapter_c
 
     if repository.get("fixture_path"):
         fixture = _resolve_fixture(str(repository["fixture_path"]), adapter_cwd)
-        shutil.copytree(fixture, worktree, dirs_exist_ok=True)
+        shutil.copytree(
+            fixture,
+            worktree,
+            dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+        )
         seed_patch = task.get("seed_patch")
         if seed_patch:
             if not isinstance(seed_patch, str):
