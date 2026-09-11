@@ -41,6 +41,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/web-design-guidance/references/anti-ai-slop.md" ]] || { echo "missing anti-ai-slop reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/surface-recipes.md" ]] || { echo "missing web surface recipes" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/visual-verification.md" ]] || { echo "missing web visual verification reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/web-design-guidance/references/structural-ui-engineering.md" ]] || { echo "missing structural UI engineering reference" >&2; exit 1; }
   echo "sloar self-test: ok"
   exit 0
 fi
