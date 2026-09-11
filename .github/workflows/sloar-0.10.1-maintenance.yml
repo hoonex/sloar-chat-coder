@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           parent="$(git rev-parse HEAD^)"
-          if [ "$parent" != "84ec65469ef8b4b8f5c85ab04f96d5fbc14d8aa8" ]; then
+          if [ "$parent" != "db0f3cd38540585fde0ff638fbcf9051ccb91ed3" ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "One-shot maintenance already consumed or source moved; no mutation."
             exit 0
@@ -36,15 +36,12 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          old = "0.10.0"
-          new = "0.10.1"
-
-          Path("VERSION").write_text(new + "\n", encoding="utf-8")
+          Path("VERSION").write_text("0.10.1\n", encoding="utf-8")
 
           skill_path = Path(".agents/skills/sloar-chat-coder/SKILL.md")
           skill = skill_path.read_text(encoding="utf-8")
           old_version = '  version: "0.10.0"'
-          assert skill.count(old_version) == 1, "unexpected SKILL metadata version occurrence count"
+          assert skill.count(old_version) == 1
           skill = skill.replace(old_version, '  version: "0.10.1"', 1)
           anchor = (
               "For Android application/module creation, modification, build, signing, packaging, or distribution, "
@@ -53,52 +50,68 @@ jobs:
               "an empty/non-Android repository enters the documented bootstrap path instead of guessing project structure. "
               "Compile/test/artifact success must remain separate from real-device UI, runtime, performance, thermal, and power evidence."
           )
-          addition = (
-              anchor
-              + "\n\nFor user-facing Android UI claims where layout, contrast, system bars/insets, orientation, reachability, or screenshot evidence can change acceptance, "
+          extra = (
+              "For user-facing Android UI claims where layout, contrast, system bars/insets, orientation, reachability, or screenshot evidence can change acceptance, "
               "read [references/rendered-ui-evidence.md](references/rendered-ui-evidence.md). Treat automation and rendered visual acceptance as independent gates; "
               "bind accepted renders to exact source/artifact identity, inspect the actual rendered evidence when available, and prefer semantic selectors over stale hard-coded coordinates."
           )
-          assert skill.count(anchor) == 1, "Android SKILL anchor changed"
-          assert "rendered-ui-evidence.md" not in skill, "rendered UI reference already wired"
-          skill = skill.replace(anchor, addition, 1)
+          assert skill.count(anchor) == 1
+          assert "rendered-ui-evidence.md" not in skill
+          skill = skill.replace(anchor, anchor + "\n\n" + extra, 1)
           skill_path.write_text(skill, encoding="utf-8")
 
           wizard_path = Path(".agents/skills/sloar-chat-coder/scripts/wizard.py")
           wizard = wizard_path.read_text(encoding="utf-8")
           old_constant = 'CURRENT_SLOAR_VERSION = "0.10.0"'
-          assert wizard.count(old_constant) == 1, "unexpected wizard version occurrence count"
+          assert wizard.count(old_constant) == 1
           wizard_path.write_text(wizard.replace(old_constant, 'CURRENT_SLOAR_VERSION = "0.10.1"', 1), encoding="utf-8")
 
           changelog_path = Path("CHANGELOG.md")
           changelog = changelog_path.read_text(encoding="utf-8")
           marker = "## Unreleased\n\nNo unreleased changes yet.\n\n"
-          assert changelog.count(marker) == 1, "unexpected changelog unreleased marker"
-          section = """## 0.10.1 - 2026-09-11
-
-Rendered UI evidence-closure patch.
-
-- Added a dedicated rendered-UI evidence contract so compile, test, instrumentation, screenshot generation, and artifact upload success cannot be mistaken for visual acceptance.
-- Added exact source/run/artifact identity requirements for rendered evidence and a pre-merge HEAD reconciliation rule so accepted screenshots cannot silently refer to stale source.
-- Added native system-UI boundaries covering status-bar contrast, navigation/gesture insets, cutouts, portrait/landscape, constrained viewport states, IME overlap, and action reachability when those states affect acceptance.
-- Added semantic-selector guidance for UI automation: accessibility/semantics nodes, test IDs, labels, or repository-defined selectors are preferred over hard-coded coordinates that become stale after inset, density, orientation, or layout changes.
-- Added failure-layer classification that separates build/package, install/runner, selector/harness, product interaction/state, and rendered visual defects before product source is changed.
-- Added regression coverage for the rendered UI evidence contract.
-- Bumped Sloar core and First Run Wizard metadata to `0.10.1`.
-
-"""
+          assert changelog.count(marker) == 1
+          section_lines = [
+              "## 0.10.1 - 2026-09-11",
+              "",
+              "Rendered UI evidence-closure patch.",
+              "",
+              "- Added a dedicated rendered-UI evidence contract so compile, test, instrumentation, screenshot generation, and artifact upload success cannot be mistaken for visual acceptance.",
+              "- Added exact source/run/artifact identity requirements for rendered evidence and a pre-merge HEAD reconciliation rule so accepted screenshots cannot silently refer to stale source.",
+              "- Added native system-UI boundaries covering status-bar contrast, navigation/gesture insets, cutouts, portrait/landscape, constrained viewport states, IME overlap, and action reachability when those states affect acceptance.",
+              "- Added semantic-selector guidance for UI automation: accessibility/semantics nodes, test IDs, labels, or repository-defined selectors are preferred over hard-coded coordinates that become stale after inset, density, orientation, or layout changes.",
+              "- Added failure-layer classification that separates build/package, install/runner, selector/harness, product interaction/state, and rendered visual defects before product source is changed.",
+              "- Added regression coverage for the rendered UI evidence contract.",
+              "- Bumped Sloar core and First Run Wizard metadata to `0.10.1`.",
+              "",
+              "",
+          ]
+          section = "\n".join(section_lines)
           changelog_path.write_text(changelog.replace(marker, marker + section, 1), encoding="utf-8")
 
-          for name, prefix in (("README.md", "Current stable"), ("README.ko.md", "현재 stable")):
-              path = Path(name)
-              text = path.read_text(encoding="utf-8")
-              assert text.count("0.10.0") >= 2, f"{name}: expected stable version references"
-              path.write_text(text.replace("0.10.0", "0.10.1"), encoding="utf-8")
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+          for old, new in [
+              ("Current stable: **0.10.0**", "Current stable: **0.10.1**"),
+              ("stable-0.10.0", "stable-0.10.1"),
+              ("stable 0.10.0", "stable 0.10.1"),
+          ]:
+              assert old in text
+              text = text.replace(old, new)
+          readme.write_text(text, encoding="utf-8")
 
-          tests = Path("tests/test_rendered_ui_evidence_contract.py")
-          assert tests.is_file(), "rendered UI contract regression test missing"
-          reference = Path(".agents/skills/sloar-chat-coder/references/rendered-ui-evidence.md")
-          assert reference.is_file(), "rendered UI reference missing"
+          readme_ko = Path("README.ko.md")
+          text = readme_ko.read_text(encoding="utf-8")
+          for old, new in [
+              ("현재 stable: **0.10.0**", "현재 stable: **0.10.1**"),
+              ("stable-0.10.0", "stable-0.10.1"),
+              ("stable 0.10.0", "stable 0.10.1"),
+          ]:
+              assert old in text
+              text = text.replace(old, new)
+          readme_ko.write_text(text, encoding="utf-8")
+
+          assert Path("tests/test_rendered_ui_evidence_contract.py").is_file()
+          assert Path(".agents/skills/sloar-chat-coder/references/rendered-ui-evidence.md").is_file()
           PY
 
           test "$(tr -d '[:space:]' < VERSION)" = "0.10.1"
