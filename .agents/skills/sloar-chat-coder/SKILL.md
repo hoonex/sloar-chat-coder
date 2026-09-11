@@ -3,7 +3,7 @@ name: sloar-chat-coder
 description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, ownership/evidence closure, evidence-backed web architecture discovery, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware adaptive web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
 license: MIT
 metadata:
-  version: "0.10.1"
+  version: "0.10.2"
   compatibility: Repository reads are sufficient for connector-native review. Execution-dependent checks require an actual local or remote runtime.
 ---
 

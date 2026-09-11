@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.10.1**
+Current stable: **0.10.2**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.1-2563eb?style=flat-square" alt="stable 0.10.1"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.2-2563eb?style=flat-square" alt="stable 0.10.2"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -232,7 +232,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.9.1 -> 0.10.0. Upgrade now?
+-> Sloar update available: 0.10.1 -> 0.10.2. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -266,7 +266,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.10.0 --json
+  --stable-version 0.10.2 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)

@@ -4,6 +4,20 @@
 
 No unreleased changes yet.
 
+## 0.10.2 - 2026-09-11
+
+Full-system audit hardening patch.
+
+- Fenced privileged `workflow_run` release publication to successful same-repository pushes on `main`, added serialized release execution, and pinned checkout to the exact `actions/checkout` v7.0.1 commit.
+- Closed the release TOCTOU window with an atomic tag + no-op `main` publication guarded by `--force-with-lease`, so a release tag is rejected if `main` moves after validation instead of publishing stale source.
+- Added existing-tag collision checks, exact tag-target postconditions, and idempotent GitHub Release verification so release success is tied to the verified source commit.
+- Repaired companion upgrades for the exact official Sloar v0.9.1 `web-design-guidance` and unversioned `apple-web-design` bundles, including the historical equal-version `0.8.0` design bundle, while continuing to preserve any modified/custom companion bytes.
+- Made `web-architecture-map.py` framework-scoped and monorepo-aware: route conventions now use the nearest declared `package.json`, Next.js routes no longer consume `.vue`/`.astro` files, and Nuxt/Astro/SvelteKit/Remix route candidates retain package-scope evidence.
+- Added content-aware dirty working-tree fingerprints so distinct tracked or untracked bytes cannot reuse the same architecture snapshot identity merely because both states are labeled `dirty`.
+- Expanded architecture and upgrade regression coverage for nested Next.js apps, Nuxt/Astro routing, dirty-byte invalidation, exact v0.9.1 companion migration, custom companion preservation, and release-publication fencing.
+- Removed the preflight awk warning, added rendered-UI evidence presence to self-test/CI, refreshed readiness examples, and pinned validation checkout to the exact current action commit.
+- Bumped Sloar core and First Run Wizard metadata to `0.10.2`.
+
 ## 0.10.1 - 2026-09-11
 
 Rendered UI evidence-closure patch.
@@ -93,7 +107,7 @@ Android engineering and distribution release.
 
 Automatic update-awareness patch.
 
-- Added bounded `UPDATE_AWARENESS` at the first Sloar repository turn in a chat and after intentional fresh-chat resume/takeover when the canonical stable source is reachable.
+- Added bounded `UPDATE_AWARENESS` at the first Sloar repository turn in a chat and after intentional fresh-chat resume/takeover when the canonical stable Sloar source is reachable.
 - Separated automatic version discovery from upgrade authorization: current installs stay silent, newer stable releases produce one compact notice, and no Sloar write occurs until the user explicitly approves or independently requests an upgrade.
 - Made stable-version lookup failure non-blocking. Unavailable, degraded, rate-limited, or unauthorized lookup becomes update status `unknown`; Sloar continues ordinary repository work and does not poll indefinitely.
 - Preserved the existing automated `UPGRADE_SESSION` after approval, including repository identity revalidation, Git-metadata backup, Sloar-owned file replacement, known-official companion migration, custom companion preservation, validation, checkpoint bridging, and continuation of the active task.
