@@ -11,7 +11,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Validate helpers
@@ -82,6 +82,7 @@ jobs:
           test -s "$target/.agents/skills/sloar-chat-coder/references/turn-terminalization.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md"
           test -s "$target/.agents/skills/sloar-chat-coder/references/android-engineering.md"
+          test -s "$target/.agents/skills/sloar-chat-coder/references/rendered-ui-evidence.md"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/android-preflight.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/engineering-closure.py"
           test -s "$target/.agents/skills/sloar-chat-coder/scripts/session-rollover.py"
@@ -297,6 +298,7 @@ jobs:
           assert Path('.agents/skills/sloar-chat-coder/references/turn-terminalization.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/references/android-engineering.md').is_file()
+          assert Path('.agents/skills/sloar-chat-coder/references/rendered-ui-evidence.md').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/android-preflight.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/engineering-closure.py').is_file()
           assert Path('.agents/skills/sloar-chat-coder/scripts/forge-health.py').is_file()
