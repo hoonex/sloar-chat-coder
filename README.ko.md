@@ -4,10 +4,10 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-현재 stable: **0.9.1**
+현재 stable: **0.10.0**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.1-2563eb?style=flat-square" alt="stable 0.9.1"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.0-2563eb?style=flat-square" alt="stable 0.10.0"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -17,7 +17,7 @@ Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 
   <a href="docs/USER_GUIDE.ko.md"><b>사용자 가이드</b></a> ·
   <a href="#업데이트"><b>업데이트</b></a> ·
   <a href="#새-채팅으로-넘어가기"><b>새 채팅</b></a> ·
-  <a href="#웹개발에서는-디자인도-같이-판단"><b>디자인</b></a> ·
+  <a href="#웹개발에서는-구조와-디자인을-같이-판단"><b>웹 구조 + 디자인</b></a> ·
   <a href="README.md">English</a>
 </p>
 
@@ -32,12 +32,12 @@ Sloar는 **현재 채팅의 AI가 읽고 적용하는 작업 지침**이다. Git
 | 작업 판단·지침 적용 | Sloar 문서를 읽은 현재 ChatGPT 채팅 |
 | 코드 읽기·수정·PR·작업 상태 저장 | 현재 세션에 노출된 GitHub 도구 |
 | 테스트·빌드 | 실행 환경이 있다면 그 환경, 아니면 사용 가능한 저장소 CI |
-| Python 복구 도우미 | 실행 환경이 있을 때만 선택적으로 실행 |
+| Python 복구/구조 분석 도우미 | 실행 환경이 있을 때만 선택적으로 실행 |
 | Codex CLI A/B 평가 | Sloar 개발용 별도 환경; 일반 채팅에서 자동 실행되지 않음 |
 
 **일반 채팅에서 쓰려고 Codex CLI나 API 키를 따로 준비할 필요는 없다.** 실행 도구가 없다면 실행하지 않은 검증은 미확인으로 보고한다. 코드가 저장됐다는 사실과 테스트 통과는 구분한다.
 
-0.9.1은 채팅에서 직접 체크포인트 JSON을 저장하는 절차와 GitHub 동시 수정 보호를 명시한다. 로컬 잠금이 GitHub까지 잠그는 것은 아니며, 다른 세션과 겹치는 작업은 별도 브랜치에서 진행한다. 원본 Sloar 변경이 다른 저장소에 복사된 버전까지 자동 갱신하지는 않는다.
+0.10은 채팅에서 직접 체크포인트 JSON을 저장하는 절차와 GitHub 동시 수정 보호를 유지하면서, 웹 저장소를 빠르게 파악하기 위한 증거 기반 architecture capsule을 추가한다. 로컬 잠금이 GitHub까지 잠그는 것은 아니며, 다른 세션과 겹치는 작업은 별도 브랜치에서 진행한다. 원본 Sloar 변경이 다른 저장소에 복사된 버전까지 자동 갱신하지는 않는다.
 
 자세한 절차: [채팅·GitHub 작업 지침](.agents/skills/sloar-chat-coder/references/chat-github-workflow.md).
 
@@ -84,15 +84,16 @@ English: [README.md](README.md)
 | 처음 사용 | `Sloar:` 링크 + 대상 저장소 + 작업 내용 |
 | 평소 개발 | 그냥 원하는 코드 작업 요청 |
 | CI는 GREEN인데 실제 버그가 남음 | 실제 증상을 알려주면 owner와 evidence phase를 다시 확인 |
+| 낯선 웹 저장소/AI 수정이 누적된 웹앱 | 기능만 설명하면 Sloar가 먼저 bounded topology를 잡고 관련 owner만 따라감 |
 | 모호한 웹 UI | 디자인 용어를 몰라도 됨. 필요한 질문만 함 |
 | 디자인을 맡기기 | `알아서 제일 어울리게 해` |
 | 업데이트 | 첫 Sloar 작업/새 채팅 복구 때 stable 1회 확인 후 승인받아 업그레이드 |
 | 새 채팅 이동 | `새 채팅으로 넘겨줘.` |
 | 답변이 멈춤 | 새 채팅에서 saved turn state와 현재 repository 확인 요청 |
 
-## Sloar 0.9 핵심 구조
+## Sloar 0.10 핵심 구조
 
-0.9부터는 긴 state machine을 기본 사고법으로 쓰지 않는다. 기본 reasoning kernel은 다섯 단계다.
+0.10은 0.9에서 도입한 compact reasoning kernel을 유지하면서, substantial web 작업 전에 저장소 구조를 증거 기반으로 빠르게 파악하는 architecture discovery를 추가한다.
 
 ```text
 OBSERVE
@@ -108,30 +109,9 @@ OBSERVE
 - **PROVE**: 구현이 아니라 claim을 공격. 가장 강한 observable과 boundary에서 검증.
 - **RECONCILE**: 실제 publish/report할 durable state와 evidence가 여전히 일치하는지 확인.
 
-기존 `ONBOARD → RECOVER → IDENTIFY → ...` state machine은 없어지지 않았다. 다만 모든 작업을 기계적으로 통과하는 절차가 아니라 **continuity/publication/recovery 위험이 있을 때 펼쳐 쓰는 guardrail**이 됐다.
+기존 `ONBOARD → RECOVER → IDENTIFY → ...` state machine은 없어지지 않았다. 다만 모든 작업을 기계적으로 통과하는 절차가 아니라 **continuity/publication/recovery 위험이 있을 때 펼쳐 쓰는 guardrail**이다.
 
-### 0.9에서 강화된 async 검증
-
-사용자 요구의 semantic phase와 내부 상태를 동일시하지 않는다.
-
-예를 들어:
-
-```text
-"runner가 시작하기 전에 cancel하면 실행되면 안 됨"
-```
-
-을 검증할 때 단순히 `queued` 상태에서 cancel하는 것만으로 PASS하지 않는다. 필요한 경우:
-
-```text
-slot/resource는 이미 예약됨
-callback/microtask는 이미 scheduled
-하지만 user runner는 아직 invoke되지 않음
-→ cancel
-→ runner invocation count = 0
-→ 예약 resource 회수
-```
-
-처럼 **latest valid observable boundary**에서 테스트한다.
+사용자 요구의 semantic phase와 내부 상태도 동일시하지 않는다. 예를 들어 `queued`에서 취소가 됐다는 것만으로 `runner가 시작하기 전에 cancel` 조건을 증명하지 않는다. 필요한 경우 callback/microtask가 이미 scheduled됐지만 user runner가 아직 invoke되지 않은 latest valid observable boundary까지 검증한다.
 
 또 final state만 보지 않고 Promise resolve/reject, callback 호출 여부, AbortSignal, dedupe ownership, running/resource count, late finalizer, retry liveness 같은 observable도 확인한다.
 
@@ -141,7 +121,56 @@ callback/microtask는 이미 scheduled
 - [Verification](.agents/skills/sloar-chat-coder/references/verification.md)
 - [State machine](.agents/skills/sloar-chat-coder/references/state-machine.md)
 
-## 웹개발에서는 디자인도 같이 판단
+## 웹개발에서는 구조와 디자인을 같이 판단
+
+### AI가 저장소를 빠르고 정확하게 이해하는 architecture capsule
+
+0.10부터 낯선 웹 저장소나 AI 수정이 반복된 저장소에서는 처음부터 모든 파일을 넓게 읽는 대신 다음 순서로 구조를 잡을 수 있다.
+
+```text
+DURABLE SOURCE
+→ deterministic topology snapshot
+→ evidence-backed semantic owner map
+→ task-specific read set
+```
+
+실행 환경이 있으면 먼저:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/web-architecture-map.py . --json
+```
+
+을 실행한다. 이 도우미는 Git identity, 선언된 framework/router/state/data/styling system, package script, source root, entrypoint candidate, convention-based route, config, token/global-style candidate처럼 **코드에서 비교적 확실하게 읽을 수 있는 사실**만 구조화한다.
+
+그리고 AI가 실제 작업에 필요한 최소 source path를 읽으면서 다음 증거 수준을 구분한다.
+
+```text
+DECLARED  package/config가 명시
+OBSERVED  repository path/content에서 직접 관찰
+CONFIRMED semantic ownership이 source로 직접 확인됨
+INFERRED  근거는 있지만 직접 확정되지는 않음
+UNKNOWN   아직 해결하지 않음
+```
+
+즉 폴더 이름이 `store`라고 해서 곧바로 전역 상태의 authoritative owner라고 단정하지 않는다. 구조 지도는 source truth를 대체하는 문서가 아니라 **어디부터 읽어야 할지 알려주는 탐색 캐시**다.
+
+작업별로 주로 다음 경로를 따라간다.
+
+```text
+route/page
+→ data/cache
+→ domain/application state
+→ component/rendering
+→ styling/tokens
+→ async/interaction lifecycle
+→ persistence/navigation/external side effects
+```
+
+자세히:
+- [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
+
+### 디자인 판단과 product craft
 
 0.8.0부터 bundled `web-design-guidance`는 사용자가 `glassmorphism`, `neumorphism`, `brutalism` 같은 용어를 몰라도 된다는 전제로 동작한다.
 
@@ -170,11 +199,16 @@ typography / color stance
 
 그리고 흔한 generated/default UI가 제품 이유 없이 반복되는지도 **Anti-AI-Slop** 관점에서 재검토한다. 특정 색/스타일을 금지하는 것이 아니라 자동 기본값을 제품에 맞는 결정으로 바꾸는 것이 목적이다.
 
+0.10부터는 내부 구조도 UI 품질의 일부로 본다. `VISUAL / BEHAVIOR / STRUCTURE / RESILIENCE / HYGIENE`를 별개 claim으로 취급해, 화면이 예쁘거나 build가 GREEN인 것만으로 duplicate state, effect lifecycle, CSS/token ownership, obsolete path가 정상이라고 간주하지 않는다.
+
+Apple 스타일이 명시적으로 요청된 작업에서는 복잡성을 괜히 노출하지 않기, 익숙하게 배울 수 있는 novelty, endpoint뿐 아니라 상태 전환 자체 설계, 유지보수 비용을 정당화하는 신기술, 작은 delight budget을 적용한다. 단 polish가 접근성·성능·구조를 대신할 수는 없다.
+
 자세히:
 - [web-design-guidance](.agents/skills/web-design-guidance/SKILL.md)
 - [Adaptive discovery](.agents/skills/web-design-guidance/references/adaptive-design-discovery.md)
 - [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
 - [Anti-AI-Slop](.agents/skills/web-design-guidance/references/anti-ai-slop.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
 - [Apple 전문 companion](.agents/skills/apple-web-design/SKILL.md)
 
 ## 업데이트
@@ -188,7 +222,7 @@ Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업�
 → 아무 알림 없이 작업 계속
 
 새 stable 있음
-→ Sloar update available: 0.9.0 -> 0.9.1. Upgrade now?
+→ Sloar update available: 0.9.1 -> 0.10.0. Upgrade now?
 → 사용자가 승인
 → 현재 작업 상태를 보존한 안전한 업그레이드 자동 실행
 
@@ -218,7 +252,7 @@ Wizard에 stable을 명시하려면:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.9.1 --json
+  --stable-version 0.10.0 --json
 ```
 
 자세한 계약: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -290,8 +324,10 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership / evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
+- [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
 - [Evidence ledger](.agents/skills/sloar-chat-coder/references/evidence-ledger.md)
 - [일반 웹 디자인 companion](.agents/skills/web-design-guidance/SKILL.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
 - [Sloar core Skill](.agents/skills/sloar-chat-coder/SKILL.md)
 
 ## License
