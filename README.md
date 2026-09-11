@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.9.1**
+Current stable: **0.10.0**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.9.1-2563eb?style=flat-square" alt="stable 0.9.1"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.0-2563eb?style=flat-square" alt="stable 0.10.0"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -17,7 +17,7 @@ Current stable: **0.9.1**
   <a href="docs/USER_GUIDE.md"><b>User Guide</b></a> ·
   <a href="#upgrade-without-restarting-the-task"><b>Upgrade</b></a> ·
   <a href="#move-to-a-fresh-chat"><b>Fresh Chat</b></a> ·
-  <a href="#web-development-includes-design-reasoning"><b>Design</b></a> ·
+  <a href="#web-development-includes-architecture-and-design-reasoning"><b>Web Architecture + Design</b></a> ·
   <a href="README.ko.md">한국어</a>
 </p>
 
@@ -82,6 +82,7 @@ Full user guide: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**
 | First use | Paste the `Sloar:` source URL + target repository + task into a fresh chat |
 | Normal development | Just describe the repository task |
 | Green CI missed the real bug | Report the real-device/production symptom; Sloar re-checks semantic ownership and whether the existing evidence actually covers the acceptance claim |
+| Unfamiliar or AI-grown web repository | Just describe the feature; Sloar can build a bounded architecture topology first and inspect only the task-relevant owners |
 | Vague web UI request | No design vocabulary required; Sloar asks only high-value questions when needed |
 | Delegate design | `You decide what fits best.` |
 | Upgrade | On the first Sloar repository turn/fresh-chat recovery, Sloar checks stable once when possible. If a newer stable exists, it asks once; after approval, the safe upgrade process is automated |
@@ -90,7 +91,7 @@ Full user guide: **[docs/USER_GUIDE.md](docs/USER_GUIDE.md)**
 
 ## How Sloar works
 
-0.9 moves Sloar away from state-machine-first choreography and toward a compact reasoning kernel:
+0.10 keeps the compact reasoning kernel introduced in 0.9 and adds evidence-backed architecture discovery for substantial web work:
 
 ```text
 OBSERVE
@@ -113,7 +114,7 @@ no relevant verification evidence -> no success claim
 revalidate mutable remote state immediately before publication-dependent writes
 ```
 
-The MODEL/PROVE steps treat user-visible semantics as stronger than convenient implementation labels. For example, `queued` does not automatically prove a requirement phrased as `before callback starts`; Sloar 0.9 tests the latest valid observable boundary when that edge can change correctness.
+The MODEL/PROVE steps treat user-visible semantics as stronger than convenient implementation labels. For example, `queued` does not automatically prove a requirement phrased as `before callback starts`; Sloar tests the latest valid observable boundary when that edge can change correctness.
 
 For asynchronous/stateful work, Sloar also checks Promise/callback/event results, resource ownership, late finalizers, cancellation ownership, retry safety/liveness, and transition-adjacent races instead of validating only final store state.
 
@@ -125,7 +126,54 @@ Details:
 
 The central continuity idea remains the same: re-resolve Git/repository/checkpoint/CI truth instead of reconstructing a long development session from memory alone.
 
-## Web development includes design reasoning
+## Web development includes architecture and design reasoning
+
+### Fast, evidence-backed architecture orientation
+
+0.10 adds a two-layer **web architecture capsule** for unfamiliar repositories and codebases that have accumulated repeated AI edits.
+
+```text
+DURABLE SOURCE
+-> deterministic topology snapshot
+-> evidence-backed semantic owner map
+-> task-specific read set
+```
+
+When execution is available, Sloar can first run:
+
+```bash
+python3 .agents/skills/sloar-chat-coder/scripts/web-architecture-map.py . --json
+```
+
+The helper reports bounded facts such as Git identity, declared framework/router/state/data/styling systems, package scripts, source roots, entrypoint candidates, convention-based route files, configs, and token/global-style candidates. It deliberately does **not** guess business ownership or runtime data flow from folder names.
+
+The agent then reads the smallest source path needed for the actual task and distinguishes:
+
+```text
+DECLARED  package/config says it
+OBSERVED  repository path/content shows it
+CONFIRMED semantic ownership is directly established by source
+INFERRED  durable evidence supports it but does not fully establish it
+UNKNOWN   not resolved
+```
+
+That makes architecture discovery faster without turning a generated map into a second, stale source of truth. The normal owner path is:
+
+```text
+route/page
+-> data/cache
+-> domain/application state
+-> component/rendering
+-> styling/tokens
+-> async/interaction lifecycle
+-> persistence/navigation/external side effects
+```
+
+Details:
+- [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
+
+### Design reasoning and product craft
 
 Since 0.8.0, the bundled `web-design-guidance` assumes users may know the experience they want without knowing words such as `glassmorphism`, `neumorphism`, or `brutalism`.
 
@@ -161,11 +209,16 @@ typography / color stance
 
 The companion also reviews common generated/default UI convergence through **Anti-AI-Slop** guidance. The goal is not to ban purple, glass, bento, Inter, or any particular style. The goal is to replace unchosen defaults with product-specific decisions.
 
+0.10 also treats internal architecture as UI quality. `VISUAL`, `BEHAVIOR`, `STRUCTURE`, `RESILIENCE`, and `HYGIENE` are separate claims: a beautiful screenshot does not prove coherent ownership, safe effect lifecycles, token integrity, or removal of obsolete paths.
+
+For explicitly Apple-like interaction work, the specialized companion adds product-craft rules around hidden complexity, learnable novelty, transition continuity, restrained new technology, and a small delight budget. Polish never excuses weak accessibility, performance, or architecture.
+
 Details:
 - [web-design-guidance](.agents/skills/web-design-guidance/SKILL.md)
 - [Adaptive discovery](.agents/skills/web-design-guidance/references/adaptive-design-discovery.md)
 - [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
 - [Anti-AI-Slop](.agents/skills/web-design-guidance/references/anti-ai-slop.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
 - [Apple-specific companion](.agents/skills/apple-web-design/SKILL.md)
 
 ## Upgrade without restarting the task
@@ -179,7 +232,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.9.0 -> 0.9.1. Upgrade now?
+-> Sloar update available: 0.9.1 -> 0.10.0. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -213,7 +266,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.9.1 --json
+  --stable-version 0.10.0 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -293,8 +346,10 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership and evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
+- [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
 - [Evidence ledger](.agents/skills/sloar-chat-coder/references/evidence-ledger.md)
 - [General web-design companion](.agents/skills/web-design-guidance/SKILL.md)
+- [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
 - [Adaptive discovery](.agents/skills/web-design-guidance/references/adaptive-design-discovery.md)
 - [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
 - [Anti-AI-Slop](.agents/skills/web-design-guidance/references/anti-ai-slop.md)

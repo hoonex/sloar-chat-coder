@@ -25,6 +25,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/session-rollover.py" ]] || { echo "missing session rollover helper" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/turn-state.py" ]] || { echo "missing turn state helper" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/engineering-closure.py" ]] || { echo "missing engineering closure helper" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/web-architecture-map.py" ]] || { echo "missing web architecture map helper" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/reasoning-kernel.md" ]] || { echo "missing reasoning kernel reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/async-evidence-closure.md" ]] || { echo "missing async evidence closure reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/environment-onboarding.md" ]] || { echo "missing onboarding reference" >&2; exit 1; }
@@ -34,6 +35,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/operational-continuity.md" ]] || { echo "missing operational continuity reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/turn-terminalization.md" ]] || { echo "missing turn terminalization reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md" ]] || { echo "missing ownership/evidence closure reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md" ]] || { echo "missing web architecture capsule reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/SKILL.md" ]] || { echo "missing web design guidance companion" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/design-discovery.md" ]] || { echo "missing web design discovery reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/web-design-guidance/references/adaptive-design-discovery.md" ]] || { echo "missing adaptive design discovery reference" >&2; exit 1; }
