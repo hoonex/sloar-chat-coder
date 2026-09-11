@@ -2,18 +2,23 @@
 
 ## Unreleased
 
-ChatGPT/GitHub workflow and integrity fixes.
+No unreleased changes yet.
 
-- Added an explicit connector-only workflow: current-session activation, capability selection, direct checkpoint JSON publication, exact CI evidence, and conflict-rejecting Git ref updates. Python and Codex CLI are optional, separate execution paths.
-- Distinguished local filesystem locks, sidecar ref guards, and product branch publication. Separate refs cannot be atomically fenced through ordinary API calls; overlapping sessions use isolated branches and exact integration checks.
-- Fixed local recovery identity to include index entries and changed/untracked file content. Legacy dirty checkpoints without content evidence require revalidation.
-- Fixed detached HEAD and linked-worktree metadata paths in both recovery helpers.
-- Serialized local turn mutations with fail-fast OS locks and made pointers reference immutable event snapshots. A partial write preserves the prior published state; malformed pointers cannot reset the fencing epoch.
-- Protected evaluator-owned tests/configuration against modification, included agent commits and new files in patch evidence, required full repository commit SHAs, and counted regression failures against completion claims.
-- Restricted the bundled local Codex adapter to development evaluation. It does not provide a private evaluator isolation boundary and must not be used as holdout/production promotion evidence.
-- Reject policy changes during a run, category relabeling, and incomplete cost-metric coverage rather than silently disabling comparison gates.
-- Added behavioral regression tests for these failure modes. These tests prove helper behavior, not model capability gains. Existing fast-path experiment PR #33 remains a separate experiment.
+## 0.10.0 - 2026-09-11
 
+Architecture-aware web engineering and product-craft release.
+
+- Added an evidence-backed **web architecture capsule** so an agent can orient itself from durable repository facts before reading broad source. The capsule keeps deterministic topology separate from semantic ownership and explicitly preserves `UNKNOWN` instead of filling gaps with framework-shaped guesses.
+- Added `scripts/web-architecture-map.py`, a network-free topology scanner that anchors output to Git identity when observable and reports declared frameworks, routers, state/data systems, styling systems, package scripts, source roots, entrypoint candidates, convention-based route candidates, configuration files, and token/global-style candidates.
+- Added evidence levels `DECLARED / OBSERVED / CONFIRMED / INFERRED / UNKNOWN` and source-anchor/invalidation rules so a fast architecture map remains a navigation cache rather than becoming stale authority over current code.
+- Added progressive, task-specific source discovery: start from repository guidance and topology, then read only the route/data/state/component/style/effect owners needed by the requested change instead of scanning the entire site for every task.
+- Added structural UI engineering rules that separate `VISUAL`, `BEHAVIOR`, `STRUCTURE`, `RESILIENCE`, and `HYGIENE` claims. A clean screenshot or green build no longer stands in for coherent ownership, effect lifecycle, CSS/token integrity, or obsolete-path cleanup.
+- Added source-of-truth, component-boundary, state-machine, side-effect, CSS/design-system, dependency/abstraction, blast-radius, and superseded-code audits for AI-assisted UI work so new features integrate with existing owners instead of accumulating mirrored state, synchronization effects, near-copy components, duplicate request paths, and override stacks.
+- Added an Apple-inspired product-craft contract focused on hidden complexity, learnable novelty, deliberate state transitions, restrained technological novelty, and a small delight budget without allowing polish to excuse weak accessibility, performance, or architecture.
+- Added a ChatGPT/GitHub connector-native workflow and integrity hardening: exact repository identity, direct checkpoint publication, conflict-rejecting remote writes, local/sidecar/product-ref separation, content-aware dirty recovery, serialized turn-state mutation, and evaluator-integrity guards.
+- Kept development evaluation distinct from promotion evidence: local/Codex adapters remain development tools, policy changes and category relabeling cannot silently alter a run, and regression/cost evidence remains bound to the exact comparison identity.
+- Added regression coverage for the architecture scanner, including declared-vs-observed evidence, tracked-vs-untracked topology, route bounding, and installer/self-test presence.
+- Bumped Sloar core and First Run Wizard metadata to `0.10.0`.
 
 ## 0.9.1 - 2026-09-08
 
