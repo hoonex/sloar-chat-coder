@@ -10,12 +10,20 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-main-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   release:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
@@ -66,11 +74,6 @@ jobs:
           test "$skill_version" = "$version"
           test "$wizard_version" = "$version"
 
-          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
-            echo "$tag already exists; nothing to publish."
-            exit 0
-          fi
-
           python3 - "$version" > "$RUNNER_TEMP/release-notes.md" <<'PY'
           from pathlib import Path
           import re, sys
@@ -80,20 +83,52 @@ jobs:
           match = re.search(pattern, text, re.M | re.S)
           if not match:
               raise SystemExit(f'CHANGELOG section missing for {version}')
-          body = match.group('body').strip()
-          print(body)
-          print()
-          print(f'Source commit: `{sys.argv[1]}`' if False else '')
+          print(match.group('body').strip())
           PY
-          printf '\nSource commit: `%s`\n' "$RELEASE_SHA" >> "$RUNNER_TEMP/release-notes.md"
+          printf '\n\nSource commit: `%s`\n' "$RELEASE_SHA" >> "$RUNNER_TEMP/release-notes.md"
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$tag" "$RELEASE_SHA" -m "Sloar Chat Coder $version"
-          git push origin "$tag"
+          remote_main="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test -n "$remote_main"
 
-          gh release create "$tag" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$RELEASE_SHA" \
-            --title "Sloar Chat Coder $version" \
-            --notes-file "$RUNNER_TEMP/release-notes.md"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
+            existing_target="$(git rev-list -n 1 "$tag")"
+            if [[ "$existing_target" != "$RELEASE_SHA" ]]; then
+              echo "Release tag collision: $tag resolves to $existing_target, expected $RELEASE_SHA" >&2
+              exit 1
+            fi
+            echo "$tag already resolves to the verified release commit."
+          else
+            if [[ "$remote_main" != "$RELEASE_SHA" ]]; then
+              echo "main moved after validation: expected $RELEASE_SHA, now $remote_main; refusing stale release" >&2
+              exit 0
+            fi
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$tag" "$RELEASE_SHA" -m "Sloar Chat Coder $version"
+
+            # Publish the tag and a no-op main refspec atomically. The explicit
+            # lease makes tag creation fail if main moved after the read above.
+            git push --atomic \
+              --force-with-lease="refs/heads/main:$RELEASE_SHA" \
+              origin \
+              "$RELEASE_SHA:refs/heads/main" \
+              "refs/tags/$tag:refs/tags/$tag"
+
+            git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
+            published_target="$(git rev-list -n 1 "$tag")"
+            test "$published_target" = "$RELEASE_SHA"
+          fi
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub Release $tag already exists."
+          else
+            gh release create "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$RELEASE_SHA" \
+              --title "Sloar Chat Coder $version" \
+              --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
+
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null
