@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / ".agents/skills/sloar-chat-coder/scripts/web-architecture-map.py"
+INSTALLER = ROOT / ".agents/skills/sloar-chat-coder/scripts/install.py"
 
 
 def load_module():
@@ -118,6 +120,22 @@ class WebArchitectureMapTests(unittest.TestCase):
         data = module.build(repo, max_routes=2)
         self.assertEqual(len(data["routes"]), 2)
         self.assertTrue(any("Route candidate output truncated at 2" in item for item in data["limits"]))
+
+    def test_installer_bundles_architecture_assets(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            subprocess.run(
+                [sys.executable, str(INSTALLER), "--target", str(target)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            core = target / ".agents/skills/sloar-chat-coder"
+            self.assertTrue((core / "references/web-architecture-capsule.md").is_file())
+            self.assertTrue((core / "scripts/web-architecture-map.py").is_file())
+            installed_skill = (core / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("references/web-architecture-capsule.md", installed_skill)
 
 
 if __name__ == "__main__":
