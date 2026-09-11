@@ -1,6 +1,6 @@
 ---
 name: web-design-guidance
-description: Design, build, or review user-facing web UI with adaptive ambiguity-aware discovery, multi-axis design direction, repository-aware design-system preservation, responsive/accessibility states, anti-AI-slop auditing, and rendered visual verification. Use for substantial web UI/UX work unless the repository or user supplies a stronger design workflow. Repository and user design rules always win.
+description: Design, build, or review user-facing web UI with adaptive ambiguity-aware discovery, multi-axis design direction, repository-aware design-system preservation, structural-integrity auditing, responsive/accessibility states, anti-AI-slop auditing, and rendered visual verification. Use for substantial web UI/UX work unless the repository or user supplies a stronger design workflow. Repository and user design rules always win.
 license: MIT
 metadata:
   version: "0.8.0"
@@ -122,6 +122,29 @@ For sustained product work, treat every material UI change as a **delta against 
 
 Read [references/design-system-authority.md](references/design-system-authority.md) for the subtractive-first gate, component/token discipline, hierarchy budget, theme coherence, reference locking, and deviation contract. Read [references/surface-recipes.md](references/surface-recipes.md) for surface-specific defaults and anti-patterns.
 
+## Structural integrity is part of UI quality
+
+A surface that renders beautifully can still be an engineering failure. For substantial implementation or repeated AI-assisted edits, separately inspect whether the visible result is integrated into the repository's real architecture instead of being patched around it.
+
+Before adding a material feature, identify the authoritative owners for route/page composition, data/cache state, domain/application state, component boundaries, styling/tokens, async/interaction lifecycles, and important side effects. Prefer extending those owners over adding mirrored state, synchronizing effects, duplicate request paths, near-copy components, specificity escalation, one-off tokens, or another special-case branch.
+
+After the visible behavior works, perform a short structural pass from:
+
+```text
+product decision
+-> authoritative owner
+-> state/data flow
+-> component boundary
+-> styling/design-system boundary
+-> side effects/lifecycle
+-> verification
+-> obsolete-path removal
+```
+
+Treat visual, behavioral, and structural success as different claims. A screenshot cannot prove ownership; a green test suite cannot prove visual hierarchy; a build cannot prove that duplicate state, stale adapters, orphaned CSS, or race-prone effects were not introduced.
+
+Read [references/structural-ui-engineering.md](references/structural-ui-engineering.md) for source-of-truth rules, component/state/effect/CSS audits, dependency and abstraction budgets, obsolete-path cleanup, change-locality analysis, and the structural proof matrix.
+
 ## 5. Anti-AI-slop means replacing defaults with decisions
 
 Do not optimize for `looks less AI` by swapping one fashionable default for another. The goal is product-specific intent and coherent execution.
@@ -202,6 +225,16 @@ Motion should communicate causality, continuity, hierarchy, context change, or d
 
 If Apple-like gesture/material behavior is explicitly requested and the bundled `apple-web-design` companion exists, read that specialized skill after this one. Its rules refine interaction behavior; they do not replace the broader discovery/taxonomy here.
 
+## Craft, novelty, and delight
+
+Do not expose complexity merely because the implementation contains it. New technology should normally appear to the user as clearer behavior, not as a badge advertising the mechanism behind it. A sophisticated animation engine, agent, cache, transition system, or rendering technique earns its place only when the experience becomes more coherent, direct, expressive, reliable, or memorable.
+
+Treat transitions between states as designed surfaces, not dead space between screenshots. `idle -> working`, `loading -> content`, `editing -> saved`, `failed -> recovered`, `collapsed -> expanded`, and responsive layout changes should preserve context and make the next state understandable.
+
+Allow a small **delight budget** after hierarchy, behavior, accessibility, performance, and structure are sound. One carefully chosen tactile response, continuity detail, material transition, spatial relationship, or completion moment can give the product character even when it is not strictly required for task completion. It must remain interruptible where appropriate, inexpensive enough for the product, and removable without breaking the core task.
+
+Do not distribute spectacle everywhere. A signature detail is stronger when the surrounding interface is restrained. Polish should reward attention, not demand it.
+
 ## 9. Accessibility and clarity outrank aesthetics
 
 - maintain semantic structure and native controls where practical;
@@ -260,8 +293,10 @@ For substantial UI work, report only what materially helps review:
 - any high-impact ambiguity that was clarified or deliberately inferred;
 - the surface/component scope changed;
 - meaningful P0/P1 anti-slop findings fixed or intentionally retained with context;
+- structural ownership/state/component/effect/CSS issues fixed or still unverified when relevant;
 - rendered visual checks that actually ran and the viewport/state coverage;
 - accessibility/responsive/visual limitations still unverified;
+- any deliberate signature-detail/delight decision that materially defines the experience;
 - deliberate design boundaries (what was not redesigned).
 
-Do not present a style name, anti-slop score, component-library choice, or successful build as proof of quality. Quality is supported by product fit, coherent system usage, real states, and rendered evidence.
+Do not present a style name, anti-slop score, component-library choice, successful build, or clean screenshot as proof of total quality. Quality is supported by product fit, coherent system usage, understandable ownership, real states, structural hygiene, and rendered evidence.
