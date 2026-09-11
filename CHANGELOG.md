@@ -4,6 +4,18 @@
 
 No unreleased changes yet.
 
+## 0.10.1 - 2026-09-11
+
+Rendered UI evidence-closure patch.
+
+- Added a dedicated rendered-UI evidence contract so compile, test, instrumentation, screenshot generation, and artifact upload success cannot be mistaken for visual acceptance.
+- Added exact source/run/artifact identity requirements for rendered evidence and a pre-merge HEAD reconciliation rule so accepted screenshots cannot silently refer to stale source.
+- Added native system-UI boundaries covering status-bar contrast, navigation/gesture insets, cutouts, portrait/landscape, constrained viewport states, IME overlap, and action reachability when those states affect acceptance.
+- Added semantic-selector guidance for UI automation: accessibility/semantics nodes, test IDs, labels, or repository-defined selectors are preferred over hard-coded coordinates that become stale after inset, density, orientation, or layout changes.
+- Added failure-layer classification that separates build/package, install/runner, selector/harness, product interaction/state, and rendered visual defects before product source is changed.
+- Added regression coverage for the rendered UI evidence contract.
+- Bumped Sloar core and First Run Wizard metadata to `0.10.1`.
+
 ## 0.10.0 - 2026-09-11
 
 Architecture-aware web engineering and product-craft release.
