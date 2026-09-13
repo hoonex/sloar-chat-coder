@@ -4,10 +4,10 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-현재 stable: **0.10.2**
+현재 stable: **0.10.3**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.2-2563eb?style=flat-square" alt="stable 0.10.2"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.3-2563eb?style=flat-square" alt="stable 0.10.3"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -113,10 +113,13 @@ OBSERVE
 
 사용자 요구의 semantic phase와 내부 상태도 동일시하지 않는다. 예를 들어 `queued`에서 취소가 됐다는 것만으로 `runner가 시작하기 전에 cancel` 조건을 증명하지 않는다. 필요한 경우 callback/microtask가 이미 scheduled됐지만 user runner가 아직 invoke되지 않은 latest valid observable boundary까지 검증한다.
 
+0.10.3부터는 **자기일관성과 독립 증거를 구분**한다. 구현과 테스트가 같은 중요한 가정을 물려받을 수 있으면, 결과를 뒤집을 수 있는 핵심 가정만 기록하고 가능한 경우 authoritative contract, conformance vector, 독립 reference, domain invariant, runtime observation처럼 실패 원인이 다른 falsifier를 찾는다. 독립 grounding을 확보하지 못했으면 같은 가정의 테스트를 더 돌려 확신으로 포장하지 않고 evidence gap으로 남긴다.
+
 또 final state만 보지 않고 Promise resolve/reject, callback 호출 여부, AbortSignal, dedupe ownership, running/resource count, late finalizer, retry liveness 같은 observable도 확인한다.
 
 자세히:
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Evidence independence / domain grounding](.agents/skills/sloar-chat-coder/references/evidence-independence.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Verification](.agents/skills/sloar-chat-coder/references/verification.md)
 - [State machine](.agents/skills/sloar-chat-coder/references/state-machine.md)
@@ -222,7 +225,7 @@ Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업�
 → 아무 알림 없이 작업 계속
 
 새 stable 있음
-→ Sloar update available: 0.10.1 -> 0.10.2. Upgrade now?
+→ Sloar update available: 0.10.2 -> 0.10.3. Upgrade now?
 → 사용자가 승인
 → 현재 작업 상태를 보존한 안전한 업그레이드 자동 실행
 
@@ -252,7 +255,7 @@ Wizard에 stable을 명시하려면:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.10.2 --json
+  --stable-version 0.10.3 --json
 ```
 
 자세한 계약: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -322,6 +325,7 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 
 **엔지니어링/디자인 프로토콜**
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Evidence independence / domain grounding](.agents/skills/sloar-chat-coder/references/evidence-independence.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership / evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
 - [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
