@@ -4,6 +4,18 @@
 
 No unreleased changes yet.
 
+## 0.10.3 - 2026-09-14
+
+Evidence-independence and domain-grounding patch.
+
+- Added a risk-adaptive evidence-independence contract so implementation and verification that inherit the same unproven premise are treated as self-consistency evidence, not automatically as independent correctness proof.
+- Added a bounded critical-assumption ledger for consequential premises whose falsity would change architecture, implementation, acceptance, safety, or performance conclusions, with `CONFIRMED / SUPPORTED / UNKNOWN` states when useful.
+- Added differentiated falsifiers for common-provenance risk: authoritative contracts, conformance vectors/corpora, independently implemented references, domain-derived properties/invariants, and runtime/end-to-end observations.
+- Added conditional domain grounding for standards, protocols, mathematics, hardware, compatibility, and other external contracts without turning every repository task into broad research ceremony.
+- Added a dependency-ownership prior: prefer mature dependencies when they already own hard correctness/compatibility work and the product does not need that layer, while requiring enough boundary understanding to detect contract violations.
+- Added regression tests and preflight presence checks for the new evidence-independence contract.
+- Bumped Sloar core, First Run Wizard, readiness examples, and stable documentation to `0.10.3`.
+
 ## 0.10.2 - 2026-09-11
 
 Full-system audit hardening patch.
@@ -79,189 +91,84 @@ Reasoning kernel and semantic-boundary verification release.
 
 Ownership and evidence intelligence release.
 
-- Added `references/ownership-evidence-closure.md` so consequential fixes begin from the semantic decision and authoritative owner rather than the visible file/selector alone. It distinguishes `OWNER_CONFIRMED`, `OWNER_UNKNOWN`, and `OWNERSHIP_SPLIT` and requires ownership rediscovery when the same failure fingerprint survives the normal bounded corrective cycle.
-- Added claim-to-evidence closure across target identity, input modality, interaction phase, temporal phase, responsive/device class, persistence state, and production/runtime phase. A mouse test no longer stands in for real-touch behavior when gesture arbitration can differ, and a final screenshot no longer stands in for direct tracking, release inertia, first-frame behavior, or reload state.
-- Added explicit production convergence modeling: `SOURCE -> VERIFIED -> PACKAGED -> DEPLOYED -> SERVED -> CACHED -> FIRST_FRAME`. Only stages that can materially diverge are required, but independently observable deployment, served-byte, cache/service-worker, and bootstrap states are no longer collapsed into one generic green deployment claim.
-- Added feature lifecycle guidance with `active / experimental / dormant / retired` and `STALE_GATE_SUSPECTED`. A RED gate for a dormant/retired feature outside the current change boundary must be inspected for lifecycle relevance before active product source is rewritten.
-- Added canonical-model and provenance guidance for raw/effective/persisted/cached state, semantic absence before coercion, and distinct provider/fetch/cache/check timestamps. This prevents patterns such as `null -> 0`, stale cached data being relabeled freshly checked, or summaries bypassing the product's effective model.
-- Added bounded external-dependency de-duplication guidance: use dedicated live integration evidence plus deterministic fixtures for UI/state tests when those UI tests are not intended to re-prove upstream availability.
-- Added `scripts/engineering-closure.py`, a repository-agnostic validator for caller-provided closure records. It reports `READY`, `REVIEW`, or `BLOCKED` and detects ownership, evidence, lifecycle, stale-target, and convergence gaps without pretending to infer authoritative ownership from source automatically.
-- Expanded the evidence ledger and verification reference with ownership maps, claim requirements, evidence coverage/target identity, feature/gate lifecycle, and runtime convergence records.
-- Wired ownership/evidence closure into the core Skill, bounded failure handling, completion reporting, First Run Wizard readiness, installer/self-test smoke, and `Validate Sloar` CI.
-- Added regression coverage for successful closure, ownership split, stale evidence, stale retired-feature gates, convergence gaps, and the core/reference contract.
-- Refreshed English/Korean README stable metadata from the stale 0.8.1 display to 0.8.3 and documented the green-CI-but-real-device/production recovery path.
+- Added `references/ownership-evidence-closure.md` to make **ownership before workaround** and **acceptance claim -> evidence derivation** explicit core engineering behavior instead of narrow CSS/Android advice.
+- Added compact `Engineering Closure` records plus `scripts/engineering-closure.py`; the helper validates caller-provided owner/claim/evidence/convergence data but never guesses source ownership or replaces repository-defined tests.
+- Expanded source-of-truth discovery across CSS/DOM/JS/data/config/runtime boundaries, temporal/input/responsive/persistence evidence dimensions, production convergence (`SOURCE -> VERIFIED -> PACKAGED -> DEPLOYED -> SERVED -> CACHED -> FIRST_FRAME`), and feature/gate lifecycle (`active / dormant / retired`).
+- Added concrete rules for hot-path complexity, hit-area/input modality, persisted-state semantics, dual-path/obsolete-route detection, and separated build/instrumentation evidence from real-device runtime/performance/thermal/power evidence.
+- Added adversarial, fixture-backed regression coverage for authoritative-owner discovery, stale gate detection, mobile native/system UI evidence, rollout/deploy convergence, persistence, and Sloar self-audits.
+- Added per-case holdout secrecy enforcement (`validate_case_secrecy`) in the evaluator runner so hidden success criteria cannot be copied into candidate-visible fixtures by accident.
+- Updated `SKILL.md`, Android, rendered-UI, verification/evidence-ledger, README/README.ko, USER_GUIDE/USER_GUIDE.ko, and public dev eval cases to use the generalized closure model without displacing repository-specific engineering rules.
+- Published Sloar `0.8.3`.
 
-## 0.8.2 - 2026-09-02
+## 0.8.2 - 2026-09-01
 
-Android engineering and distribution release.
+Design intelligence + anti-slop patch.
 
-- Added `references/android-engineering.md` as a durable Android production playbook covering existing-project discovery, empty-repository bootstrap, Gradle/build commands, Compose/UI resilience, permissions/security, signing identity, update compatibility, APK/AAB distribution, and CI/CD evidence.
-- Added `scripts/android-preflight.py` to classify repositories as `EXISTING_ANDROID`, `PARTIAL_ANDROID`, or `EMPTY_OR_NON_ANDROID`, discover package/SDK/build facts, and surface static review hints for high-rate sensors, tight timers, unbounded loops, wake locks, listener lifecycle, continuous networking, and hot-path logging.
-- Separated Android compile/test/artifact success from `UI`, `DEVICE_RUNTIME`, `PERF`, `THERMAL`, and `POWER` evidence so a green CI build cannot be reported as proof of real-device heat, battery, touch, sensor, or OEM behavior.
-- Added real-device performance/thermal/power verification guidance, including bounded soak-test expectations for continuous sensor, game, navigation, camera, Bluetooth, media, and network workloads.
-- Wired Android activation into the Sloar engineering lifecycle and core Skill so installed repositories use their local bundled Android guidance instead of depending on the canonical Sloar repository for ordinary Android work.
-- Added regression coverage proving Android guidance and preflight tooling ship in fresh Sloar installations and remain connected to the core workflow.
-- Added validated release automation: release commits publish only after `Validate Sloar` succeeds, with an annotated version tag and GitHub Release tied to the exact source commit.
+- Added multi-axis `Design DNA` (philosophy/tone, material language, composition, interaction language, motion posture, density, typography/color stance) so ordinary user language can be translated into a coherent visual direction without forcing jargon or fixed style labels.
+- Added adaptive design discovery: clear requests can proceed with zero clarification, moderate ambiguity gets only the highest-value questions, high ambiguity gets a compact batch, and `you decide`/`알아서` terminates optional questioning.
+- Added design-system authority rules so an existing project system beats generic taste, with an explicit redesign exception only when the user actually requests a new direction.
+- Added reference-research and critique guidance that treats the model's first design idea as a hypothesis, separates inspiration from copying, and uses visual reference research only when it can change the direction.
+- Added identity/logo guidance so logos are kept, transformed, or generated according to product role instead of generic placeholder behavior.
+- Added a contextual Anti-AI-Slop audit covering repetitive cards, pills/chips, glow, glass, excessive rounding, purple gradients, emoji-as-icon, default fonts, bento grids, exaggerated hero copy, decorative blobs, and ornamental dashboards without turning those patterns into blanket bans.
+- Added embedded-material correctness guidance: glass/frosted/liquid surfaces must actually reveal or transform underlying visual information rather than sitting over empty flat backgrounds; readability and fallback behavior remain mandatory.
+- Added concrete surface recipes for liquid/glass, clay/neumorphism, paper/editorial, dark/data, dimensional/canvas, and minimal/utility interfaces.
+- Added explicit rendered browser evidence to the design completion contract; code review or CSS inspection alone cannot prove visual hierarchy, text resilience, responsiveness, material legibility, or anti-slop quality.
+- Added a smaller Apple-specific companion skill for cases where Apple-like or Liquid Glass work is explicitly requested, focusing on material behavior, continuity, depth, controlled motion, and contrast/accessibility instead of generic imitation.
+- Added validation tests for the new design guidance and pinned the validation workflow's checkout action by exact commit SHA.
+- Updated README, Korean README, user guides, first-run docs, installer wiring, and source distribution metadata for the richer design workflow.
+- Published Sloar `0.8.2`.
 
-## 0.8.1 - 2026-08-30
+## 0.8.1 - 2026-09-01
 
-Automatic update-awareness patch.
+Chat-native continuity patch.
 
-- Added bounded `UPDATE_AWARENESS` at the first Sloar repository turn in a chat and after intentional fresh-chat resume/takeover when the canonical stable Sloar source is reachable.
-- Separated automatic version discovery from upgrade authorization: current installs stay silent, newer stable releases produce one compact notice, and no Sloar write occurs until the user explicitly approves or independently requests an upgrade.
-- Made stable-version lookup failure non-blocking. Unavailable, degraded, rate-limited, or unauthorized lookup becomes update status `unknown`; Sloar continues ordinary repository work and does not poll indefinitely.
-- Preserved the existing automated `UPGRADE_SESSION` after approval, including repository identity revalidation, Git-metadata backup, Sloar-owned file replacement, known-official companion migration, custom companion preservation, validation, checkpoint bridging, and continuation of the active task.
-- Extended the local First Run Wizard with deterministic `--stable-version` comparison while keeping the Wizard network-free. It now reports `current`, `update_available`, `ahead`, `unknown`, or `not_installed` and never treats update availability as write authorization.
-- Added regression and CI coverage proving current stable is silent, a newer stable asks for approval, ahead-of-stable installs are not downgraded, and unavailable stable resolution remains non-blocking.
-- Updated Korean/English README and user guides plus the readiness example so the public UX clearly states: update checking is automatic when possible; installation is automated only after user approval.
+- Added `references/chat-native-continuity.md` with exact connector-only repository identity, direct checkpoint publication, stale sidecar protection, runtime-free handoff, and fresh-chat revalidation rules.
+- Added `references/async-evidence-closure.md` and generalized async/race reasoning beyond the original remote-store example: resource ownership, task ownership, stale/later completion, cancellation generations, dedupe lifetime, cleanup ownership, ordering, and ambiguous partial-failure semantics.
+- Added `scripts/session-rollover.py`, a local helper for validating and summarizing checkpoint payloads without requiring GitHub access.
+- Added `scripts/turn-state.py` and operational-continuity rules for `BEGIN_TURN -> ACTIVE -> PROGRESS* -> TERMINALIZE`, terminal replay, explicit-takeover fencing, local lock/content-aware save behavior, and best-effort separation between engineering terminality and host response delivery.
+- Added bounded turn terminalization: one corrective cycle per unchanged failure fingerprint by default, anti-rabbit-hole stop rules, stale-gate handling, and explicit `COMPLETED / PARTIAL / BLOCKED / FAILED` turn semantics.
+- Added automatic update awareness on the first Sloar repository turn and fresh-chat resume/takeover, with one compact notice when a newer stable exists and explicit user authorization before any upgrade write.
+- Added `scripts/install.py --upgrade` to back up the old core under Git metadata, replace only Sloar-owned core files, safely upgrade known official older web-design bundles, preserve customized companions, reject downgrade/same-version divergence, and continue the current task instead of restarting it.
+- Replaced sample token placeholders in `eval/README.md` with `<token>` so automated secret scanners do not flag documentation examples.
+- Added a minimal quarantine artifact for one previously historical-only scanner finding in a non-product evaluator simulation path; the artifact contains no credential bytes.
+- Added upgrade/update-awareness tests, interrupted-turn local helper tests, async evidence-closure tests, and expanded installer/custom-companion regression coverage.
+- Wired chat-native bootstrap/rollover, interrupted turns, architecture-aware async reasoning, update awareness, and safe in-session upgrades into `SKILL.md`, README/README.ko, User Guide/User Guide.ko, First Run docs, and installer AGENTS markers.
+- Updated validation workflow, preflight self-test, and source-distribution config for the new files.
+- Published Sloar `0.8.1`.
 
-## 0.8.0 - 2026-08-30
+## 0.8.0 - 2026-08-31
 
-Adaptive design discovery and Anti-AI-Slop release.
+First-run / onboarding release.
 
-- Reworked substantial web-design discovery around `KNOWN / INFERRED / UNKNOWN` facts instead of a fixed taste questionnaire.
-- Added an adaptive clarification budget: ask only questions whose answers have meaningful decision impact, uncertainty, rework cost, and low reversibility; well-specified work may ask zero questions while very vague work may ask a compact batch of several high-value questions.
-- Required design questions to use ordinary experiential language rather than expecting users to know terms such as neumorphism, glassmorphism, brutalism, direct manipulation, or spring motion. `You decide` / `알아서` stops optional questioning and delegates the choice to product/repository evidence.
-- Added 2-3 candidate-direction guidance when recognition is easier than description, while prohibiting superficial color-only A/B/C choices.
-- Added a multi-axis Design DNA taxonomy separating design philosophy/tone, material language, composition, interaction language, motion posture, density, typography, and color. The taxonomy covers functional/minimal/maximal/editorial/brutalist/refined/playful/technical/organic/retro/futuristic directions; flat/tactile/neumorphic/glass/clay/paper/hard-surface materials; grid/asymmetric/bento/spatial compositions; and microinteractive/direct-manipulation/context-aware/gesture/scroll interaction modes.
-- Added explicit style-soup prevention: a style label is not a feature checklist and multiple fashionable influences must not be combined without one coherent product reason.
-- Added `anti-ai-slop.md` as an evidence-aware design audit rather than an authorship detector. Findings are classified as `P0 / P1 / P2` and `CODE-CERTAIN / RENDER-CERTAIN / INFERRED` so source heuristics cannot masquerade as rendered visual evidence.
-- Cataloged common unchosen generated/default tells across palette/material, typography, layout/information architecture, component styling fingerprints, interaction/state, motion, copy/product evidence, imagery/fake data, and second-order defaults.
-- Added remedies for high-signal patterns such as generic purple/indigo AI palettes, gradient headlines, decorative glass/glow, default centered SaaS hero bundles, equal feature cards, unjustified bento, untouched component-library demos, pill/rounded-card repetition, fake social proof/charts/data, generic `Transform/Elevate/Unlock` copy, universal hover/scroll animation, and happy-path-only states.
-- Added a second-order-default check so de-slopping cannot simply become another universal rescue style such as always swapping Inter for the same trendy font or purple glass for the same warm-paper/brutalist aesthetic.
-- Strengthened rendered visual re-audit around five questions: are major choices justified, coherent, product-specific, state/responsive complete, and not merely another default? Lack of rendered capability remains an evidence limitation, not a reason to keep the turn open indefinitely.
-- Expanded source notes with public anti-slop/design-agent projects including `rwcod/anti-ai-slop-ui`, `funboy322/avoid-ai-design`, and `imMamdouhaboammar/unslop-preflight`, while preserving independent Sloar wording and no external runtime dependency.
-- Improved `--upgrade` safety for the bundled design companion. Sloar 0.8 records the exact official 0.7.0 file fingerprint, automatically migrates only an untouched known bundle after backing it up under Git metadata, and preserves modified/custom/unrecognized companion content. A lower version number alone never authorizes replacement.
-- Added regression coverage for exact official 0.7 -> 0.8 companion migration, modified-0.7 preservation, adaptive question budgeting, multi-axis taxonomy, Anti-AI-Slop severity/evidence contracts, installer/wizard readiness, and existing continuity/terminalization behavior.
+- Added an explicit ONBOARD readiness step before RECOVER for new Sloar sessions.
+- Added `environment-onboarding.md`, `scripts/wizard.py`, `docs/FIRST_RUN.md`, `docs/CONNECTIONS.md`, `docs/CHATGPT_PLUGINS.md`, and `examples/readiness.example.json`.
+- Added `scripts/doctor.py` so local readiness is machine-readable without assuming hosted plugin/app state.
+- Added repo-signal-based connection recommendations for GitHub, Vercel, Supabase, Netlify, and OpenAI Platform.
+- Added `web-design-guidance` as a bundled companion skill for substantial UI/design work and kept repository-specific design systems authoritative.
+- Added `--force` to the installer for replacing older bundled skill directories and kept AGENTS wiring idempotent.
+- Added CI/self-test coverage for onboarding docs, wizard, installer behavior, and bundled design skills.
+- Added a compact first-run readiness capsule and beginner-facing documentation.
+- Published Sloar `0.8.0`.
 
-## 0.7.0 - 2026-08-30
-
-Repository-aware web design guidance release.
-
-- Added the bundled `web-design-guidance` companion for substantial user-facing web UI work while preserving Sloar's separation between repository engineering continuity and project-specific design decisions.
-- Defined design precedence as explicit user direction > repository design/brand rules > shipped UI/tokens/components > bundled fallback guidance, preventing generic style catalogs from overriding an established product language.
-- Added compact design discovery and a working `Design Read` covering surface type, primary user job, visual tone, density, existing system, one intentional signature decision, and responsive/interaction risks.
-- Added fallback recipes for product applications, dashboards, landing pages, auth/onboarding, settings, content/docs, and commerce without turning them into rigid templates.
-- Added contextual anti-generic-generated-UI heuristics for repetitive split heroes, generic AI gradients, gratuitous bento/card layouts, decorative glass, fake charts, meaningless floating effects, and one-style-fits-all component rhythm; these are decision checks, not absolute style bans.
-- Added text/responsive resilience, interactive state, accessibility, motion, and visual-evidence contracts. Build/compile/DOM checks no longer count as proof of visual correctness when rendered browser/screenshot evidence is available.
-- Added a bounded visual-verification policy that can return `PARTIAL` when rendered evidence is unavailable or blocked rather than keeping the chat turn open indefinitely.
-- Generalized useful structures from the MIT-licensed `nextlevelbuilder/ui-ux-pro-max-skill`, `superdesigndev/superdesign-skill`, and `educlopez/ui-craft` projects without vendoring or requiring them at runtime; source notes are recorded in the companion `NOTICE.md`.
-- Kept the existing `apple-web-design` companion as a specialized opt-in refinement for explicitly Apple-like interaction/material requests rather than making Apple styling the default web language.
-- Updated the installer so fresh installs bundle both general and specialized design companions. `--upgrade` installs newly missing bundled companions, preserves divergent/customized existing companions, and refreshes only Sloar's owned `AGENTS.md` marker block.
-- Added upgrade and contract regression tests plus First Run Wizard/CI coverage for design companion readiness and activation safety.
-
-## 0.6.1 - 2026-08-30
-
-Bounded turn terminalization patch.
-
-- Distinguished host/runtime stalls from agent self-extension where a RED or pending gate causes recursive `one more check` / `one more fix` work and the visible response never reaches a terminal report.
-- Added `references/turn-terminalization.md` with a default bounded corrective cycle for one unchanged failure fingerprint: diagnose from concrete evidence, make at most one corrective change for that diagnosis, then re-run the affected verification once.
-- Required `PARTIAL`, `BLOCKED`, or `FAILED` terminalization when a required gate remains RED, pending, or externally blocked after its allowed bounded cycle instead of leaving the turn indefinitely ACTIVE.
-- Added explicit anti-rabbit-hole rules for optional follow-up scope, long-running CI/external waits, recursive polling, and autonomous/ULW-style requests.
-- Clarified that `ULW`, `finish it`, and similar autonomous instructions permit deeper work but never authorize infinite retry, search, wait, or polling loops.
-- Added regression tests that lock the terminalization contract and installer/CI checks that ensure the new reference ships with Sloar.
-- Updated the First Run Wizard continuity report to expose bounded turn terminalization separately from host-level stuck-response recovery.
-
-## 0.6.0 - 2026-08-30
-
-Operational continuity release.
-
-- Added durable interrupted-turn recovery for long repository tasks when a chat host stalls or remains visibly "answering" without delivering a final response.
-- Explicitly separates engineering terminality from response-delivery terminality; Sloar does not claim to control the host spinner, cancel server-side generation, or revive a stuck host process.
-- Added `scripts/turn-state.py` with ACTIVE/progress/terminal turn snapshots, terminal replay, explicit user-authorized takeover, monotonic fencing epochs, and pre-write fence checks.
-- Added `ACTIVE_OR_INTERRUPTED` and `TERMINAL_REPLAY_AVAILABLE` recovery states without time-based automatic takeover.
-- Added a stale-session fencing contract so an old apparently-stuck chat can be rejected on later guarded writes after a fresh chat has taken over; already-in-flight writes remain outside that guarantee.
-- Added repository/verification/runtime anchors for projects where current HEAD, last verified product state, and serving production state legitimately differ.
-- Added hot-state vs cold-history guidance for long-lived repositories while preserving repository-owned current-status/history/ADR conventions instead of imposing Sloar-specific project docs.
-- Strengthened the evidence ledger so evidence type/scope must match the completion claim; compile, rendered UI, live integration, merge/deploy, and production-health evidence are not interchangeable.
-- Added a compact change-boundary contract: `changed / preserved / deliberately_not_changed / limitations`.
-- Added durable failed-experiment guidance to prevent repeated structural mistakes without promoting speculative diagnoses into facts.
-- Added English/Korean stuck-response recovery guides and CI coverage for terminal snapshots, repository movement, explicit takeover, stale-fence rejection, anchors, and no-timeout semantics.
-
-## 0.5.1 - 2026-08-30
-
-Active-session upgrade release.
-
-- Added `UPGRADE_SESSION` so a repository already using an older Sloar release can upgrade without starting a fresh chat or reconstructing the current task.
-- Added `references/upgrading.md` with explicit upgrade entry/exit conditions, publication/revalidation requirements, and the bridge from an older active session into the 0.5+ rollover checkpoint model.
-- Added `install.py --upgrade` as the recommended local upgrade fallback. It upgrades only `sloar-chat-coder`, leaves unrelated companion skills alone, refuses downgrades and ambiguous same-version replacements, and preserves the previous installed skill under `.git/sloar-upgrade-backups/` before replacement.
-- Added regression tests proving product files and companion skills are preserved, old Sloar files are recoverable from the Git metadata backup, same-version divergence is not silently overwritten, and downgrades are rejected.
-- Added a beginner-facing Korean quick path for upgrading an active 0.4.x session with one natural-language request and continuing the same task.
-
-## 0.5.0 - 2026-08-30
-
-Chat-native continuity release.
-
-- Added explicit `BOOTSTRAP_SESSION -> NORMAL_WORK -> PREPARE_ROLLOVER -> RESUME_SESSION` continuity semantics for first-use and fresh-chat recovery.
-- Added capability-aware first-use bootstrap so a user can begin from a repository URL when the current session has an authorized durable path, while keeping the local installer/wizard as fallback rather than mandatory ceremony.
-- Added the preferred `sloar/rollover-state` sidecar branch for durable cross-chat checkpoint transport without polluting product branches with runtime metadata.
-- Added compact rollover state for goal/completed/active/pending/decisions/evidence/blockers/next action and user-facing `response_language`.
-- Added partial identity observability: remote-only sessions can mark working-tree state as unobserved instead of coercing unknown state to clean/dirty.
-- Defined `EXACT` as no contradiction among mutually observable identity fields and `RECONCILE_REQUIRED` when an observable identity field moved.
-- Added response-language continuity that separates English control/protocol text from the established user-facing response language.
-- Added `PRE_RESPONSE_READ_BLOCKED` for hosts that require visible output before durable checkpoint reads; the contract forbids unsupported first-response language claims and unchanged retry loops under that host condition.
-- Added `scripts/session-rollover.py`, a transport-agnostic local checkpoint/capsule helper that defaults state to `.git/sloar-rollover/` so handoff generation does not dirty the product worktree.
-- Added regression coverage for local/remote identity comparison, repository movement, pointer/checkpoint language metadata, legacy checkpoints, compact capsules, and the host capability boundary.
-- Updated CI to run the chat-native continuity suite and verify the new helper/reference are installed with the Skill.
-- Added the optional `apple-web-design` companion skill, adapted from Emil Kowalski's MIT-licensed `apple-design` skill with upstream attribution preserved.
-- Distilled Apple-style web interaction guidance into testable contracts for immediate feedback, 1:1 direct manipulation, presentation-state interruption, velocity projection, rubber-banding, restrained materials, typography, and accessibility.
-- Updated the installer to bundle the companion without making it a default engineering method; target repository guidance remains authoritative.
-- Added installer idempotency across all bundled skills while ignoring generated Python cache files.
-
-## 0.4.0 - 2026-08-21
+## 0.7.0 - 2026-08-31
 
 Forge resilience release.
 
-- Added an explicit forge overlay separating local Git readiness from hosted platform health and operation-specific capability.
-- Added `LOCAL_READY`, `REMOTE_HEALTHY`, `REMOTE_PARTIAL`, `REMOTE_DEGRADED`, `PUBLICATION_BLOCKED`, and `BLOCKED` semantics.
-- Added `forge-health.py` with a network-free default and a single bounded `--probe` mode; it never creates retry loops.
-- Added deterministic `--classify-file` / `--classify-error` handling for already-observed forge failures without making a network request.
-- Added explicit classification for GitHub workflow permission mismatch, integration permission denial, CI approval/`action_required`, branch policy, non-fast-forward/stale remote state, 429, 5xx, DNS, and timeout failures.
-- Failure classification returns a normalized class/layer/retry strategy/next action and SHA-256 fingerprint without echoing the raw error text.
-- Added guidance for continuing local IMPLEMENT/VERIFY work while GitHub/GitLab/CI/API layers are degraded or partially authorized, without claiming publication success.
-- Added a rule that correct verified product source must not be rewritten merely because the publishing identity lacks a specific permission.
-- Added forge-layer failure fingerprints and retry-storm prevention rules; permission/policy failures require changed capability/policy evidence before retry.
-- Added outage/capability checkpoints, optional mirror safeguards, and mandatory remote-base revalidation after recovery, approval, or delayed publication.
-- Added a repository-aware Connection Advisor in the First Run Wizard for GitHub, Vercel, Supabase, Netlify, and OpenAI Platform.
-- Added English/Korean connection guides that keep authentication user-controlled, recommend least-privilege scopes, and never treat repository detection as proof of an installed/authorized ChatGPT connection.
-- Added explicit ref-cleanup capability handling: missing delete-ref tools are `REMOTE_PARTIAL`, completed publication/verification stays intact, and only `CLEANUP` is deferred as `REF_DELETE_UNAVAILABLE`.
-- Added non-mutating `ref-cleanup.py` to prevent unsafe deletion substitutes such as moving a branch ref to another commit.
-- Kept mirrors opt-in and prohibited silently publishing private source to a new forge merely because the primary provider is unavailable or a permission is missing.
-- Updated English/Korean README and Forge Resilience guides so first-time users can discover the 0.4 workflow directly.
+- Added `references/forge-resilience.md` with explicit `LOCAL_READY`, `REMOTE_HEALTHY`, `REMOTE_PARTIAL`, `REMOTE_DEGRADED`, and `PUBLICATION_BLOCKED` states.
+- Added capability/capability-state distinction so policy/permission failures are not retried like service/network outages.
+- Added `scripts/forge-health.py` for one-shot forge/Git capability probing and failure fingerprinting.
+- Added tests for local vs remote outage behavior, permission/capability classification, update-awareness, and non-retry rules.
+- Added bilingual outage/CI recovery guides.
+- Added an evidence-ledger example and outage reproduction harness.
+- Kept local implementation/testing active when the forge is unavailable and exact local state remains healthy.
+- Published Sloar `0.7.0`.
 
-## 0.3.0 - 2026-08-20
+## 0.6.0 - 2026-08-31
 
-Beginner First Run Wizard release.
+First public release.
 
-- Added `wizard.py` with a compact human view and full JSON readiness report.
-- Added a stable readiness capsule contract: Repository, Execution, GitHub read/write, CI/browser, and one next action.
-- Upgraded `doctor.py` to schema 2 with origin and safe `gh auth` status while keeping ChatGPT account/plugin state explicitly unknown locally.
-- Added dedicated English/Korean ChatGPT Plugin/App/Skill guides based on the current Plugin Directory model.
-- Added zero-to-first-run clone/install/wizard commands so new users do not need prior Agent Skills knowledge.
-- Clarified that Sloar is currently an Agent Skill repository and does not claim a Plugin Directory listing.
-- Expanded CI to verify wizard behavior and the stricter local-vs-hosted capability boundary.
-
-## 0.2.0 - 2026-08-20
-
-First-run onboarding release.
-
-- Added an ONBOARD capability-discovery pre-state for unknown/new environments.
-- Added explicit ChatGPT Plugin vs App vs Skill guidance and GitHub connection boundaries.
-- Added an idempotent installer for copying Sloar into a target repository and wiring `AGENTS.md`.
-- Added a local `doctor.py` capability/worktree diagnostic with JSON output.
-- Added English/Korean first-run guides and ready-to-paste starter prompts.
-- Expanded validation to test installer idempotency and doctor output.
-- Kept hosted integrations optional: missing GitHub app access degrades capability instead of falsely blocking local work.
-
-## 0.1.0 - 2026-08-20
-
-Initial public release.
-
-- Added explicit repository-task state machine.
-- Added repository identity contract using commit, tree, and working-tree state.
-- Added six-level capability ladder.
-- Added failure fingerprint and bounded retry policy.
-- Added evidence ledger and claim-bound reporting rules.
-- Added optimistic concurrency publication guard.
-- Added bounded Actions mission contract.
-- Added recovery checkpoint format and helper scripts.
+- Added the core `SKILL.md`, state machine, evidence ledger, capability ladder, recovery, concurrency, Actions mission, Android engineering, and rendered UI evidence guidance.
+- Added installer/preflight/doctor/verification helper scripts and CI validation.
+- Added remote supply workflow for sandbox acquisition fallback.
+- Added README, Korean README, first-run docs, example ledgers, fixtures, and recovery/evidence samples.
+- Published Sloar `0.6.0`.
