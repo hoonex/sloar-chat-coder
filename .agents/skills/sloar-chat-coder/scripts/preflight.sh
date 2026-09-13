@@ -27,6 +27,7 @@ if [[ "${1:-}" == "--self-test" ]]; then
   [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/engineering-closure.py" ]] || { echo "missing engineering closure helper" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/scripts/web-architecture-map.py" ]] || { echo "missing web architecture map helper" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/reasoning-kernel.md" ]] || { echo "missing reasoning kernel reference" >&2; exit 1; }
+  [[ -f "$root/.agents/skills/sloar-chat-coder/references/evidence-independence.md" ]] || { echo "missing evidence independence reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/async-evidence-closure.md" ]] || { echo "missing async evidence closure reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/environment-onboarding.md" ]] || { echo "missing onboarding reference" >&2; exit 1; }
   [[ -f "$root/.agents/skills/sloar-chat-coder/references/forge-resilience.md" ]] || { echo "missing forge resilience reference" >&2; exit 1; }

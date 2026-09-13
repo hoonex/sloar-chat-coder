@@ -4,6 +4,18 @@
 
 No unreleased changes yet.
 
+## 0.10.3 - 2026-09-14
+
+Evidence-independence and domain-grounding patch.
+
+- Added a risk-adaptive evidence-independence contract so implementation and verification that inherit the same unproven premise are treated as self-consistency evidence, not automatically as independent correctness proof.
+- Added a bounded critical-assumption ledger for consequential premises whose falsity would change architecture, implementation, acceptance, safety, or performance conclusions, with `CONFIRMED / SUPPORTED / UNKNOWN` states when useful.
+- Added differentiated falsifiers for common-provenance risk: authoritative contracts, conformance vectors/corpora, independently implemented references, domain-derived properties/invariants, and runtime/end-to-end observations.
+- Added conditional domain grounding for standards, protocols, mathematics, hardware, compatibility, and other external contracts without turning every repository task into broad research ceremony.
+- Added a dependency-ownership prior: prefer mature dependencies when they already own hard correctness/compatibility work and the product does not need that layer, while requiring enough boundary understanding to detect contract violations.
+- Added regression tests and preflight presence checks for the new evidence-independence contract.
+- Bumped Sloar core, First Run Wizard, readiness examples, and stable documentation to `0.10.3`.
+
 ## 0.10.2 - 2026-09-11
 
 Full-system audit hardening patch.

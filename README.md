@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.10.2**
+Current stable: **0.10.3**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.2-2563eb?style=flat-square" alt="stable 0.10.2"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.3-2563eb?style=flat-square" alt="stable 0.10.3"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -116,10 +116,13 @@ revalidate mutable remote state immediately before publication-dependent writes
 
 The MODEL/PROVE steps treat user-visible semantics as stronger than convenient implementation labels. For example, `queued` does not automatically prove a requirement phrased as `before callback starts`; Sloar tests the latest valid observable boundary when that edge can change correctness.
 
+0.10.3 also distinguishes **self-consistency from independent evidence**. When implementation and verification may inherit the same consequential premise, Sloar records only the critical assumptions that can change the result and seeks a differentiated falsifier—such as an authoritative contract, conformance vector, independent reference, domain-derived invariant, or runtime observation—when practical. Missing independent grounding is reported as an evidence gap instead of being hidden behind more same-premise tests.
+
 For asynchronous/stateful work, Sloar also checks Promise/callback/event results, resource ownership, late finalizers, cancellation ownership, retry safety/liveness, and transition-adjacent races instead of validating only final store state.
 
 Details:
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Evidence independence and domain grounding](.agents/skills/sloar-chat-coder/references/evidence-independence.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [State machine](.agents/skills/sloar-chat-coder/references/state-machine.md)
 - [Verification](.agents/skills/sloar-chat-coder/references/verification.md)
@@ -232,7 +235,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.10.1 -> 0.10.2. Upgrade now?
+-> Sloar update available: 0.10.2 -> 0.10.3. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -266,7 +269,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.10.2 --json
+  --stable-version 0.10.3 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
@@ -344,6 +347,7 @@ python3 .agents/skills/sloar-chat-coder/scripts/wizard.py .
 
 **Engineering/design protocol**
 - [Reasoning kernel](.agents/skills/sloar-chat-coder/references/reasoning-kernel.md)
+- [Evidence independence and domain grounding](.agents/skills/sloar-chat-coder/references/evidence-independence.md)
 - [Async evidence closure](.agents/skills/sloar-chat-coder/references/async-evidence-closure.md)
 - [Ownership and evidence closure](.agents/skills/sloar-chat-coder/references/ownership-evidence-closure.md)
 - [Web architecture capsule](.agents/skills/sloar-chat-coder/references/web-architecture-capsule.md)
