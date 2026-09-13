@@ -3,7 +3,7 @@ name: sloar-chat-coder
 description: Keep repository development exact and recoverable across disposable chat coding sessions, including first-use bootstrap, ownership/evidence closure, evidence-backed web architecture discovery, in-session upgrades, fresh-chat rollover, interrupted or stuck-response turns, repository-aware adaptive web design guidance, and degraded or partial forge/API/CI/publication capabilities. Use for repository implementation, debugging, testing, publication, outage handling, upgrade, or recovery when sandbox state, GitHub/GitLab state, connected tools, CI, permissions, policies, concurrent actors, host response delivery, or chat context can change during the task.
 license: MIT
 metadata:
-  version: "0.10.2"
+  version: "0.10.3"
   compatibility: Repository reads are sufficient for connector-native review. Execution-dependent checks require an actual local or remote runtime.
 ---
 
@@ -28,6 +28,8 @@ This is the default reasoning algorithm. The detailed state machine and speciali
 - **RECONCILE:** ensure evidence still matches the durable state being published/reported and preserve recovery state when needed.
 
 Read [references/reasoning-kernel.md](references/reasoning-kernel.md) when the engineering decision needs the fuller MODEL/PROVE contract. Routine connector operations can use the chat/GitHub reference directly. For consequential async/stateful work, expand MODEL/PROVE with [references/async-evidence-closure.md](references/async-evidence-closure.md). In particular, `queued`, `reserved`, `scheduled`, `running`, and similar implementation states are not automatically equivalent to user-facing phases such as `before callback starts`; boundary claims should be tested at the latest valid observable point when that edge can change correctness.
+
+When implementation and verification can inherit the same consequential premise, or correctness depends on an external standard/domain invariant not established by the repository, use [references/evidence-independence.md](references/evidence-independence.md). Separate self-consistency from independent falsification; do not add broad research ceremony when the trigger is absent.
 
 Do not turn the union of all Sloar references into ceremony. Use a specialized reference only when its trigger is present.
 
