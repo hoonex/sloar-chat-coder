@@ -176,7 +176,7 @@ This is a **research-backed implementation reference**, not a list of required p
 ### 21. Cyberpunk
 
 - **Axis:** world-building / dystopian technology.
-- **Reference:** [Inspect design or implementation](https://chrislemke.github.io/website_designs/designs/Blueprint_Technical.html).
+- **Reference:** [Inspect an actual Cyberpunk CSS component demo](https://alddesign.github.io/cyberpunk-css/demo/).
 - **Visual grammar:** Nocturnal urban infrastructure, industrial HUD/scarred surfaces and purposeful hazard/information color; unlike nostalgic Cybercore or sunset Synthwave.
 - **Implement:** Create layered signage/HUD using crisp SVG panels, grid/rule geometry and 1–2 status accents; put glitch in occasional nonessential artwork only.
 - **Acceptance:** Critical state is labeled, not color-only; focus and status never flicker.
