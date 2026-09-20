@@ -47,6 +47,7 @@ This is a **research-backed implementation reference**, not a list of required p
 
 ### 05. Surrealism
 
+- **Reference:** [Inspect Lynn Fisher's layered-SVG site case study](https://lynnandtonic.com/thoughts/entries/case-study-2021-refresh/).
 - **Axis:** art direction, spatial storytelling, and imagery. A museum article defining the art movement is **not** evidence of how to implement a web surface.
 - **Inspected implementation reference:** [Lynn Fisher's 2021 site case study](https://lynnandtonic.com/thoughts/entries/case-study-2021-refresh/) documents scenes constructed from stacked inline SVG artworks with cutouts, ordered visibility/scale changes and resize-responsive transitions. It also documents browser performance problems from heavy CSS-only resizing and blur, mobile affordance limits, and multi-viewport testing. This is a *vector-illustration art direction*, not evidence that photographic surrealism can be produced from primitive SVG shapes.
 - **Inspected product reference:** [Hello Monday's MoMA Magritte exhibition case study](https://hellomonday.com/work/moma-magritte) describes a layered narrative with sound, motion and transitions informed by the artist. This is a product/art-direction precedent, **not** a claim that its original assets, source code, or exact composition are reusable.
