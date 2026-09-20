@@ -104,6 +104,8 @@ Read [references/design-taxonomy.md](references/design-taxonomy.md) for multi-ax
 
 The taxonomy is a translation tool, not a checklist. Avoid style soup.
 
+When the user explicitly names visual styles or requests researched, implementable directions, read [references/style-implementation-catalog.md](references/style-implementation-catalog.md). Its 22 entries connect real references to visual grammar, feasible implementation, and acceptance checks. Select a coherent primary direction with supporting axes rather than installing all 22 as a theme. Before implementing material style changes, inspect the relevant reference and the target product's existing system, then build and visually verify a representative vertical slice (real control states, narrow layout, readable content). A palette swap, reference screenshot, or CSS draft alone does not demonstrate the named style is implemented.
+
 ## 4. Build the system before decoration
 
 Establish or preserve the visual hierarchy in this order:

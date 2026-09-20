@@ -32,6 +32,21 @@ Supporting influences are allowed, but avoid style soup. Every axis must serve t
 
 Repository/user guidance always outranks this taxonomy.
 
+## Named-style crosswalk for reference-backed implementation
+
+The terms below are **different design axes**, not 22 mutually exclusive full themes or 22 effects to combine. For explicit style requests, read [style-implementation-catalog.md](style-implementation-catalog.md): every entry records a visual/technical reference, distinctive grammar, an implementable CSS/asset/layout path, and acceptance checks. Check the cited specimens and technical sources in the task context before copying any implementation technique; references are not a substitute for rendered evidence or an asset license.
+
+| Axis primarily affected | Named directions |
+| --- | --- |
+| Philosophy / visual attitude | Neo-brutalism; Swiss design; Minimalism; Maximalism; Wabi-sabi |
+| Surface / material | Claymorphism; Glassmorphism; Neumorphism |
+| Composition / hierarchy | Scrapbook; Bento grid; Editorial design |
+| Typography identity | Luxury typography |
+| Art direction, illustration, atmosphere, or period | Cybercore; Surrealism; Y2K aesthetic; Pixel art; Synthwave; Conceptual sketch; Ethereal; Bohemian; Victorian; Cyberpunk |
+
+This is a **primary-axis** index: for instance, Scrapbook also requires original collage assets, and Swiss design also determines typography and grid. Start with the requested style and product job, then choose only compatible supporting axes; the catalog is not an invitation to apply every effect to one page.
+
+
 ---
 
 ## Axis A — design philosophy / visual attitude
