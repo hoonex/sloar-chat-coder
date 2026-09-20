@@ -57,6 +57,22 @@ class DesignStyleCatalogContractTests(unittest.TestCase):
         for name in EXPECTED_STYLES:
             self.assertIn(name, self.taxonomy)
 
+    def test_surrealism_uses_actual_web_case_studies_and_asset_gate(self):
+        section = self.catalog.split("### 05. Surrealism", 1)[1].split("### 06. Y2K aesthetic", 1)[0]
+        self.assertIn("lynnandtonic.com/thoughts/entries/case-study-2021-refresh/", section)
+        self.assertIn("hellomonday.com/work/moma-magritte", section)
+        for phrase in ("Asset feasibility gate", "photographic", "SVG", "320/390/768/1440px", "rendered"):
+            self.assertIn(phrase, section)
+
+    def test_visual_style_research_requires_evidenced_implementation(self):
+        research = (COMPANION / "references/reference-research-and-critique.md").read_text(encoding="utf-8")
+        self.assertIn("Implementation-reference and asset-feasibility gate", research)
+        self.assertIn("Inspect, do not merely locate", research)
+        self.assertIn("Build and render one vertical slice", research)
+        self.assertIn("Code compilation and responsive/functional tests", research)
+        self.assertIn("reference-research-and-critique.md", self.skill)
+        self.assertIn("before building the full page", self.skill)
+
     def test_not_just_palette_swaps_or_style_soup(self):
         for token in (
             "vertical slice", "real interactive control", "reduced-motion",
