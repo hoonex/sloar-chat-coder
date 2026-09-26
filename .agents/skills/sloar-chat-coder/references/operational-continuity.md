@@ -20,6 +20,42 @@ Use durable turn state when at least one of these is true:
 
 Do not add turn-state ceremony to a trivial read-only answer.
 
+## Execution-bound long turns
+
+Use this pattern only when the task has a real long-running execution boundary: substantial sequential tool work, long verification, a fixed benchmark/batch, or another acceptance-gated workload whose useful computation may outlive an ordinary short chat turn. Do not invoke it just because a prompt asks to "think longer."
+
+When the runtime supports managed long-lived processes and the workload can be expressed coherently, prefer **one bounded orchestrator** over many independent chat-issued subprocess launches. The orchestrator should own the fixed workload and write durable progress after each meaningful unit. The chat turn should observe that process, not recreate its work.
+
+Before launch, define the terminal acceptance criteria and the allowed workload. After launch:
+
+- start the orchestrator exactly once unless durable evidence proves that launch failed before useful work began;
+- apply bounded per-step or per-subprocess timeouts inside the orchestrator;
+- write progress atomically after meaningful state changes, including current unit, completed count, last terminal result, updated time, and RUNNING/terminal state;
+- poll the existing managed process by its durable process/session handle or equivalent runtime primitive; do not create shell `sleep` loops merely to occupy time;
+- never restart or duplicate a healthy calculation because the chat UI appears stalled;
+- classify host/tool safety blocks separately from process timeouts and tool/runtime failures;
+- if a tool request is blocked by a host safety layer, record that fact and continue only through a normal lower-risk/smaller legitimate operation when one exists; do not rephrase commands solely to evade the safety decision;
+- do not add fake duration with `sleep`, busy-wait, redundant reruns, or meaningless compute.
+
+A useful minimum progress record is:
+
+```text
+run_id
+started_at
+current_unit / total_units
+completed_count
+failed_count
+last_terminal_unit
+orchestrator_state = RUNNING | COMPLETED | PARTIAL | BLOCKED | FAILED
+updated_at
+```
+
+If the host or transport has an internal durable long-running execution mechanism, Sloar may use it naturally when available. Runtime strings observed in exports or diagnostics—such as `conversation-turn-*`, `wfr_*`, `SAServer async execution`, `temporal conversation turn`, or `stream handoff`—are **not an API contract**. Never generate, imitate, request, or report those markers as proof of admission to a long-running worker.
+
+When the orchestrator reaches its terminal workload, perform a short independent audit against the predeclared acceptance criteria, verify that no Sloar-owned child process remains unintentionally active, persist the terminal state, and return the result. Do not keep the turn alive after terminality merely because more execution time may be available.
+
+This pattern does not replace interactive branching. If each result genuinely changes the next engineering action, bounded stepwise execution can be more appropriate than one fixed orchestrator; preserve the same no-duplicate, durable-progress, bounded-timeout, and terminal-audit invariants.
+
 ## Turn lifecycle
 
 ```text
