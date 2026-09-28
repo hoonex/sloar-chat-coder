@@ -4,6 +4,17 @@
 
 No unreleased changes yet.
 
+## 0.10.4 - 2026-09-28
+
+Organic interface reasoning and observed visual evidence update.
+
+- Extended the existing web-design companion with task-dependent information priorities, semantic compression that preserves critical exceptions, container-aware representation, and state continuity across space changes.
+- Added a visual observation and revision loop that distinguishes rendering, capture, delivery of pixels to the agent, actual pixel inspection, interaction, and re-observation after a correction. Component, page, and product claims retain separate evidence scopes.
+- Kept the design guidance conditional on substantial user-facing UI work, with the target product's own design system and user requirements authoritative.
+- Diagnosed partial GitHub access during onboarding: absent write tools, missing ChatGPT Codex Connector installation or repository selection, and denied operation-specific permissions require different actions.
+- Updated the exact official companion upgrade path from 0.8.0 to 0.8.1 while preserving customized installations. The repository test suite (165 tests), self-test, shell checks, and CI passed.
+- Evidence limit: a representative product UI was not rendered and visually inspected in this release. The guidance and CI checks do not establish a general improvement in visual quality.
+
 ## 0.10.3 - 2026-09-14
 
 Evidence-independence and domain-grounding patch.
