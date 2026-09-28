@@ -10,6 +10,34 @@ OBSERVE -> MODEL -> ACT -> PROVE -> RECONCILE
 
 The five moves are semantic, not ceremonial. Small tasks may collapse them into a few actions. Complex tasks may expand a move using the specialized references.
 
+## Adaptive depth gate
+
+Do not spend the same reasoning budget on every task. Before expanding the loop, classify the change from observed repository evidence rather than from prompt length.
+
+Use the **small-task fast path** only when all of these are true after a bounded initial observation:
+
+- the failing or requested observable is concrete and reproducible;
+- the likely authority is localized to one small area and no competing owner is evident;
+- the public contract is unchanged or already explicit;
+- no async/lifecycle, migration, security, deployment, cross-layer ownership, or broad design choice is implicated;
+- there is a focused verification command that can falsify the proposed fix.
+
+For that class, collapse the loop to:
+
+```text
+OBSERVE focused evidence
+-> MODEL one falsifiable cause/owner hypothesis
+-> ACT the smallest coherent fix
+-> PROVE with the focused check plus the nearest relevant regression check
+-> RECONCILE only the durable state actually touched
+```
+
+Do not perform broad repository archaeology, enumerate multiple representations, load specialized references, or create continuity/publication machinery unless the focused evidence stops supporting the fast-path assumptions.
+
+**Escalate immediately to the normal/expanded loop** when the first hypothesis fails, ownership becomes ambiguous, the change crosses a public/lifecycle boundary, verification exposes a different mechanism, or the patch starts spreading across independent areas. Fast path means less irrelevant work, not weaker evidence or permission to guess.
+
+The desired optimization target is lower time/tool/context cost while preserving task success, regression rate, and false-completion discipline. A faster path that lowers correctness is not an improvement.
+
 ## 1. OBSERVE
 
 Resolve the durable facts that can change the answer:
