@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLER = ROOT / ".agents/skills/sloar-chat-coder/scripts/install.py"
 OFFICIAL_0_9_1_COMMIT = "743be629c217e5c0ebad894f8ecd5b07a2c1fcf3"
+OFFICIAL_0_10_3_COMMIT = "bcd4244de0468965fd5f3cffaab86ccc227fb402"
 
 
 def git(repo: Path, *args: str, check: bool = True):
@@ -21,16 +22,16 @@ class CompanionUpgradeRegressionTests(unittest.TestCase):
         (target / "product.txt").write_text("product state\n", encoding="utf-8")
         return target
 
-    def copy_historical_skill(self, target: Path, skill: str) -> Path:
+    def copy_historical_skill(self, target: Path, skill: str, commit: str = OFFICIAL_0_9_1_COMMIT) -> Path:
         prefix = f".agents/skills/{skill}/"
-        if git(ROOT, "cat-file", "-e", f"{OFFICIAL_0_9_1_COMMIT}^{{commit}}", check=False).returncode != 0:
-            self.skipTest("v0.9.1 history unavailable in this checkout")
-        listing = git(ROOT, "ls-tree", "-r", "--name-only", OFFICIAL_0_9_1_COMMIT, prefix)
+        if git(ROOT, "cat-file", "-e", f"{commit}^{{commit}}", check=False).returncode != 0:
+            self.skipTest(f"official history unavailable in this checkout: {commit}")
+        listing = git(ROOT, "ls-tree", "-r", "--name-only", commit, prefix)
         paths = [raw.decode("utf-8") for raw in listing.stdout.splitlines() if raw.decode("utf-8").startswith(prefix)]
         self.assertTrue(paths, skill)
         dest = target / ".agents/skills" / skill
         for repo_path in paths:
-            shown = git(ROOT, "show", f"{OFFICIAL_0_9_1_COMMIT}:{repo_path}")
+            shown = git(ROOT, "show", f"{commit}:{repo_path}")
             path = dest / repo_path[len(prefix):]; path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(shown.stdout)
         return dest
 
@@ -44,7 +45,7 @@ class CompanionUpgradeRegressionTests(unittest.TestCase):
             git(target, "add", "."); git(target, "commit", "-qm", "v0.9.1 install")
             proc = self.run_upgrade(target); self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertTrue((design / "references/structural-ui-engineering.md").is_file()); self.assertIn("Product-craft contract", (apple / "SKILL.md").read_text(encoding="utf-8"))
-            self.assertIn("refreshed official companion web-design-guidance 0.8.0 -> 0.8.0", proc.stdout)
+            self.assertIn("upgraded official companion web-design-guidance 0.8.0 -> 0.8.1", proc.stdout)
             self.assertIn("refreshed official companion apple-web-design unversioned -> current bundle", proc.stdout)
             self.assertEqual(len(list((target / ".git/sloar-upgrade-backups/companions/web-design-guidance").glob("*/SKILL.md"))), 1)
             self.assertEqual(len(list((target / ".git/sloar-upgrade-backups/companions/apple-web-design").glob("*/SKILL.md"))), 1)
@@ -57,6 +58,34 @@ class CompanionUpgradeRegressionTests(unittest.TestCase):
             before = discovery.read_text(encoding="utf-8"); proc = self.run_upgrade(target); self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(discovery.read_text(encoding="utf-8"), before); self.assertFalse((design / "references/structural-ui-engineering.md").exists())
             self.assertIn("preserved existing companion customization", proc.stdout); self.assertIn("Product-craft contract", (apple / "SKILL.md").read_text(encoding="utf-8"))
+
+    def test_current_official_companion_upgrades_but_custom_copy_is_preserved(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            official_root = root / "official"; official_root.mkdir()
+            official = self.make_target(official_root)
+            self.copy_historical_skill(official, "sloar-chat-coder", OFFICIAL_0_10_3_COMMIT)
+            design = self.copy_historical_skill(official, "web-design-guidance", OFFICIAL_0_10_3_COMMIT)
+            git(official, "add", "."); git(official, "commit", "-qm", "official install")
+            proc = self.run_upgrade(official)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("upgraded Sloar 0.10.3 -> 0.10.4", proc.stdout)
+            self.assertIn("upgraded official companion web-design-guidance 0.8.0 -> 0.8.1", proc.stdout)
+            self.assertTrue((design / "references/organic-interface-design.md").is_file())
+            self.assertTrue((design / "references/visual-observation-loop.md").is_file())
+
+            custom_root = root / "custom"; custom_root.mkdir()
+            custom = self.make_target(custom_root)
+            self.copy_historical_skill(custom, "sloar-chat-coder", OFFICIAL_0_10_3_COMMIT)
+            custom_design = self.copy_historical_skill(custom, "web-design-guidance", OFFICIAL_0_10_3_COMMIT)
+            custom_skill = custom_design / "SKILL.md"
+            custom_skill.write_text(custom_skill.read_text(encoding="utf-8") + "\n# Local customization\n", encoding="utf-8")
+            git(custom, "add", "."); git(custom, "commit", "-qm", "custom install")
+            proc = self.run_upgrade(custom)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("preserved existing companion customization", proc.stdout)
+            self.assertIn("# Local customization", custom_skill.read_text(encoding="utf-8"))
+            self.assertFalse((custom_design / "references/organic-interface-design.md").exists())
 
 
 if __name__ == "__main__":

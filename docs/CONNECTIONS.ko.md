@@ -56,3 +56,5 @@ Sloar는 연결을 위해 사용자에게 서비스 비밀번호, access token, 
 연결 자체는 되어 있어도 일부 작업만 막힐 수 있습니다. 예를 들어 GitHub App이 일반 repository file은 수정하지만 workflow file 수정에는 별도 `workflows` 권한이 필요할 수 있습니다.
 
 이 경우 Sloar는 서비스 장애로 보지 않고 `REMOTE_PARTIAL`로 분류해서 **같은 요청을 반복하는 대신 권한/transport/게시 전략을 바꿉니다.**
+
+GitHub 읽기는 되는데 쓰기가 안 되면, 먼저 agent가 **현재 채팅에 쓰기 도구가 실제로 노출되는지** 확인해야 합니다. 읽기 전용 채팅 화면에 없는 쓰기 도구가 앱 설치만으로 생기지는 않습니다. 쓰기 도구는 있는데 대상 저장소에 접근할 수 없다면, 연결된 GitHub 계정과 저장소 소유 계정/조직에 앱이 **설치**되어 있고 해당 저장소가 선택되어 있는지 확인합니다. 현재 연결이 **ChatGPT Codex Connector**를 사용하는 OpenAI GitHub 플러그인인 경우 [GitHub 앱 설치 페이지](https://github.com/apps/chatgpt-codex-connector/installations/new)에서 계정·저장소를 선택할 수 있습니다. 조직 저장소는 관리자의 설치 승인이 필요할 수 있습니다. 앱 인증과 GitHub 계정/조직에 대한 앱 설치는 서로 다른 단계입니다. 특정 쓰기만 거부된다면 재연결을 반복하지 말고 실제 거부된 권한이나 브랜치 규칙을 확인합니다. 필요한 저장소와 권한만 허용하고, 이후 agent가 실제 쓰기 가능 여부를 다시 검증해야 합니다.

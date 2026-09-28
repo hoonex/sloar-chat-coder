@@ -4,10 +4,10 @@ Reliable repository engineering across disposable AI coding sessions.
 
 Sloar Chat Coder is an Agent Skill for chat-based repository work where sandboxes can disappear, repository state can move concurrently, tools can fail, long turns can self-extend, and the host can stall before delivering a final response.
 
-Current stable: **0.10.3**
+Current stable: **0.10.4**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.3-2563eb?style=flat-square" alt="stable 0.10.3"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.4-2563eb?style=flat-square" alt="stable 0.10.4"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -180,6 +180,8 @@ Details:
 
 Since 0.8.0, the bundled `web-design-guidance` assumes users may know the experience they want without knowing words such as `glassmorphism`, `neumorphism`, or `brutalism`.
 
+In companion 0.8.1, substantial information-bearing UI work also asks what the user needs to know and do before choosing a surface. It treats narrow *containers*, meaningful exceptions, and interaction state as inputs to semantic compression, while preserving detail access and simultaneous comparison where the task requires it. The visual loop distinguishes an image being generated from the agent actually observing it, critiquing component/page/product context, and rechecking a correction. It applies proportionally to UI work; unavailable rendering remains explicitly unverified.
+
 Example:
 
 ```text
@@ -222,6 +224,8 @@ Details:
 - [Design taxonomy](.agents/skills/web-design-guidance/references/design-taxonomy.md)
 - [Anti-AI-Slop](.agents/skills/web-design-guidance/references/anti-ai-slop.md)
 - [Structural UI engineering](.agents/skills/web-design-guidance/references/structural-ui-engineering.md)
+- [Organic interface design](.agents/skills/web-design-guidance/references/organic-interface-design.md)
+- [Visual observation loop](.agents/skills/web-design-guidance/references/visual-observation-loop.md)
 - [Apple-specific companion](.agents/skills/apple-web-design/SKILL.md)
 
 ## Upgrade without restarting the task
@@ -235,7 +239,7 @@ installed == stable
 -> stay silent and continue work
 
 new stable exists
--> Sloar update available: 0.10.2 -> 0.10.3. Upgrade now?
+-> Sloar update available: 0.10.3 -> 0.10.4. Upgrade now?
 -> user approves
 -> automated safe upgrade while preserving current task state
 
@@ -269,7 +273,7 @@ The local Wizard never performs a hidden stable-version network lookup. A caller
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.10.3 --json
+  --stable-version 0.10.4 --json
 ```
 
 Contract: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)

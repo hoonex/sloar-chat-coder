@@ -310,13 +310,15 @@ jobs:
           design_text = design.read_text(encoding='utf-8')
           assert design_text.startswith('---\n')
           assert 'name: web-design-guidance' in design_text
-          assert 'version: "0.8.0"' in design_text
+          assert 'version: "0.8.1"' in design_text
           assert Path('.agents/skills/web-design-guidance/references/design-discovery.md').is_file()
           assert Path('.agents/skills/web-design-guidance/references/adaptive-design-discovery.md').is_file()
           assert Path('.agents/skills/web-design-guidance/references/design-taxonomy.md').is_file()
           assert Path('.agents/skills/web-design-guidance/references/anti-ai-slop.md').is_file()
           assert Path('.agents/skills/web-design-guidance/references/surface-recipes.md').is_file()
           assert Path('.agents/skills/web-design-guidance/references/visual-verification.md').is_file()
+          assert Path('.agents/skills/web-design-guidance/references/organic-interface-design.md').is_file()
+          assert Path('.agents/skills/web-design-guidance/references/visual-observation-loop.md').is_file()
           assert Path('docs/INTERRUPTED_TURNS.md').is_file()
           assert Path('docs/INTERRUPTED_TURNS.ko.md').is_file()
           assert Path('docs/CONNECTIONS.md').is_file()
