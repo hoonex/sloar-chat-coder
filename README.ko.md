@@ -4,10 +4,10 @@
 
 Sloar Chat Coder는 ChatGPT, Codex 및 Agent Skills를 읽을 수 있는 채팅 기반 개발 환경에서 repository 작업을 더 정확하고 복구 가능하게 만드는 실행 프로토콜이다.
 
-현재 stable: **0.10.3**
+현재 stable: **0.10.4**
 
 <p align="center">
-  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.3-2563eb?style=flat-square" alt="stable 0.10.3"></a>
+  <a href="VERSION"><img src="https://img.shields.io/badge/stable-0.10.4-2563eb?style=flat-square" alt="stable 0.10.4"></a>
   <a href="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml"><img src="https://github.com/hoonex/sloar-chat-coder/actions/workflows/validate.yml/badge.svg?branch=main" alt="Validate Sloar"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-16a34a?style=flat-square" alt="MIT License"></a>
 </p>
@@ -177,6 +177,8 @@ route/page
 
 0.8.0부터 bundled `web-design-guidance`는 사용자가 `glassmorphism`, `neumorphism`, `brutalism` 같은 용어를 몰라도 된다는 전제로 동작한다.
 
+Companion 0.8.1부터는 정보형 UI에서 사용자가 무엇을 알아야 하고 무엇을 해야 하는지를 먼저 판단한다. 좁은 **컨테이너**, 중요한 예외, 현재 상호작용 상태에 따라 표현을 압축하되 상세 접근과 필요한 동시 비교를 보존한다. 시각 검증은 화면 파일 생성, AI의 실제 관찰, 컴포넌트·페이지·제품 맥락 비평, 수정 후 재확인을 구별한다. UI 작업 규모에 맞춰 적용하고 렌더를 확인할 수 없으면 그 범위를 미검증으로 남긴다.
+
 요청이 충분히 명확하면 바로 진행하고, 큰 방향을 잘못 고르면 재작업 비용이 큰 경우에만 필요한 질문을 한다.
 
 질문 개수도 고정하지 않는다.
@@ -225,7 +227,7 @@ Sloar가 설치된 저장소에서 현재 채팅의 첫 Sloar repository 작업�
 → 아무 알림 없이 작업 계속
 
 새 stable 있음
-→ Sloar update available: 0.10.2 -> 0.10.3. Upgrade now?
+→ Sloar update available: 0.10.3 -> 0.10.4. Upgrade now?
 → 사용자가 승인
 → 현재 작업 상태를 보존한 안전한 업그레이드 자동 실행
 
@@ -255,7 +257,7 @@ Wizard에 stable을 명시하려면:
 
 ```bash
 python3 .agents/skills/sloar-chat-coder/scripts/wizard.py . \
-  --stable-version 0.10.3 --json
+  --stable-version 0.10.4 --json
 ```
 
 자세한 계약: [upgrading.md](.agents/skills/sloar-chat-coder/references/upgrading.md)
